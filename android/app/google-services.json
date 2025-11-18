@@ -1,0 +1,90 @@
+{
+  "project_info": {
+    "project_number": "839774020308",
+    "project_id": "seasonbox-f4b24",
+    "storage_bucket": "seasonbox-f4b24.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:839774020308:android:19343197700232d3b6d141",
+        "android_client_info": {
+          "package_name": "com.example.myapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "839774020308-njatk3ugsi9q8ssq7oibs7ops0su7p38.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD9qccu0ew4wWuBX1LeDFlZFYFRPGwTENM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "839774020308-njatk3ugsi9q8ssq7oibs7ops0su7p38.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "839774020308-6h5j1fnh8ifbck2ln7skaskde1rpn2ev.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "io.mos.seasonbox"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:839774020308:android:2d7c824c989a150bb6d141",
+        "android_client_info": {
+          "package_name": "io.mos.seasonbox"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "839774020308-egnr7sl3d0nosa9tlmt5ac7o1jr61rgs.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "io.mos.seasonbox",
+            "certificate_hash": "3ef48c017402e9d2050ed12694ace9a1363646b7"
+          }
+        },
+        {
+          "client_id": "839774020308-njatk3ugsi9q8ssq7oibs7ops0su7p38.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD9qccu0ew4wWuBX1LeDFlZFYFRPGwTENM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "839774020308-njatk3ugsi9q8ssq7oibs7ops0su7p38.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "839774020308-6h5j1fnh8ifbck2ln7skaskde1rpn2ev.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "io.mos.seasonbox"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

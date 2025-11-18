@@ -1,0 +1,22 @@
+{
+    "flutter": {
+        "platforms": {
+            "android": {
+                "default": {
+                    "projectId": "seasonbox-f4b24",
+                    "appId": "1:839774020308:android:2d7c824c989a150bb6d141",
+                    "fileOutput": "android/app/google-services.json"
+                }
+            },
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "seasonbox-f4b24",
+                    "configurations": {
+                        "android": "1:839774020308:android:2d7c824c989a150bb6d141",
+                        "ios": "1:839774020308:ios:8e360473f3ba0dbeb6d141"
+                    }
+                }
+            }
+        }
+    }
+}
