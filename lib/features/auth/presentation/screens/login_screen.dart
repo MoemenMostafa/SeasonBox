@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:myapp/src/auth/data/auth_service.dart';
-import 'package:myapp/src/theme/theme.dart';
+import 'package:myapp/features/auth/data/auth_service.dart';
+import 'package:myapp/app/theme/theme.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,7 +15,6 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  late final Animation<double> _animation;
 
   @override
   void initState() {
@@ -24,10 +23,6 @@ class _LoginScreenState extends State<LoginScreen>
       duration: const Duration(seconds: 3),
       vsync: this,
     )..repeat(reverse: true);
-
-    _animation = Tween<double>(begin: -10.0, end: 10.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
   }
 
   @override
@@ -287,7 +282,6 @@ class AnimatedBackgroundIcon extends StatefulWidget {
 class _AnimatedBackgroundIconState extends State<AnimatedBackgroundIcon>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  late final Animation<double> _animation;
 
   @override
   void initState() {
@@ -296,10 +290,6 @@ class _AnimatedBackgroundIconState extends State<AnimatedBackgroundIcon>
       duration: Duration(seconds: widget.duration),
       vsync: this,
     )..repeat(reverse: true);
-
-    _animation = Tween<double>(begin: -15.0, end: 15.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
   }
 
   @override
@@ -311,10 +301,16 @@ class _AnimatedBackgroundIconState extends State<AnimatedBackgroundIcon>
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: _animation,
+      animation: _controller,
       builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(0, _animation.value),
+        final offset = Tween<Offset>(
+                begin: const Offset(0, -0.1), end: const Offset(0, 0.1))
+            .animate(CurvedAnimation(
+          parent: _controller,
+          curve: Curves.easeInOut,
+        ));
+        return SlideTransition(
+          position: offset,
           child: child,
         );
       },

@@ -30,7 +30,6 @@ class AuthService {
       return userCredential.user;
     } catch (e) {
       // Handle specific errors if needed
-      print('Error during Google sign-in: $e');
       return null;
     }
   }
@@ -40,7 +39,7 @@ class AuthService {
       await _googleSignIn.signOut();
       await _auth.signOut();
     } catch (e) {
-      print('Error signing out: $e');
+      // Ignore error
     }
   }
 }

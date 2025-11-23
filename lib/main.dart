@@ -2,9 +2,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:myapp/firebase_options.dart';
-import 'package:myapp/src/auth/data/auth_service.dart';
-import 'package:myapp/src/navigation/router.dart';
-import 'package:myapp/src/theme/theme.dart';
+import 'package:myapp/features/auth/data/auth_service.dart';
+import 'package:myapp/app/routes/router.dart';
+import 'package:myapp/app/theme/theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
