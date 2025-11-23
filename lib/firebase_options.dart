@@ -17,10 +17,7 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -64,5 +61,14 @@ class DefaultFirebaseOptions {
     projectId: 'seasonbox-f4b24',
     storageBucket: 'seasonbox-f4b24.firebasestorage.app',
     iosBundleId: 'io.mos.seasonbox',
+  );
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyD9qccu0ew4wWuBX1LeDFlZFYFRPGwTENM',
+    appId: '1:839774020308:web:a6d9f7c8e9b0c1d2e3f4g5',
+    messagingSenderId: '839774020308',
+    projectId: 'seasonbox-f4b24',
+    authDomain: 'seasonbox-f4b24.firebaseapp.com',
+    storageBucket: 'seasonbox-f4b24.firebasestorage.app',
   );
 }
