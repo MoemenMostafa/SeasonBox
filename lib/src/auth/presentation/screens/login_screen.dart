@@ -123,20 +123,6 @@ class _LoginScreenState extends State<LoginScreen>
                   Stack(
                     alignment: Alignment.center,
                     children: [
-                      AnimatedBuilder(
-                        animation: _animation,
-                        builder: (context, child) {
-                          return Transform.translate(
-                            offset: Offset(0, _animation.value),
-                            child: child,
-                          );
-                        },
-                        child: Icon(
-                          Icons.checkroom_rounded,
-                          size: 100,
-                          color: Colors.white.withValues(alpha: 0.1),
-                        ),
-                      ),
                       Column(
                         children: [
                           Text(
