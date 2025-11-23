@@ -259,6 +259,8 @@ lib/
 * Google Auth integration
 * App theme + routing
 * Local DB setup (Drift)
+* Main screen
+* Profile screen
 
 ## Sprint 2 — Core Data
 

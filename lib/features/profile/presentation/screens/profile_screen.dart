@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:package_info_plus/package_info_plus.dart';
+
 import 'package:myapp/widgets/season_box_app_bar.dart';
+import 'package:myapp/widgets/app_footer.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -10,19 +11,13 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  String _version = '';
+  bool _notificationsEnabled = true;
+  bool _seasonalRemindersEnabled = true;
+  bool _autoSyncEnabled = true;
 
   @override
   void initState() {
     super.initState();
-    _initPackageInfo();
-  }
-
-  Future<void> _initPackageInfo() async {
-    final info = await PackageInfo.fromPlatform();
-    setState(() {
-      _version = info.version;
-    });
   }
 
   @override
@@ -53,7 +48,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 24),
               _buildSupport(context),
               const SizedBox(height: 32),
-              _buildFooter(context),
+              AppFooter(
+                onSignOut: () {
+                  // Handle sign out
+                },
+              ),
               const SizedBox(height: 32),
             ],
           ),
@@ -82,8 +81,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               const CircleAvatar(
                 radius: 35,
-                backgroundImage: NetworkImage(
-                    'https://i.pravatar.cc/300?u=sarah'), // Placeholder
+                backgroundImage: AssetImage(
+                    'assets/images/avatar_placeholder.png'), // Placeholder
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -193,8 +192,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           iconBgColor: Colors.purple.shade50,
           title: 'Notifications',
           subtitle: 'Reminders & alerts',
-          value: true,
-          onChanged: (val) {},
+          value: _notificationsEnabled,
+          onChanged: (val) {
+            setState(() {
+              _notificationsEnabled = val;
+            });
+          },
         ),
         const SizedBox(height: 12),
         _buildToggleTile(
@@ -204,8 +207,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           iconBgColor: Colors.orange.shade50,
           title: 'Seasonal Reminders',
           subtitle: 'Auto season alerts',
-          value: true,
-          onChanged: (val) {},
+          value: _seasonalRemindersEnabled,
+          onChanged: (val) {
+            setState(() {
+              _seasonalRemindersEnabled = val;
+            });
+          },
         ),
         const SizedBox(height: 12),
         _buildToggleTile(
@@ -215,8 +222,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           iconBgColor: Colors.red.shade50,
           title: 'Auto Sync',
           subtitle: 'Cloud synchronization',
-          value: true,
-          onChanged: (val) {},
+          value: _autoSyncEnabled,
+          onChanged: (val) {
+            setState(() {
+              _autoSyncEnabled = val;
+            });
+          },
         ),
       ],
     );
@@ -295,51 +306,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           onTap: () {},
         ),
       ],
-    );
-  }
-
-  Widget _buildFooter(BuildContext context) {
-    return Center(
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.purple.shade50,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(Icons.inventory_2, color: Colors.purple.shade700),
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'SeasonBox',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          ),
-          Text(
-            'Version $_version',
-            style: const TextStyle(
-              color: Colors.grey,
-              fontSize: 12,
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextButton(
-            onPressed: () {
-              // Handle sign out
-            },
-            child: const Text(
-              'Sign Out',
-              style: TextStyle(
-                color: Colors.red,
-                fontSize: 16,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 

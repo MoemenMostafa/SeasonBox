@@ -80,6 +80,7 @@ class HomeScreen extends StatelessWidget {
             label: 'Total Items',
             color: Colors.purple.shade100,
             iconColor: Colors.purple,
+            onTap: () {},
           ),
         ),
         const SizedBox(width: 16),
@@ -91,6 +92,7 @@ class HomeScreen extends StatelessWidget {
             label: 'Children',
             color: Colors.teal.shade100,
             iconColor: Colors.teal,
+            onTap: () {},
           ),
         ),
       ],
@@ -102,53 +104,59 @@ class HomeScreen extends StatelessWidget {
       required String count,
       required String label,
       required Color color,
-      required Color iconColor}) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color,
+      required Color iconColor,
+      required VoidCallback onTap}) {
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).cardTheme.color,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        side: BorderSide(
+          color: Colors.grey.withValues(alpha: 0.1),
+          width: 1,
+        ),
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? iconColor.withValues(alpha: 0.2)
-                  : color,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: iconColor),
-          ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      margin: EdgeInsets.zero,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
             children: [
-              Text(
-                count,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? iconColor.withValues(alpha: 0.2)
+                      : color,
+                  borderRadius: BorderRadius.circular(12),
                 ),
+                child: Icon(icon, color: iconColor),
               ),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.grey,
-                  fontSize: 12,
-                ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    count,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -182,6 +190,7 @@ class HomeScreen extends StatelessWidget {
             label: 'Add Item',
             color: Colors.purple.shade50,
             iconColor: Colors.purple,
+            onTap: () {},
           ),
         ),
         const SizedBox(width: 16),
@@ -192,6 +201,7 @@ class HomeScreen extends StatelessWidget {
             label: 'Scan QR',
             color: Colors.teal.shade50,
             iconColor: Colors.teal,
+            onTap: () {},
           ),
         ),
       ],
@@ -202,41 +212,47 @@ class HomeScreen extends StatelessWidget {
       {required IconData icon,
       required String label,
       required Color color,
-      required Color iconColor}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 24),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color,
+      required Color iconColor,
+      required VoidCallback onTap}) {
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).cardTheme.color,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        side: BorderSide(
+          color: Colors.grey.withValues(alpha: 0.1),
+          width: 1,
+        ),
       ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? iconColor.withValues(alpha: 0.2)
-                  : color,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(icon, color: iconColor, size: 32),
+      margin: EdgeInsets.zero,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? iconColor.withValues(alpha: 0.2)
+                      : color,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(icon, color: iconColor, size: 32),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            label,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -263,59 +279,66 @@ class HomeScreen extends StatelessWidget {
     return Column(
       children: [
         _buildChildCard(context, 'Emma', 'Age 8 • Size 10', '42 items',
-            'Winter ready', Colors.purple),
+            'Winter ready', Colors.purple, () {}),
         const SizedBox(height: 12),
         _buildChildCard(context, 'Alex', 'Age 5 • Size 6', '38 items',
-            'Size check needed', Colors.orange),
+            'Size check needed', Colors.orange, () {}),
       ],
     );
   }
 
   Widget _buildChildCard(BuildContext context, String name, String details,
-      String itemCount, String status, Color statusColor) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color,
+      String itemCount, String status, Color statusColor, VoidCallback onTap) {
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).cardTheme.color,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        side: BorderSide(
+          color: Colors.grey.withValues(alpha: 0.1),
+          width: 1,
+        ),
       ),
-      child: Row(
-        children: [
-          const CircleAvatar(
-            radius: 24,
-            backgroundImage:
-                NetworkImage('https://i.pravatar.cc/150?u=emma'), // Placeholder
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(name,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 16)),
-                Text(details,
-                    style: const TextStyle(color: Colors.grey, fontSize: 12)),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+      margin: EdgeInsets.zero,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
             children: [
-              Text(itemCount,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.purple)),
-              Text(status, style: TextStyle(color: statusColor, fontSize: 12)),
+              const CircleAvatar(
+                radius: 24,
+                backgroundImage: AssetImage(
+                    'assets/images/avatar_placeholder.png'), // Placeholder
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(name,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text(details,
+                        style:
+                            const TextStyle(color: Colors.grey, fontSize: 12)),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(itemCount,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.purple)),
+                  Text(status,
+                      style: TextStyle(color: statusColor, fontSize: 12)),
+                ],
+              ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -324,62 +347,76 @@ class HomeScreen extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-            child: _buildItemCard(context, 'Winter Jacket', 'Size 10 • Emma',
-                'Box A3', 'https://placehold.co/200x200/png?text=Jacket')),
+            child: _buildItemCard(
+                context,
+                'Winter Jacket',
+                'Size 10 • Emma',
+                'Box A3',
+                'https://placehold.co/200x200/png?text=Jacket',
+                () {})),
         const SizedBox(width: 16),
         Expanded(
-            child: _buildItemCard(context, 'Snow Boots', 'Size 6 • Alex',
-                'Closet B', 'https://placehold.co/200x200/png?text=Boots')),
+            child: _buildItemCard(
+                context,
+                'Snow Boots',
+                'Size 6 • Alex',
+                'Closet B',
+                'https://placehold.co/200x200/png?text=Boots',
+                () {})),
       ],
     );
   }
 
   Widget _buildItemCard(BuildContext context, String title, String details,
-      String location, String imageUrl) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color,
+      String location, String imageUrl, VoidCallback onTap) {
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).cardTheme.color,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        side: BorderSide(
+          color: Colors.grey.withValues(alpha: 0.1),
+          width: 1,
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            child: Image.network(
-              imageUrl,
-              height: 120,
-              width: double.infinity,
-              fit: BoxFit.cover,
+      margin: EdgeInsets.zero,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(16)),
+              child: Image.network(
+                imageUrl,
+                height: 120,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 16)),
-                Text(details,
-                    style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                const SizedBox(height: 4),
-                Text(location,
-                    style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500)),
-              ],
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(details,
+                      style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                  const SizedBox(height: 4),
+                  Text(location,
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500)),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -450,56 +487,62 @@ class HomeScreen extends StatelessWidget {
     return Column(
       children: [
         _buildStorageCard(context, 'Basement Storage', '12 boxes • 156 items',
-            Icons.inventory),
+            Icons.inventory, () {}),
         const SizedBox(height: 12),
         _buildStorageCard(context, "Kids' Closets", '3 closets • 91 items',
-            Icons.door_sliding),
+            Icons.door_sliding, () {}),
       ],
     );
   }
 
-  Widget _buildStorageCard(
-      BuildContext context, String title, String details, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color,
+  Widget _buildStorageCard(BuildContext context, String title, String details,
+      IconData icon, VoidCallback onTap) {
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).cardTheme.color,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        side: BorderSide(
+          color: Colors.grey.withValues(alpha: 0.1),
+          width: 1,
+        ),
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.blue.withValues(alpha: 0.2)
-                  : Colors.blue.shade50,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: Colors.blue),
+      margin: EdgeInsets.zero,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.blue.withValues(alpha: 0.2)
+                      : Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: Colors.blue),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text(details,
+                        style:
+                            const TextStyle(color: Colors.grey, fontSize: 12)),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right, color: Colors.grey),
+            ],
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 16)),
-                Text(details,
-                    style: const TextStyle(color: Colors.grey, fontSize: 12)),
-              ],
-            ),
-          ),
-          const Icon(Icons.chevron_right, color: Colors.grey),
-        ],
+        ),
       ),
     );
   }

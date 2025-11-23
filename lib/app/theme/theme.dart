@@ -33,8 +33,9 @@ class AppTheme {
       elevation: 0,
       iconTheme: IconThemeData(color: Colors.white),
     ),
+    cardColor: Colors.grey.withValues(alpha: 0.1),
     cardTheme: CardThemeData(
-      color: const Color(0xFF1E1E1E), // Slightly lighter than background
+      color: Colors.grey.withValues(alpha: 0.1),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     ),
