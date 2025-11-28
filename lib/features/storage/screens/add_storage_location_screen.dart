@@ -252,6 +252,9 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
 
   Widget _buildTypeCard(String type, IconData icon, String label) {
     final isSelected = _selectedType == type;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => _selectedType = type),
@@ -259,22 +262,35 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
           margin: const EdgeInsets.symmetric(horizontal: 4),
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            color: isSelected ? Colors.blue.shade50 : Colors.white,
+            color: isSelected
+                ? (isDark
+                    ? Colors.blue.withValues(alpha: 0.2)
+                    : Colors.blue.shade50)
+                : (isDark ? theme.cardColor : Colors.white),
             border: Border.all(
-              color: isSelected ? Colors.blue : Colors.grey.shade300,
-              width: 2,
+              color: isSelected
+                  ? Colors.blue
+                  : (isDark
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : Colors.grey.shade300),
+              width: isSelected ? 2 : 1,
             ),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
             children: [
               Icon(icon,
-                  color: isSelected ? Colors.blue : Colors.grey, size: 32),
+                  color: isSelected
+                      ? Colors.blue
+                      : (isDark ? Colors.grey.shade400 : Colors.grey),
+                  size: 32),
               const SizedBox(height: 8),
               Text(
                 label,
                 style: TextStyle(
-                  color: isSelected ? Colors.blue : Colors.grey.shade700,
+                  color: isSelected
+                      ? Colors.blue
+                      : (isDark ? Colors.grey.shade300 : Colors.grey.shade700),
                   fontWeight: FontWeight.bold,
                 ),
               ),
