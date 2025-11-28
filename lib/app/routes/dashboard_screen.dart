@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:myapp/features/home/presentation/screens/home_screen.dart';
 import 'package:myapp/features/profile/presentation/screens/profile_screen.dart';
+import 'package:myapp/features/items/screens/items_screen.dart';
+import 'package:myapp/features/children/screens/children_screen.dart';
+import 'package:myapp/features/storage/screens/storage_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -14,9 +17,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   static const List<Widget> _pages = <Widget>[
     HomeScreen(),
-    Center(child: Text('Items')),
-    Center(child: Text('Children')),
-    Center(child: Text('Storage')),
+    ItemsScreen(),
+    ChildrenScreen(),
+    StorageScreen(),
     ProfileScreen(),
   ];
 

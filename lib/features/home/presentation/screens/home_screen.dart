@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:myapp/widgets/season_box_app_bar.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -80,7 +81,7 @@ class HomeScreen extends StatelessWidget {
             label: 'Total Items',
             color: Colors.purple.shade100,
             iconColor: Colors.purple,
-            onTap: () {},
+            onTap: () => context.push('/items'),
           ),
         ),
         const SizedBox(width: 16),
@@ -92,7 +93,7 @@ class HomeScreen extends StatelessWidget {
             label: 'Children',
             color: Colors.teal.shade100,
             iconColor: Colors.teal,
-            onTap: () {},
+            onTap: () => context.push('/children'),
           ),
         ),
       ],
@@ -190,7 +191,7 @@ class HomeScreen extends StatelessWidget {
             label: 'Add Item',
             color: Colors.purple.shade50,
             iconColor: Colors.purple,
-            onTap: () {},
+            onTap: () => context.push('/add-item'),
           ),
         ),
         const SizedBox(width: 16),
@@ -201,7 +202,7 @@ class HomeScreen extends StatelessWidget {
             label: 'Scan QR',
             color: Colors.teal.shade50,
             iconColor: Colors.teal,
-            onTap: () {},
+            onTap: () {}, // TODO: QR Scanner
           ),
         ),
       ],
@@ -279,10 +280,16 @@ class HomeScreen extends StatelessWidget {
     return Column(
       children: [
         _buildChildCard(context, 'Emma', 'Age 8 • Size 10', '42 items',
-            'Winter ready', Colors.purple, () {}),
+            'Winter ready', Colors.purple, () => context.push('/children')),
         const SizedBox(height: 12),
-        _buildChildCard(context, 'Alex', 'Age 5 • Size 6', '38 items',
-            'Size check needed', Colors.orange, () {}),
+        _buildChildCard(
+            context,
+            'Alex',
+            'Age 5 • Size 6',
+            '38 items',
+            'Size check needed',
+            Colors.orange,
+            () => context.push('/children')),
       ],
     );
   }
@@ -353,7 +360,7 @@ class HomeScreen extends StatelessWidget {
                 'Size 10 • Emma',
                 'Box A3',
                 'https://placehold.co/200x200/png?text=Jacket',
-                () {})),
+                () => context.push('/items'))),
         const SizedBox(width: 16),
         Expanded(
             child: _buildItemCard(
@@ -362,7 +369,7 @@ class HomeScreen extends StatelessWidget {
                 'Size 6 • Alex',
                 'Closet B',
                 'https://placehold.co/200x200/png?text=Boots',
-                () {})),
+                () => context.push('/items'))),
       ],
     );
   }
@@ -487,10 +494,10 @@ class HomeScreen extends StatelessWidget {
     return Column(
       children: [
         _buildStorageCard(context, 'Basement Storage', '12 boxes • 156 items',
-            Icons.inventory, () {}),
+            Icons.inventory, () => context.push('/storage')),
         const SizedBox(height: 12),
         _buildStorageCard(context, "Kids' Closets", '3 closets • 91 items',
-            Icons.door_sliding, () {}),
+            Icons.door_sliding, () => context.push('/storage')),
       ],
     );
   }

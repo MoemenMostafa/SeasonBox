@@ -16,11 +16,15 @@ class SeasonBoxAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return AppBar(
       flexibleSpace: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF8E2DE2), Color(0xFF4A00E0)],
+            colors: [
+              colorScheme.primary, // Use primary for the lighter purple
+              colorScheme.tertiary, // Use tertiary for the darker purple
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
