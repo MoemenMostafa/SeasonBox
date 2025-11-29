@@ -9,7 +9,7 @@ import 'package:myapp/app/routes/router.dart';
 import 'package:myapp/app/theme/theme.dart';
 import 'package:myapp/data/services/firestore_service.dart';
 import 'package:myapp/data/repositories/family_repository.dart';
-import 'package:myapp/data/repositories/child_repository.dart';
+import 'package:myapp/data/repositories/family_member_repository.dart';
 import 'package:myapp/data/repositories/item_repository.dart';
 import 'package:myapp/data/repositories/storage_location_repository.dart';
 
@@ -32,9 +32,9 @@ class MyApp extends StatelessWidget {
           update: (_, firestoreService, __) =>
               FamilyRepository(firestoreService),
         ),
-        ProxyProvider<FirestoreService, ChildRepository>(
+        ProxyProvider<FirestoreService, FamilyMemberRepository>(
           update: (_, firestoreService, __) =>
-              ChildRepository(firestoreService),
+              FamilyMemberRepository(firestoreService),
         ),
         ProxyProvider<FirestoreService, ItemRepository>(
           update: (_, firestoreService, __) => ItemRepository(firestoreService),

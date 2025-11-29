@@ -22,6 +22,7 @@ class UserService {
       'uid': firebaseUser.uid,
       'email': firebaseUser.email,
       'displayName': firebaseUser.displayName,
+      'familyId': firebaseUser.uid, // User's own family by default
     }, SetOptions(merge: true));
 
     // Ensure a family exists for this user.

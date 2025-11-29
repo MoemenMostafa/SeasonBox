@@ -12,8 +12,8 @@ class FirestoreService {
   CollectionReference get users => _firestore.collection('users');
 
   // Sub‑collections scoped to a family
-  CollectionReference children(String familyId) =>
-      families.doc(familyId).collection('children');
+  CollectionReference familyMembers(String familyId) =>
+      families.doc(familyId).collection('members');
 
   CollectionReference items(String familyId) =>
       families.doc(familyId).collection('items');

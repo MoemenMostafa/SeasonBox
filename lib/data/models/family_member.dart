@@ -1,4 +1,6 @@
-class Child {
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class FamilyMember {
   final String id;
   final String familyId;
   final String name;
@@ -7,7 +9,7 @@ class Child {
   final Map<String, double> currentSizeByCategory;
   final List<Map<String, dynamic>> sizeHistory;
 
-  Child({
+  FamilyMember({
     required this.id,
     required this.familyId,
     required this.name,
@@ -19,24 +21,22 @@ class Child {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
       'familyId': familyId,
       'name': name,
-      'birthdate': birthdate.toIso8601String(),
+      'birthdate': Timestamp.fromDate(birthdate),
       'gender': gender,
       'currentSizeByCategory': currentSizeByCategory,
       'sizeHistory': sizeHistory,
     };
   }
 
-  factory Child.fromMap(Map<String, dynamic> map) {
-    return Child(
-      id: map['id'] ?? '',
+  factory FamilyMember.fromMap(Map<String, dynamic> map, String id) {
+    return FamilyMember(
+      id: id,
       familyId: map['familyId'] ?? '',
       name: map['name'] ?? '',
-      birthdate:
-          DateTime.parse(map['birthdate'] ?? DateTime.now().toIso8601String()),
-      gender: map['gender'] ?? '',
+      birthdate: (map['birthdate'] as Timestamp).toDate(),
+      gender: map['gender'] ?? 'Unisex',
       currentSizeByCategory:
           Map<String, double>.from(map['currentSizeByCategory'] ?? {}),
       sizeHistory: List<Map<String, dynamic>>.from(map['sizeHistory'] ?? []),

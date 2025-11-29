@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import '../../../data/models/storage_location.dart';
 import '../../../data/repositories/storage_location_repository.dart';
+import '../../../features/auth/data/auth_service.dart';
 import '../../../widgets/season_box_app_bar.dart';
 
 class AddStorageLocationScreen extends StatefulWidget {
@@ -35,7 +36,11 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
 
   Future<void> _loadParents() async {
     try {
-      const familyId = 'test-family-id';
+      final familyId =
+          await context.read<AuthService>().getCurrentUserFamilyId();
+      if (familyId == null) {
+        throw Exception('User not authenticated');
+      }
       final locations = await context
           .read<StorageLocationRepository>()
           .getLocations(familyId);
@@ -67,7 +72,11 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
     });
 
     try {
-      const familyId = 'test-family-id';
+      final familyId =
+          await context.read<AuthService>().getCurrentUserFamilyId();
+      if (familyId == null) {
+        throw Exception('User not authenticated');
+      }
       final id = const Uuid().v4();
 
       final location = StorageLocation(

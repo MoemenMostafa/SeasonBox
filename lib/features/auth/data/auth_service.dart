@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:flutter/foundation.dart';
 
@@ -11,7 +12,43 @@ class AuthService {
         : null,
   );
 
+  String? _cachedFamilyId;
+
   Stream<User?> get authStateChanges => _auth.authStateChanges();
+
+  User? get currentUser => _auth.currentUser;
+
+  /// Gets the family ID for the current user from Firestore.
+  /// Returns null if user is not authenticated.
+  /// Caches the result to avoid repeated Firestore calls.
+  Future<String?> getCurrentUserFamilyId() async {
+    final user = currentUser;
+    if (user == null) return null;
+
+    // Return cached value if available
+    if (_cachedFamilyId != null) return _cachedFamilyId;
+
+    try {
+      // Fetch user document from Firestore
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (userDoc.exists) {
+        final data = userDoc.data();
+        _cachedFamilyId = data?['familyId'] ?? user.uid;
+      } else {
+        // Fallback to uid if user document doesn't exist
+        _cachedFamilyId = user.uid;
+      }
+
+      return _cachedFamilyId;
+    } catch (e) {
+      // On error, fallback to uid
+      return user.uid;
+    }
+  }
 
   Future<User?> signInWithGoogle() async {
     try {
@@ -36,6 +73,7 @@ class AuthService {
 
   Future<void> signOut() async {
     try {
+      _cachedFamilyId = null; // Clear cache on sign out
       await _googleSignIn.signOut();
       await _auth.signOut();
     } catch (e) {

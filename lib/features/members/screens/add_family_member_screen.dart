@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:uuid/uuid.dart';
-import '../../../data/models/child.dart';
-import '../../../data/repositories/child_repository.dart';
+import '../../../data/models/family_member.dart';
+import '../../../data/repositories/family_member_repository.dart';
+import '../../../features/auth/data/auth_service.dart';
+import '../../../utils/uid_generator.dart';
 import '../../../widgets/season_box_app_bar.dart';
 
-class AddChildScreen extends StatefulWidget {
-  const AddChildScreen({super.key});
+class AddFamilyMemberScreen extends StatefulWidget {
+  const AddFamilyMemberScreen({super.key});
 
   @override
-  State<AddChildScreen> createState() => _AddChildScreenState();
+  State<AddFamilyMemberScreen> createState() => _AddFamilyMemberScreenState();
 }
 
-class _AddChildScreenState extends State<AddChildScreen> {
+class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _notesController = TextEditingController();
@@ -34,7 +35,7 @@ class _AddChildScreenState extends State<AddChildScreen> {
     super.dispose();
   }
 
-  Future<void> _saveChild() async {
+  Future<void> _saveMember() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
@@ -42,11 +43,14 @@ class _AddChildScreenState extends State<AddChildScreen> {
     });
 
     try {
-      // TODO: Get actual family ID from auth/user context
-      const familyId = 'test-family-id';
-      final id = const Uuid().v4();
+      final familyId =
+          await context.read<AuthService>().getCurrentUserFamilyId();
+      if (familyId == null) {
+        throw Exception('User not authenticated');
+      }
+      final id = UidGenerator.generate();
 
-      final child = Child(
+      final member = FamilyMember(
         id: id,
         familyId: familyId,
         name: _nameController.text.trim(),
@@ -59,18 +63,18 @@ class _AddChildScreenState extends State<AddChildScreen> {
         sizeHistory: [], // Initial empty history
       );
 
-      await context.read<ChildRepository>().addChild(child);
+      await context.read<FamilyMemberRepository>().addFamilyMember(member);
 
       if (mounted) {
         context.pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Child added successfully')),
+          const SnackBar(content: Text('Family member added successfully')),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error adding child: $e')),
+          SnackBar(content: Text('Error adding member: $e')),
         );
       }
     } finally {
@@ -101,7 +105,7 @@ class _AddChildScreenState extends State<AddChildScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: const SeasonBoxAppBar(
-        title: 'Add Child',
+        title: 'Add Family Member',
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -116,7 +120,7 @@ class _AddChildScreenState extends State<AddChildScreen> {
                     TextFormField(
                       controller: _nameController,
                       decoration: const InputDecoration(
-                        labelText: 'Child Name',
+                        labelText: 'Member Name',
                         border: OutlineInputBorder(),
                       ),
                       validator: (value) {
@@ -213,13 +217,13 @@ class _AddChildScreenState extends State<AddChildScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _saveChild,
+                        onPressed: _saveMember,
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           backgroundColor: Colors.deepPurple,
                           foregroundColor: Colors.white,
                         ),
-                        child: const Text('Add Child'),
+                        child: const Text('Add Family Member'),
                       ),
                     ),
                   ],

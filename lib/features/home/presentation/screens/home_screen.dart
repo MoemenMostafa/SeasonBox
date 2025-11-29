@@ -3,12 +3,13 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:myapp/widgets/season_box_app_bar.dart';
 import 'package:myapp/widgets/app_card.dart';
-import 'package:myapp/data/models/child.dart';
+import 'package:myapp/data/models/family_member.dart';
 import 'package:myapp/data/models/item.dart';
 import 'package:myapp/data/models/storage_location.dart';
-import 'package:myapp/data/repositories/child_repository.dart';
+import 'package:myapp/data/repositories/family_member_repository.dart';
 import 'package:myapp/data/repositories/item_repository.dart';
 import 'package:myapp/data/repositories/storage_location_repository.dart';
+import 'package:myapp/features/auth/data/auth_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,7 +19,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<Child> _children = [];
+  List<FamilyMember> _members = [];
   List<Item> _items = [];
   List<StorageLocation> _locations = [];
   bool _isLoading = true;
@@ -31,12 +32,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadData() async {
     try {
-      const familyId = 'test-family-id';
+      final familyId =
+          await context.read<AuthService>().getCurrentUserFamilyId();
+      if (familyId == null) {
+        throw Exception('User not authenticated');
+      }
 
-      final children = await context
-          .read<ChildRepository>()
-          .getChildren(familyId)
+      print('HomeScreen: Loading data for familyId: $familyId');
+
+      final members = await context
+          .read<FamilyMemberRepository>()
+          .getFamilyMembers(familyId)
           .timeout(const Duration(seconds: 5));
+
+      print('HomeScreen: Loaded ${members.length} members');
 
       if (!mounted) return;
 
@@ -54,13 +63,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
       if (mounted) {
         setState(() {
-          _children = children;
+          _members = members;
           _items = items;
           _locations = locations;
           _isLoading = false;
         });
       }
     } catch (e) {
+      print('HomeScreen: Error loading data: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -106,12 +116,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       _buildQuickActions(context),
                       const SizedBox(height: 24),
 
-                      // Children
-                      if (_children.isNotEmpty) ...[
-                        _buildSectionHeader(context, 'Children',
-                            () => context.push('/children')),
+                      // Family Members
+                      if (_members.isNotEmpty) ...[
+                        _buildSectionHeader(context, 'Family Members',
+                            () => context.push('/members')),
                         const SizedBox(height: 16),
-                        _buildChildrenList(context),
+                        _buildFamilyMembersList(context),
                         const SizedBox(height: 24),
                       ],
 
@@ -169,11 +179,11 @@ class _HomeScreenState extends State<HomeScreen> {
           child: _buildStatCard(
             context,
             icon: Icons.people,
-            count: '${_children.length}',
-            label: 'Children',
+            count: '${_members.length}',
+            label: 'Members',
             color: Colors.teal.shade100,
             iconColor: Colors.teal,
-            onTap: () => context.push('/children'),
+            onTap: () => context.push('/members'),
           ),
         ),
       ],
@@ -242,6 +252,44 @@ class _HomeScreenState extends State<HomeScreen> {
             ? Colors.grey.shade800
             : Colors.grey.shade100,
         contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+      ),
+    );
+  }
+
+  Widget _buildFamilyMembersList(BuildContext context) {
+    return SizedBox(
+      height: 120,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: _members.length,
+        itemBuilder: (context, index) {
+          final member = _members[index];
+          // Calculate age from birthdate
+          final age = DateTime.now().difference(member.birthdate).inDays ~/ 365;
+
+          // Get size (use first available category or 'N/A')
+          final size = member.currentSizeByCategory.isNotEmpty
+              ? member.currentSizeByCategory.values.first.toString()
+              : 'N/A';
+
+          // Calculate item count for this member (placeholder for now)
+          final itemCount =
+              _items.where((item) => item.title.contains(member.name)).length;
+
+          return Padding(
+            padding:
+                EdgeInsets.only(right: index == _members.length - 1 ? 0 : 12),
+            child: _buildMemberCard(
+              context,
+              member.name,
+              'Age $age • Size $size',
+              '$itemCount items',
+              'Active',
+              Colors.purple,
+              () => context.push('/members'),
+            ),
+          );
+        },
       ),
     );
   }
@@ -326,41 +374,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildChildrenList(BuildContext context) {
-    // Show first 2 children
-    final displayChildren = _children.take(2).toList();
-
-    return Column(
-      children: displayChildren.map((child) {
-        // Calculate age from birthdate
-        final age = DateTime.now().difference(child.birthdate).inDays ~/ 365;
-
-        // Get size (use first available category or 'N/A')
-        final size = child.currentSizeByCategory.isNotEmpty
-            ? child.currentSizeByCategory.values.first.toString()
-            : 'N/A';
-
-        // Calculate item count for this child (placeholder for now)
-        final itemCount =
-            _items.where((item) => item.title.contains(child.name)).length;
-
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: _buildChildCard(
-            context,
-            child.name,
-            'Age $age • Size $size',
-            '$itemCount items',
-            'Active',
-            Colors.purple,
-            () => context.push('/children'),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildChildCard(BuildContext context, String name, String details,
+  Widget _buildMemberCard(BuildContext context, String name, String details,
       String itemCount, String status, Color statusColor, VoidCallback onTap) {
     return AppCard(
       padding: const EdgeInsets.all(12),

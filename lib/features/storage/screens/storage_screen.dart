@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../data/models/storage_location.dart';
 import '../../../data/repositories/storage_location_repository.dart';
+import '../../../features/auth/data/auth_service.dart';
 import '../../../widgets/season_box_app_bar.dart';
 import '../../../widgets/app_card.dart';
 import '../../../widgets/season_box_add_button.dart';
@@ -37,7 +38,11 @@ class _StorageScreenState extends State<StorageScreen> {
 
   Future<void> _loadLocations() async {
     try {
-      const familyId = 'test-family-id';
+      final familyId =
+          await context.read<AuthService>().getCurrentUserFamilyId();
+      if (familyId == null) {
+        throw Exception('User not authenticated');
+      }
       final locations = await context
           .read<StorageLocationRepository>()
           .getLocations(familyId)
@@ -130,7 +135,7 @@ class _StorageScreenState extends State<StorageScreen> {
             ),
       floatingActionButton: SeasonBoxAddButton(
         onPressed: () =>
-            context.push('/add-location').then((_) => _loadLocations()),
+            context.push('/add-storage-location').then((_) => _loadLocations()),
       ),
     );
   }

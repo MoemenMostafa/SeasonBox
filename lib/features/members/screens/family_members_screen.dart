@@ -1,40 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import '../../../data/models/child.dart';
+import '../../../data/models/family_member.dart';
 import '../../../data/models/item.dart';
-import '../../../data/repositories/child_repository.dart';
+import '../../../data/repositories/family_member_repository.dart';
 import '../../../data/repositories/item_repository.dart';
+import '../../../features/auth/data/auth_service.dart';
 import '../../../widgets/season_box_app_bar.dart';
 import '../../../widgets/season_box_add_button.dart';
 import '../../../widgets/app_card.dart';
 import '../../../widgets/skeleton_container.dart';
 
-class ChildrenScreen extends StatefulWidget {
-  const ChildrenScreen({super.key});
+class FamilyMembersScreen extends StatefulWidget {
+  const FamilyMembersScreen({super.key});
 
   @override
-  State<ChildrenScreen> createState() => _ChildrenScreenState();
+  State<FamilyMembersScreen> createState() => _FamilyMembersScreenState();
 }
 
-class _ChildrenScreenState extends State<ChildrenScreen> {
-  List<Child> _children = [];
+class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
+  List<FamilyMember> _members = [];
   List<Item> _items = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadChildren();
+    _loadMembers();
   }
 
-  Future<void> _loadChildren() async {
+  Future<void> _loadMembers() async {
     try {
-      const familyId = 'test-family-id';
+      final familyId =
+          await context.read<AuthService>().getCurrentUserFamilyId();
+      if (familyId == null) {
+        throw Exception('User not authenticated');
+      }
 
-      final children = await context
-          .read<ChildRepository>()
-          .getChildren(familyId)
+      final members = await context
+          .read<FamilyMemberRepository>()
+          .getFamilyMembers(familyId)
           .timeout(const Duration(seconds: 5));
 
       if (!mounted) return;
@@ -46,7 +51,7 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
 
       if (mounted) {
         setState(() {
-          _children = children;
+          _members = members;
           _items = items;
           _isLoading = false;
         });
@@ -54,7 +59,7 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _children = [];
+          _members = [];
           _items = [];
           _isLoading = false;
         });
@@ -75,15 +80,15 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
     return age;
   }
 
-  Widget _buildChildCard(Child child, ThemeData theme) {
-    final age = _calculateAge(child.birthdate);
+  Widget _buildMemberCard(FamilyMember member, ThemeData theme) {
+    final age = _calculateAge(member.birthdate);
     final isDark = theme.brightness == Brightness.dark;
 
-    // Calculate actual item count for this child
+    // Calculate actual item count for this member
     final itemCount = _items
         .where((item) => item.title
             .toLowerCase()
-            .contains(child.name.toLowerCase().split(' ').first))
+            .contains(member.name.toLowerCase().split(' ').first))
         .length;
 
     return AppCard(
@@ -96,7 +101,7 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
                 radius: 30,
                 backgroundColor: Colors.purple.shade100,
                 child: Text(
-                  child.name[0].toUpperCase(),
+                  member.name[0].toUpperCase(),
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -111,7 +116,7 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
                     Row(
                       children: [
                         Text(
-                          child.name,
+                          member.name,
                           style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -135,7 +140,7 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
                       ],
                     ),
                     Text(
-                      'Born: ${child.birthdate.toLocal().toString().split(' ')[0]}',
+                      'Born: ${member.birthdate.toLocal().toString().split(' ')[0]}',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.textTheme.bodySmall?.color
                             ?.withValues(alpha: 0.7),
@@ -167,10 +172,10 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
                                   ?.withValues(alpha: 0.7))),
                       const SizedBox(height: 4),
                       Text(
-                          'Clothes: ${child.currentSizeByCategory['clothes']?.toStringAsFixed(0) ?? '-'}',
+                          'Clothes: ${member.currentSizeByCategory['clothes']?.toStringAsFixed(0) ?? '-'}',
                           style: const TextStyle(fontWeight: FontWeight.bold)),
                       Text(
-                          'Shoes: ${child.currentSizeByCategory['shoes']?.toStringAsFixed(0) ?? '-'}',
+                          'Shoes: ${member.currentSizeByCategory['shoes']?.toStringAsFixed(0) ?? '-'}',
                           style: const TextStyle(fontWeight: FontWeight.bold)),
                     ],
                   ),
@@ -234,7 +239,7 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: IconButton(
-                  onPressed: () {}, // TODO: Edit child
+                  onPressed: () {}, // TODO: Edit member
                   icon: Icon(Icons.show_chart, color: theme.iconTheme.color),
                   tooltip: 'Growth Chart',
                 ),
@@ -248,7 +253,7 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: IconButton(
-                  onPressed: () {}, // TODO: Edit child
+                  onPressed: () {}, // TODO: Edit member
                   icon: Icon(Icons.edit, color: theme.iconTheme.color),
                   tooltip: 'Edit',
                 ),
@@ -267,7 +272,7 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: SeasonBoxAppBar(
-        title: 'Children',
+        title: 'Family Members',
         subtitle: 'Manage family members',
         actions: [
           IconButton(
@@ -278,9 +283,9 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
       ),
       body: _isLoading
           ? _buildLoadingSkeleton(theme)
-          : _children.isEmpty
+          : _members.isEmpty
               ? const Center(
-                  child: Text('No children added yet'),
+                  child: Text('No members added yet'),
                 )
               : ListView(
                   padding: const EdgeInsets.all(16),
@@ -290,7 +295,7 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
                       children: [
                         Expanded(
                           child: _buildSummaryCard(
-                              '${_children.length}', 'Children', theme),
+                              '${_members.length}', 'Members', theme),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -330,13 +335,14 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Children List
-                    ..._children.map((child) => _buildChildCard(child, theme)),
+                    // Members List
+                    ..._members
+                        .map((member) => _buildMemberCard(member, theme)),
                   ],
                 ),
       floatingActionButton: SeasonBoxAddButton(
         onPressed: () =>
-            context.push('/add-child').then((_) => _loadChildren()),
+            context.push('/add-member').then((_) => _loadMembers()),
       ),
     );
   }
@@ -379,7 +385,7 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
         ),
         const SizedBox(height: 16),
 
-        // Children List Skeleton
+        // Members List Skeleton
         ...List.generate(
           2,
           (index) => Container(

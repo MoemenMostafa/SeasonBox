@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:myapp/data/models/item.dart';
-import 'package:myapp/data/repositories/item_repository.dart';
-import 'package:myapp/widgets/season_box_app_bar.dart';
+import '../../../data/repositories/item_repository.dart';
+import '../../../features/auth/data/auth_service.dart';
+import '../../../widgets/season_box_app_bar.dart';
 import 'package:myapp/widgets/app_card.dart';
 import 'package:myapp/widgets/season_box_add_button.dart';
 import 'package:myapp/widgets/capacity_indicator.dart';
@@ -30,7 +31,11 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
   Future<void> _loadItems() async {
     try {
-      const familyId = 'test-family-id';
+      final familyId =
+          await context.read<AuthService>().getCurrentUserFamilyId();
+      if (familyId == null) {
+        throw Exception('User not authenticated');
+      }
       final items = await context
           .read<ItemRepository>()
           .getItems(familyId)

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:myapp/features/home/presentation/screens/home_screen.dart';
 import 'package:myapp/features/profile/presentation/screens/profile_screen.dart';
 import 'package:myapp/features/items/screens/items_screen.dart';
-import 'package:myapp/features/children/screens/children_screen.dart';
+import 'package:myapp/features/members/screens/family_members_screen.dart';
 import 'package:myapp/features/storage/screens/storage_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -18,7 +18,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   static const List<Widget> _pages = <Widget>[
     HomeScreen(),
     ItemsScreen(),
-    ChildrenScreen(),
+    FamilyMembersScreen(),
     StorageScreen(),
     ProfileScreen(),
   ];
@@ -45,7 +45,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.people),
-            label: 'Children',
+            label: 'Members',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.inventory_2),
