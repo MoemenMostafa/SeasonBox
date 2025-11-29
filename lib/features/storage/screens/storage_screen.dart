@@ -6,6 +6,8 @@ import '../../../data/repositories/storage_location_repository.dart';
 import '../../../widgets/season_box_app_bar.dart';
 import '../../../widgets/app_card.dart';
 import '../../../widgets/season_box_add_button.dart';
+import '../../../widgets/capacity_indicator.dart';
+import '../../../widgets/season_box_filter_chip.dart';
 import '../../../widgets/skeleton_container.dart';
 
 class StorageScreen extends StatefulWidget {
@@ -276,57 +278,38 @@ class _StorageScreenState extends State<StorageScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             children: [
-              _buildFilterChip('All', _locations.length, theme),
+              SeasonBoxFilterChip(
+                label: 'All',
+                isSelected: _selectedFilter == 'All',
+                onTap: () => setState(() => _selectedFilter = 'All'),
+                count: _locations.length,
+              ),
               const SizedBox(width: 8),
-              _buildFilterChip(
-                  'Basement',
-                  _locations.where((l) => l.name.contains('Basement')).length,
-                  theme),
+              SeasonBoxFilterChip(
+                label: 'Basement',
+                isSelected: _selectedFilter == 'Basement',
+                onTap: () => setState(() => _selectedFilter = 'Basement'),
+                count:
+                    _locations.where((l) => l.name.contains('Basement')).length,
+              ),
               const SizedBox(width: 8),
-              _buildFilterChip('Closets',
-                  _locations.where((l) => l.type == 'Closet').length, theme),
+              SeasonBoxFilterChip(
+                label: 'Closets',
+                isSelected: _selectedFilter == 'Closets',
+                onTap: () => setState(() => _selectedFilter = 'Closets'),
+                count: _locations.where((l) => l.type == 'Closet').length,
+              ),
               const SizedBox(width: 8),
-              _buildFilterChip(
-                  'Attic',
-                  _locations.where((l) => l.name.contains('Attic')).length,
-                  theme),
+              SeasonBoxFilterChip(
+                label: 'Attic',
+                isSelected: _selectedFilter == 'Attic',
+                onTap: () => setState(() => _selectedFilter = 'Attic'),
+                count: _locations.where((l) => l.name.contains('Attic')).length,
+              ),
             ],
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildFilterChip(String label, int count, ThemeData theme) {
-    final isSelected = _selectedFilter == label ||
-        (label.startsWith(_selectedFilter) && _selectedFilter != 'All');
-    final isDark = theme.brightness == Brightness.dark;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedFilter = label;
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? theme.colorScheme.primary
-              : (isDark
-                  ? Colors.white.withValues(alpha: 0.1)
-                  : Colors.grey[200]),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          '$label ($count)',
-          style: TextStyle(
-            color:
-                isSelected ? Colors.white : theme.textTheme.bodyMedium?.color,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
     );
   }
 
@@ -431,20 +414,8 @@ class _StorageScreenState extends State<StorageScreen> {
             padding: const EdgeInsets.only(top: 8),
             child: Row(
               children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Text(
-                    '95% Full',
-                    style: TextStyle(
-                        color: Colors.orange,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold),
-                  ),
+                const CapacityIndicator(
+                  percentage: 95,
                 ),
                 const SizedBox(width: 8),
                 if (location.qrCodeId != null)

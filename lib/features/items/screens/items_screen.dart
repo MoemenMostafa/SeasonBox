@@ -6,6 +6,8 @@ import 'package:myapp/data/repositories/item_repository.dart';
 import 'package:myapp/widgets/season_box_app_bar.dart';
 import 'package:myapp/widgets/app_card.dart';
 import 'package:myapp/widgets/season_box_add_button.dart';
+import 'package:myapp/widgets/capacity_indicator.dart';
+import 'package:myapp/widgets/season_box_filter_chip.dart';
 import 'package:myapp/widgets/skeleton_container.dart';
 
 class ItemsScreen extends StatefulWidget {
@@ -80,11 +82,36 @@ class _ItemsScreenState extends State<ItemsScreen> {
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                     child: Row(
                       children: [
-                        _buildFilterChip('All Items'),
-                        _buildFilterChip('In Use'),
-                        _buildFilterChip('Stored'),
-                        _buildFilterChip('Winter'),
-                        _buildFilterChip('Summer'),
+                        SeasonBoxFilterChip(
+                          label: 'All Items',
+                          isSelected: _selectedFilter == 'All Items',
+                          onTap: () =>
+                              setState(() => _selectedFilter = 'All Items'),
+                        ),
+                        SeasonBoxFilterChip(
+                          label: 'In Use',
+                          isSelected: _selectedFilter == 'In Use',
+                          onTap: () =>
+                              setState(() => _selectedFilter = 'In Use'),
+                        ),
+                        SeasonBoxFilterChip(
+                          label: 'Stored',
+                          isSelected: _selectedFilter == 'Stored',
+                          onTap: () =>
+                              setState(() => _selectedFilter = 'Stored'),
+                        ),
+                        SeasonBoxFilterChip(
+                          label: 'Winter',
+                          isSelected: _selectedFilter == 'Winter',
+                          onTap: () =>
+                              setState(() => _selectedFilter = 'Winter'),
+                        ),
+                        SeasonBoxFilterChip(
+                          label: 'Summer',
+                          isSelected: _selectedFilter == 'Summer',
+                          onTap: () =>
+                              setState(() => _selectedFilter = 'Summer'),
+                        ),
                       ],
                     ),
                   ),
@@ -143,33 +170,6 @@ class _ItemsScreenState extends State<ItemsScreen> {
             ),
       floatingActionButton: SeasonBoxAddButton(
         onPressed: () => context.push('/add-item').then((_) => _loadItems()),
-      ),
-    );
-  }
-
-  Widget _buildFilterChip(String label) {
-    final isSelected = _selectedFilter == label;
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: FilterChip(
-        label: Text(label),
-        selected: isSelected,
-        onSelected: (bool selected) {
-          setState(() {
-            _selectedFilter = label;
-          });
-        },
-        backgroundColor: Theme.of(context).cardColor,
-        selectedColor: const Color(0xFF6200EE),
-        labelStyle: TextStyle(
-          color: isSelected ? Colors.white : null,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide.none,
-        ),
-        showCheckmark: false,
       ),
     );
   }
@@ -307,6 +307,10 @@ class _ItemsScreenState extends State<ItemsScreen> {
               ),
               Row(
                 children: [
+                  const CapacityIndicator(
+                    percentage: 75,
+                  ),
+                  const SizedBox(width: 8),
                   Icon(Icons.location_on,
                       size: 16, color: Colors.grey.shade500),
                   const SizedBox(width: 4),
