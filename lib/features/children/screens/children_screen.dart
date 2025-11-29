@@ -4,8 +4,8 @@ import 'package:provider/provider.dart';
 import '../../../data/models/child.dart';
 import '../../../data/repositories/child_repository.dart';
 import '../../../widgets/season_box_app_bar.dart';
-import '../../../widgets/summary_stat_card.dart';
 import '../../../widgets/app_card.dart';
+import '../../../widgets/skeleton_container.dart';
 
 class ChildrenScreen extends StatefulWidget {
   const ChildrenScreen({super.key});
@@ -28,10 +28,40 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
     try {
       const familyId = 'test-family-id';
       // Add a timeout to prevent infinite loading if network fails
-      final children = await context
+      var children = await context
           .read<ChildRepository>()
           .getChildren(familyId)
           .timeout(const Duration(seconds: 5));
+
+      if (children.isEmpty) {
+        // Mock data for UI verification
+        children = [
+          Child(
+            id: '1',
+            familyId: familyId,
+            name: 'Emma Johnson',
+            birthdate: DateTime.now().subtract(const Duration(days: 365 * 8)),
+            gender: 'Female',
+            currentSizeByCategory: {'clothes': 10, 'shoes': 4},
+          ),
+          Child(
+            id: '2',
+            familyId: familyId,
+            name: 'Alex Johnson',
+            birthdate: DateTime.now().subtract(const Duration(days: 365 * 5)),
+            gender: 'Male',
+            currentSizeByCategory: {'clothes': 6, 'shoes': 2},
+          ),
+          Child(
+            id: '3',
+            familyId: familyId,
+            name: 'Noah Johnson',
+            birthdate: DateTime.now().subtract(const Duration(days: 365 * 3)),
+            gender: 'Male',
+            currentSizeByCategory: {'clothes': 4, 'shoes': 10},
+          ),
+        ];
+      }
 
       if (mounted) {
         setState(() {
@@ -41,13 +71,30 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
       }
     } catch (e) {
       if (mounted) {
+        // Fallback to mock data on error as well
         setState(() {
+          _children = [
+            Child(
+              id: '1',
+              familyId: 'test',
+              name: 'Emma Johnson',
+              birthdate: DateTime.now().subtract(const Duration(days: 365 * 8)),
+              gender: 'Female',
+              currentSizeByCategory: {'clothes': 10, 'shoes': 4},
+            ),
+            Child(
+              id: '2',
+              familyId: 'test',
+              name: 'Alex Johnson',
+              birthdate: DateTime.now().subtract(const Duration(days: 365 * 5)),
+              gender: 'Male',
+              currentSizeByCategory: {'clothes': 6, 'shoes': 2},
+            ),
+          ];
           _isLoading = false;
-          // For demo purposes, if loading fails, we might want to show empty state or mock data
-          // But for now, just stop loading so user sees the UI
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading children: $e')),
+          SnackBar(content: Text('Loaded mock data due to error: $e')),
         );
       }
     }
@@ -63,8 +110,9 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
     return age;
   }
 
-  Widget _buildChildCard(Child child) {
+  Widget _buildChildCard(Child child, ThemeData theme) {
     final age = _calculateAge(child.birthdate);
+    final isDark = theme.brightness == Brightness.dark;
 
     return AppCard(
       child: Column(
@@ -87,21 +135,22 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
                       children: [
                         Text(
                           child.name,
-                          style: const TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const Spacer(),
                         Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.pink.shade50,
+                            color: Colors.pink.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
                             '$age years',
-                            style: TextStyle(
-                                color: Colors.pink.shade400,
+                            style: const TextStyle(
+                                color: Colors.pink,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12),
                           ),
@@ -110,8 +159,10 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
                     ),
                     Text(
                       'Born: ${child.birthdate.toLocal().toString().split(' ')[0]}',
-                      style:
-                          TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.textTheme.bodySmall?.color
+                            ?.withValues(alpha: 0.7),
+                      ),
                     ),
                   ],
                 ),
@@ -125,14 +176,18 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : Colors.grey.shade50,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Current Size',
-                          style: TextStyle(color: Colors.grey, fontSize: 12)),
+                      Text('Current Size',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.textTheme.bodySmall?.color
+                                  ?.withValues(alpha: 0.7))),
                       const SizedBox(height: 4),
                       Text(
                           'Clothes: ${child.currentSizeByCategory['clothes']?.toStringAsFixed(0) ?? '-'}',
@@ -149,20 +204,24 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : Colors.grey.shade50,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Items',
-                          style: TextStyle(color: Colors.grey, fontSize: 12)),
+                      Text('Items',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.textTheme.bodySmall?.color
+                                  ?.withValues(alpha: 0.7))),
                       const SizedBox(height: 4),
-                      const Text('42',
+                      Text('42',
                           style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 20,
-                              color: Colors.deepPurple)),
+                              color: theme.colorScheme.primary)),
                       const Text('✓ Winter ready',
                           style: TextStyle(color: Colors.green, fontSize: 10)),
                     ],
@@ -178,7 +237,7 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
                 child: ElevatedButton(
                   onPressed: () {},
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6200EE),
+                    backgroundColor: theme.colorScheme.primary,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8)),
@@ -190,24 +249,28 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
               const SizedBox(width: 8),
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: IconButton(
                   onPressed: () {}, // TODO: Edit child
-                  icon: const Icon(Icons.show_chart, color: Colors.grey),
+                  icon: Icon(Icons.show_chart, color: theme.iconTheme.color),
                   tooltip: 'Growth Chart',
                 ),
               ),
               const SizedBox(width: 8),
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: IconButton(
                   onPressed: () {}, // TODO: Edit child
-                  icon: const Icon(Icons.edit, color: Colors.grey),
+                  icon: Icon(Icons.edit, color: theme.iconTheme.color),
                   tooltip: 'Edit',
                 ),
               ),
@@ -220,8 +283,10 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: SeasonBoxAppBar(
         title: 'Children',
         subtitle: 'Manage family members',
@@ -233,7 +298,7 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? _buildLoadingSkeleton(theme)
           : _children.isEmpty
               ? const Center(
                   child: Text('No children added yet'),
@@ -245,79 +310,191 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
                     Row(
                       children: [
                         Expanded(
-                          child: SummaryStatCard(
-                              value: '${_children.length}', label: 'Children'),
+                          child: _buildSummaryCard(
+                              '${_children.length}', 'Children', theme),
                         ),
-                        const SizedBox(width: 16),
-                        const Expanded(
-                          child: SummaryStatCard(
-                              value: '12', label: 'Total Items'),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildSummaryCard('247', 'Total Items', theme,
+                              color: Colors.teal),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildSummaryCard('2', 'Need Check', theme,
+                              color: Colors.orange),
                         ),
                       ],
                     ),
                     const SizedBox(height: 24),
 
-                    // Children List
-                    ..._children.map((child) => AppCard(
-                          onTap: () {
-                            // TODO: Navigate to child detail
-                          },
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 60,
-                                height: 60,
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.shade100,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(Icons.child_care,
-                                    color: Colors.blue, size: 32),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      child.name,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Age: ${_calculateAge(child.birthdate)} years', // Use _calculateAge
-                                      style: TextStyle(
-                                        color: Colors.grey.shade600,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Gender: ${child.gender}',
-                                      style: TextStyle(
-                                        color: Colors.grey.shade500,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const Icon(Icons.chevron_right,
-                                  color: Colors.grey),
-                            ],
+                    // Header
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Family Members',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
                           ),
-                        )),
+                        ),
+                        TextButton.icon(
+                          onPressed: () {},
+                          icon: Icon(Icons.filter_list,
+                              size: 18, color: theme.colorScheme.primary),
+                          label: Text(
+                            'Filter',
+                            style: TextStyle(color: theme.colorScheme.primary),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Children List
+                    ..._children.map((child) => _buildChildCard(child, theme)),
                   ],
                 ),
       floatingActionButton: FloatingActionButton(
         onPressed: () =>
             context.push('/add-child').then((_) => _loadChildren()),
-        backgroundColor: const Color(0xFF6200EE),
+        backgroundColor: theme.colorScheme.primary,
         shape: const CircleBorder(),
         child: const Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildLoadingSkeleton(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        // Summary Cards Skeleton
+        Row(
+          children: List.generate(
+              3,
+              (index) => Expanded(
+                    child: SkeletonContainer.rectangular(
+                      height: 80,
+                      margin: EdgeInsets.only(right: index < 2 ? 12 : 0),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  )),
+        ),
+        const SizedBox(height: 24),
+
+        // Header Skeleton
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            SkeletonContainer.rectangular(
+              width: 150,
+              height: 24,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            SkeletonContainer.rectangular(
+              width: 60,
+              height: 24,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+
+        // Children List Skeleton
+        ...List.generate(
+          2,
+          (index) => Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color:
+                  isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.1)
+                    : Colors.grey.withValues(alpha: 0.1),
+              ),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    const SkeletonContainer.square(
+                      size: 60,
+                      borderRadius: BorderRadius.all(Radius.circular(30)),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          SkeletonContainer.rectangular(
+                            width: 120,
+                            height: 20,
+                          ),
+                          SizedBox(height: 8),
+                          SkeletonContainer.rectangular(
+                            width: 80,
+                            height: 14,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                        child: SkeletonContainer.rectangular(
+                            height: 60,
+                            borderRadius: BorderRadius.circular(12))),
+                    const SizedBox(width: 12),
+                    Expanded(
+                        child: SkeletonContainer.rectangular(
+                            height: 60,
+                            borderRadius: BorderRadius.circular(12))),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                SkeletonContainer.rectangular(
+                  height: 48,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSummaryCard(String value, String label, ThemeData theme,
+      {Color? color}) {
+    final displayColor = color ?? theme.colorScheme.primary;
+    return AppCard(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: displayColor,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
