@@ -1,10 +1,76 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:myapp/widgets/season_box_app_bar.dart';
 import 'package:myapp/widgets/app_card.dart';
+import 'package:myapp/data/models/child.dart';
+import 'package:myapp/data/models/item.dart';
+import 'package:myapp/data/models/storage_location.dart';
+import 'package:myapp/data/repositories/child_repository.dart';
+import 'package:myapp/data/repositories/item_repository.dart';
+import 'package:myapp/data/repositories/storage_location_repository.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List<Child> _children = [];
+  List<Item> _items = [];
+  List<StorageLocation> _locations = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    try {
+      const familyId = 'test-family-id';
+
+      final children = await context
+          .read<ChildRepository>()
+          .getChildren(familyId)
+          .timeout(const Duration(seconds: 5));
+
+      if (!mounted) return;
+
+      final items = await context
+          .read<ItemRepository>()
+          .getItems(familyId)
+          .timeout(const Duration(seconds: 5));
+
+      if (!mounted) return;
+
+      final locations = await context
+          .read<StorageLocationRepository>()
+          .getLocations(familyId)
+          .timeout(const Duration(seconds: 5));
+
+      if (mounted) {
+        setState(() {
+          _children = children;
+          _items = items;
+          _locations = locations;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading data: $e')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,59 +80,72 @@ class HomeScreen extends StatelessWidget {
         subtitle: 'Johnson Family',
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Stats
-                _buildStatsRow(context),
-                const SizedBox(height: 24),
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Stats
+                      _buildStatsRow(context),
+                      const SizedBox(height: 24),
 
-                // Search
-                _buildSearchBar(context),
-                const SizedBox(height: 24),
+                      // Search
+                      _buildSearchBar(context),
+                      const SizedBox(height: 24),
 
-                // Quick Actions
-                const Text(
-                  'Quick Actions',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      // Quick Actions
+                      const Text(
+                        'Quick Actions',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildQuickActions(context),
+                      const SizedBox(height: 24),
+
+                      // Children
+                      if (_children.isNotEmpty) ...[
+                        _buildSectionHeader(context, 'Children',
+                            () => context.push('/children')),
+                        const SizedBox(height: 16),
+                        _buildChildrenList(context),
+                        const SizedBox(height: 24),
+                      ],
+
+                      // Recent Items
+                      if (_items.isNotEmpty) ...[
+                        _buildSectionHeader(context, 'Recent Items',
+                            () => context.push('/items')),
+                        const SizedBox(height: 16),
+                        _buildRecentItemsList(context),
+                        const SizedBox(height: 24),
+                      ],
+
+                      // Seasonal Reminders
+                      const Text(
+                        'Seasonal Reminders',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildSeasonalReminder(context),
+                      const SizedBox(height: 24),
+
+                      // Storage Locations
+                      if (_locations.isNotEmpty) ...[
+                        _buildSectionHeader(context, 'Storage Locations',
+                            () => context.push('/storage'),
+                            actionText: 'Manage'),
+                        const SizedBox(height: 16),
+                        _buildStorageLocations(context),
+                      ],
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 16),
-                _buildQuickActions(context),
-                const SizedBox(height: 24),
-
-                // Children
-                _buildSectionHeader(context, 'Children', () {}),
-                const SizedBox(height: 16),
-                _buildChildrenList(context),
-                const SizedBox(height: 24),
-
-                // Recent Items
-                _buildSectionHeader(context, 'Recent Items', () {}),
-                const SizedBox(height: 16),
-                _buildRecentItemsList(context),
-                const SizedBox(height: 24),
-
-                // Seasonal Reminders
-                const Text(
-                  'Seasonal Reminders',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                _buildSeasonalReminder(context),
-                const SizedBox(height: 24),
-
-                // Storage Locations
-                _buildSectionHeader(context, 'Storage Locations', () {},
-                    actionText: 'Manage'),
-                const SizedBox(height: 16),
-                _buildStorageLocations(context),
-              ],
-            ),
-          ),
-        ),
+              ),
       ),
     );
   }
@@ -78,7 +157,7 @@ class HomeScreen extends StatelessWidget {
           child: _buildStatCard(
             context,
             icon: Icons.checkroom,
-            count: '247',
+            count: '${_items.length}',
             label: 'Total Items',
             color: Colors.purple.shade100,
             iconColor: Colors.purple,
@@ -90,7 +169,7 @@ class HomeScreen extends StatelessWidget {
           child: _buildStatCard(
             context,
             icon: Icons.people,
-            count: '3',
+            count: '${_children.length}',
             label: 'Children',
             color: Colors.teal.shade100,
             iconColor: Colors.teal,
@@ -177,7 +256,7 @@ class HomeScreen extends StatelessWidget {
             label: 'Add Item',
             color: Colors.purple.shade50,
             iconColor: Colors.purple,
-            onTap: () => context.push('/add-item'),
+            onTap: () => context.push('/add-item').then((_) => _loadData()),
           ),
         ),
         const SizedBox(width: 16),
@@ -248,20 +327,36 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildChildrenList(BuildContext context) {
+    // Show first 2 children
+    final displayChildren = _children.take(2).toList();
+
     return Column(
-      children: [
-        _buildChildCard(context, 'Emma', 'Age 8 • Size 10', '42 items',
-            'Winter ready', Colors.purple, () => context.push('/children')),
-        const SizedBox(height: 12),
-        _buildChildCard(
+      children: displayChildren.map((child) {
+        // Calculate age from birthdate
+        final age = DateTime.now().difference(child.birthdate).inDays ~/ 365;
+
+        // Get size (use first available category or 'N/A')
+        final size = child.currentSizeByCategory.isNotEmpty
+            ? child.currentSizeByCategory.values.first.toString()
+            : 'N/A';
+
+        // Calculate item count for this child (placeholder for now)
+        final itemCount =
+            _items.where((item) => item.title.contains(child.name)).length;
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: _buildChildCard(
             context,
-            'Alex',
-            'Age 5 • Size 6',
-            '38 items',
-            'Size check needed',
-            Colors.orange,
-            () => context.push('/children')),
-      ],
+            child.name,
+            'Age $age • Size $size',
+            '$itemCount items',
+            'Active',
+            Colors.purple,
+            () => context.push('/children'),
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -272,10 +367,16 @@ class HomeScreen extends StatelessWidget {
       onTap: onTap,
       child: Row(
         children: [
-          const CircleAvatar(
+          CircleAvatar(
             radius: 24,
-            backgroundImage: AssetImage(
-                'assets/images/avatar_placeholder.png'), // Placeholder
+            backgroundColor: Colors.purple.shade100,
+            child: Text(
+              name[0].toUpperCase(),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -305,26 +406,33 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildRecentItemsList(BuildContext context) {
+    // Show first 2 items
+    final displayItems = _items.take(2).toList();
+
+    if (displayItems.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Row(
-      children: [
-        Expanded(
+      children: displayItems.map((item) {
+        return Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(
+              right: displayItems.indexOf(item) == 0 ? 16 : 0,
+            ),
             child: _buildItemCard(
-                context,
-                'Winter Jacket',
-                'Size 10 • Emma',
-                'Box A3',
-                'https://placehold.co/200x200/png?text=Jacket',
-                () => context.push('/items'))),
-        const SizedBox(width: 16),
-        Expanded(
-            child: _buildItemCard(
-                context,
-                'Snow Boots',
-                'Size 6 • Alex',
-                'Closet B',
-                'https://placehold.co/200x200/png?text=Boots',
-                () => context.push('/items'))),
-      ],
+              context,
+              item.title,
+              'Size ${item.size} • ${item.gender}',
+              'Storage', // Placeholder
+              item.photos.isNotEmpty
+                  ? item.photos.first
+                  : 'https://placehold.co/200x200/png?text=${item.category}',
+              () => context.push('/items'),
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -343,6 +451,13 @@ class HomeScreen extends StatelessWidget {
               height: 120,
               width: double.infinity,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  height: 120,
+                  color: Colors.grey.shade200,
+                  child: const Icon(Icons.image, size: 48, color: Colors.grey),
+                );
+              },
             ),
           ),
           Padding(
@@ -352,7 +467,9 @@ class HomeScreen extends StatelessWidget {
               children: [
                 Text(title,
                     style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 16)),
+                        fontWeight: FontWeight.bold, fontSize: 16),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
                 Text(details,
                     style: const TextStyle(color: Colors.grey, fontSize: 12)),
                 const SizedBox(height: 4),
@@ -411,7 +528,7 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Time to check fall clothes for Emma and Alex. Consider size changes from last year.',
+                  'Time to check fall clothes for your children. Consider size changes from last year.',
                   style: TextStyle(
                       color: isDark ? Colors.orange.shade100 : Colors.brown),
                 ),
@@ -432,15 +549,55 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildStorageLocations(BuildContext context) {
+    // Show first 2 locations
+    final displayLocations = _locations.take(2).toList();
+
     return Column(
-      children: [
-        _buildStorageCard(context, 'Basement Storage', '12 boxes • 156 items',
-            Icons.inventory, Colors.orange, () => context.push('/storage')),
-        const SizedBox(height: 12),
-        _buildStorageCard(context, "Kids' Closets", '3 closets • 91 items',
-            Icons.door_sliding, Colors.green, () => context.push('/storage')),
-      ],
+      children: displayLocations.map((location) {
+        // Count items in this location
+        final itemCount = _items
+            .where((item) => item.storageLocationId == location.id)
+            .length;
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: _buildStorageCard(
+            context,
+            location.name,
+            '${location.type} • $itemCount items',
+            _getIconForType(location.type),
+            _getColorForType(location.type),
+            () => context.push('/storage'),
+          ),
+        );
+      }).toList(),
     );
+  }
+
+  IconData _getIconForType(String type) {
+    switch (type.toLowerCase()) {
+      case 'box':
+        return Icons.inventory;
+      case 'closet':
+        return Icons.door_sliding;
+      case 'area':
+        return Icons.garage;
+      default:
+        return Icons.storage;
+    }
+  }
+
+  Color _getColorForType(String type) {
+    switch (type.toLowerCase()) {
+      case 'box':
+        return Colors.orange;
+      case 'closet':
+        return Colors.green;
+      case 'area':
+        return Colors.blue;
+      default:
+        return Colors.grey;
+    }
   }
 
   Widget _buildStorageCard(BuildContext context, String title, String details,

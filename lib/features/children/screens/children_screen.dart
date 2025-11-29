@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../data/models/child.dart';
+import '../../../data/models/item.dart';
 import '../../../data/repositories/child_repository.dart';
+import '../../../data/repositories/item_repository.dart';
 import '../../../widgets/season_box_app_bar.dart';
 import '../../../widgets/season_box_add_button.dart';
 import '../../../widgets/app_card.dart';
@@ -17,6 +19,7 @@ class ChildrenScreen extends StatefulWidget {
 
 class _ChildrenScreenState extends State<ChildrenScreen> {
   List<Child> _children = [];
+  List<Item> _items = [];
   bool _isLoading = true;
 
   @override
@@ -28,74 +31,35 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
   Future<void> _loadChildren() async {
     try {
       const familyId = 'test-family-id';
-      // Add a timeout to prevent infinite loading if network fails
-      var children = await context
+
+      final children = await context
           .read<ChildRepository>()
           .getChildren(familyId)
           .timeout(const Duration(seconds: 5));
 
-      if (children.isEmpty) {
-        // Mock data for UI verification
-        children = [
-          Child(
-            id: '1',
-            familyId: familyId,
-            name: 'Emma Johnson',
-            birthdate: DateTime.now().subtract(const Duration(days: 365 * 8)),
-            gender: 'Female',
-            currentSizeByCategory: {'clothes': 10, 'shoes': 4},
-          ),
-          Child(
-            id: '2',
-            familyId: familyId,
-            name: 'Alex Johnson',
-            birthdate: DateTime.now().subtract(const Duration(days: 365 * 5)),
-            gender: 'Male',
-            currentSizeByCategory: {'clothes': 6, 'shoes': 2},
-          ),
-          Child(
-            id: '3',
-            familyId: familyId,
-            name: 'Noah Johnson',
-            birthdate: DateTime.now().subtract(const Duration(days: 365 * 3)),
-            gender: 'Male',
-            currentSizeByCategory: {'clothes': 4, 'shoes': 10},
-          ),
-        ];
-      }
+      if (!mounted) return;
+
+      final items = await context
+          .read<ItemRepository>()
+          .getItems(familyId)
+          .timeout(const Duration(seconds: 5));
 
       if (mounted) {
         setState(() {
           _children = children;
+          _items = items;
           _isLoading = false;
         });
       }
     } catch (e) {
       if (mounted) {
-        // Fallback to mock data on error as well
         setState(() {
-          _children = [
-            Child(
-              id: '1',
-              familyId: 'test',
-              name: 'Emma Johnson',
-              birthdate: DateTime.now().subtract(const Duration(days: 365 * 8)),
-              gender: 'Female',
-              currentSizeByCategory: {'clothes': 10, 'shoes': 4},
-            ),
-            Child(
-              id: '2',
-              familyId: 'test',
-              name: 'Alex Johnson',
-              birthdate: DateTime.now().subtract(const Duration(days: 365 * 5)),
-              gender: 'Male',
-              currentSizeByCategory: {'clothes': 6, 'shoes': 2},
-            ),
-          ];
+          _children = [];
+          _items = [];
           _isLoading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Loaded mock data due to error: $e')),
+          SnackBar(content: Text('Error loading data: $e')),
         );
       }
     }
@@ -115,6 +79,13 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
     final age = _calculateAge(child.birthdate);
     final isDark = theme.brightness == Brightness.dark;
 
+    // Calculate actual item count for this child
+    final itemCount = _items
+        .where((item) => item.title
+            .toLowerCase()
+            .contains(child.name.toLowerCase().split(' ').first))
+        .length;
+
     return AppCard(
       child: Column(
         children: [
@@ -123,9 +94,14 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
             children: [
               CircleAvatar(
                 radius: 30,
-                backgroundImage: const NetworkImage(
-                    'https://i.pravatar.cc/150'), // Placeholder
-                backgroundColor: Colors.grey.shade200,
+                backgroundColor: Colors.purple.shade100,
+                child: Text(
+                  child.name[0].toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -218,13 +194,15 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
                               color: theme.textTheme.bodySmall?.color
                                   ?.withValues(alpha: 0.7))),
                       const SizedBox(height: 4),
-                      Text('42',
+                      Text('$itemCount',
                           style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 20,
                               color: theme.colorScheme.primary)),
-                      const Text('✓ Winter ready',
-                          style: TextStyle(color: Colors.green, fontSize: 10)),
+                      Text(itemCount > 0 ? '✓ Has items' : 'No items yet',
+                          style: TextStyle(
+                              color: itemCount > 0 ? Colors.green : Colors.grey,
+                              fontSize: 10)),
                     ],
                   ),
                 ),
@@ -316,12 +294,13 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: _buildSummaryCard('247', 'Total Items', theme,
+                          child: _buildSummaryCard(
+                              '${_items.length}', 'Total Items', theme,
                               color: Colors.teal),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: _buildSummaryCard('2', 'Need Check', theme,
+                          child: _buildSummaryCard('0', 'Need Check', theme,
                               color: Colors.orange),
                         ),
                       ],
