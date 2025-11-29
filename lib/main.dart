@@ -1,6 +1,8 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:myapp/data/services/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'package:myapp/firebase_options.dart';
 import 'package:myapp/features/auth/data/auth_service.dart';
 import 'package:myapp/app/routes/router.dart';
@@ -40,6 +42,10 @@ class MyApp extends StatelessWidget {
         ProxyProvider<FirestoreService, StorageLocationRepository>(
           update: (_, firestoreService, __) =>
               StorageLocationRepository(firestoreService),
+        ),
+        ProxyProvider2<FirestoreService, FamilyRepository, UserService>(
+          update: (_, firestoreService, familyRepository, __) =>
+              UserService(firestoreService, familyRepository),
         ),
       ],
       child: MaterialApp.router(

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:myapp/features/auth/data/auth_service.dart';
+import 'package:myapp/data/services/user_service.dart';
 import 'package:myapp/app/theme/theme.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -194,7 +195,16 @@ class _LoginScreenState extends State<LoginScreen>
                       onPressed: () async {
                         final user = await authService.signInWithGoogle();
                         if (user != null && context.mounted) {
-                          context.go('/home');
+                          try {
+                            await context
+                                .read<UserService>()
+                                .createUserAndLinkFamily(user);
+                          } catch (e) {
+                            debugPrint('Error creating user/family: $e');
+                          }
+                          if (context.mounted) {
+                            context.go('/home');
+                          }
                         }
                       },
                       style: ElevatedButton.styleFrom(

@@ -130,7 +130,7 @@ class _AddChildScreenState extends State<AddChildScreen> {
 
                     // Gender
                     DropdownButtonFormField<String>(
-                      value: _gender,
+                      initialValue: _gender,
                       decoration: const InputDecoration(
                         labelText: 'Gender',
                         border: OutlineInputBorder(),

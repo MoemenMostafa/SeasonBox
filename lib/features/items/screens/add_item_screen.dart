@@ -67,6 +67,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
           .read<ChildRepository>()
           .getChildren(familyId)
           .timeout(const Duration(seconds: 5));
+      if (!mounted) return;
+
       final locations = await context
           .read<StorageLocationRepository>()
           .getLocations(familyId)
@@ -219,7 +221,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
                     // Category
                     DropdownButtonFormField<String>(
-                      value: _selectedCategory,
+                      initialValue: _selectedCategory,
                       decoration: const InputDecoration(
                         labelText: 'Category',
                         border: OutlineInputBorder(),
@@ -235,7 +237,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
                     // Status
                     DropdownButtonFormField<String>(
-                      value: _selectedStatus,
+                      initialValue: _quantityController.text,
                       decoration: const InputDecoration(
                         labelText: 'Status',
                         border: OutlineInputBorder(),
@@ -285,7 +287,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                     // Or better, let's just use a single season dropdown for now to match _selectedSeasons usage if it was single
                     // But _selectedSeasons is a List. Let's just use a single dropdown and add it to the list.
                     DropdownButtonFormField<String>(
-                      value: _seasons.first, // Default
+                      initialValue: _seasons.first, // Default
                       decoration: const InputDecoration(
                         labelText: 'Season',
                         border: OutlineInputBorder(),
@@ -305,7 +307,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
                     // Assigned Child (Optional)
                     DropdownButtonFormField<String>(
-                      value: _assignedChildId,
+                      initialValue: _assignedChildId,
                       decoration: InputDecoration(
                         labelText: 'Assigned To (Optional)',
                         border: const OutlineInputBorder(),
@@ -342,7 +344,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
                     // Storage Location
                     DropdownButtonFormField<String>(
-                      value: _storageLocationId,
+                      initialValue: _storageLocationId,
                       decoration: InputDecoration(
                         labelText: 'Location',
                         border: const OutlineInputBorder(),

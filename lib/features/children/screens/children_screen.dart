@@ -420,17 +420,17 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
             ),
             child: Column(
               children: [
-                Row(
+                const Row(
                   children: [
-                    const SkeletonContainer.square(
+                    SkeletonContainer.square(
                       size: 60,
                       borderRadius: BorderRadius.all(Radius.circular(30)),
                     ),
-                    const SizedBox(width: 16),
+                    SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
+                        children: [
                           SkeletonContainer.rectangular(
                             width: 120,
                             height: 20,

@@ -153,7 +153,7 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
 
                     // Parent Location
                     DropdownButtonFormField<String>(
-                      value: _parentLocationId,
+                      initialValue: _parentLocationId,
                       decoration: const InputDecoration(
                         labelText: 'Parent Location (Optional)',
                         border: OutlineInputBorder(),

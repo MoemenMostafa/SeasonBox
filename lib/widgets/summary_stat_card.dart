@@ -39,7 +39,7 @@ class SummaryStatCard extends StatelessWidget {
               padding: const EdgeInsets.all(8),
               margin: const EdgeInsets.only(bottom: 8),
               decoration: BoxDecoration(
-                color: (color ?? Colors.blue).withOpacity(0.1),
+                color: (color ?? Colors.blue).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(icon, color: color ?? Colors.blue, size: 24),
@@ -57,7 +57,9 @@ class SummaryStatCard extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              color: Colors.grey.shade600,
+              color: color != null
+                  ? color!.withValues(alpha: 0.6)
+                  : Colors.grey.shade600,
               fontSize: 12,
               fontWeight: FontWeight.w500,
             ),
