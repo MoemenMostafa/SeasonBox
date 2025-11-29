@@ -5,6 +5,7 @@ import 'package:myapp/data/models/item.dart';
 import 'package:myapp/data/repositories/item_repository.dart';
 import 'package:myapp/widgets/season_box_app_bar.dart';
 import 'package:myapp/widgets/app_card.dart';
+import 'package:myapp/widgets/season_box_add_button.dart';
 import 'package:myapp/widgets/skeleton_container.dart';
 
 class ItemsScreen extends StatefulWidget {
@@ -140,11 +141,8 @@ class _ItemsScreenState extends State<ItemsScreen> {
                 ],
               ),
             ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: SeasonBoxAddButton(
         onPressed: () => context.push('/add-item').then((_) => _loadItems()),
-        backgroundColor: const Color(0xFF6200EE),
-        shape: const CircleBorder(),
-        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }

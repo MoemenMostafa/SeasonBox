@@ -5,6 +5,7 @@ import '../../../data/models/storage_location.dart';
 import '../../../data/repositories/storage_location_repository.dart';
 import '../../../widgets/season_box_app_bar.dart';
 import '../../../widgets/app_card.dart';
+import '../../../widgets/season_box_add_button.dart';
 import '../../../widgets/skeleton_container.dart';
 
 class StorageScreen extends StatefulWidget {
@@ -125,12 +126,9 @@ class _StorageScreenState extends State<StorageScreen> {
                 const SliverPadding(padding: EdgeInsets.only(bottom: 80)),
               ],
             ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: SeasonBoxAddButton(
         onPressed: () =>
-            context.push('/add-storage-location').then((_) => _loadLocations()),
-        backgroundColor: theme.colorScheme.primary,
-        shape: const CircleBorder(),
-        child: const Icon(Icons.add, color: Colors.white),
+            context.push('/add-location').then((_) => _loadLocations()),
       ),
     );
   }

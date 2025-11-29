@@ -14,6 +14,11 @@ class AppTheme {
       secondary: secondaryColor,
     ),
     textTheme: GoogleFonts.latoTextTheme(),
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      backgroundColor: primaryColor,
+      foregroundColor: Colors.white,
+      shape: CircleBorder(),
+    ),
   );
 
   static final ThemeData darkTheme = ThemeData(
@@ -45,5 +50,10 @@ class AppTheme {
       unselectedItemColor: Colors.grey,
     ),
     textTheme: GoogleFonts.latoTextTheme(ThemeData.dark().textTheme),
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      backgroundColor: Color(0xFFBB86FC),
+      foregroundColor: Colors.black,
+      shape: CircleBorder(),
+    ),
   );
 }

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../data/models/child.dart';
 import '../../../data/repositories/child_repository.dart';
 import '../../../widgets/season_box_app_bar.dart';
+import '../../../widgets/season_box_add_button.dart';
 import '../../../widgets/app_card.dart';
 import '../../../widgets/skeleton_container.dart';
 
@@ -354,12 +355,9 @@ class _ChildrenScreenState extends State<ChildrenScreen> {
                     ..._children.map((child) => _buildChildCard(child, theme)),
                   ],
                 ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: SeasonBoxAddButton(
         onPressed: () =>
             context.push('/add-child').then((_) => _loadChildren()),
-        backgroundColor: theme.colorScheme.primary,
-        shape: const CircleBorder(),
-        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
