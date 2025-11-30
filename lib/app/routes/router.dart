@@ -9,6 +9,7 @@ import 'package:myapp/features/members/screens/family_members_screen.dart';
 import 'package:myapp/features/storage/screens/storage_screen.dart';
 import 'package:myapp/features/items/screens/items_screen.dart';
 import 'package:myapp/data/models/item.dart';
+import 'package:myapp/data/models/family_member.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -19,7 +20,8 @@ class AppRouter {
           path: '/home', builder: (context, state) => const DashboardScreen()),
       GoRoute(
           path: '/add-member',
-          builder: (context, state) => const AddFamilyMemberScreen()),
+          builder: (context, state) =>
+              AddFamilyMemberScreen(member: state.extra as FamilyMember?)),
       GoRoute(
           path: '/add-storage-location',
           builder: (context, state) => const AddStorageLocationScreen()),
@@ -32,7 +34,10 @@ class AppRouter {
           builder: (context, state) => const FamilyMembersScreen()),
       GoRoute(
           path: '/storage', builder: (context, state) => const StorageScreen()),
-      GoRoute(path: '/items', builder: (context, state) => const ItemsScreen()),
+      GoRoute(
+          path: '/items',
+          builder: (context, state) =>
+              ItemsScreen(initialMemberId: state.extra as String?)),
     ],
   );
 }

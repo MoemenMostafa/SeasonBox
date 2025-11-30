@@ -9,7 +9,9 @@ import '../../../widgets/season_box_app_bar.dart';
 import '../../../widgets/app_card.dart';
 
 class AddFamilyMemberScreen extends StatefulWidget {
-  const AddFamilyMemberScreen({super.key});
+  final FamilyMember? member;
+
+  const AddFamilyMemberScreen({super.key, this.member});
 
   @override
   State<AddFamilyMemberScreen> createState() => _AddFamilyMemberScreenState();
@@ -30,6 +32,19 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
   bool _isLoading = false;
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.member != null) {
+      _nameController.text = widget.member!.name;
+      _notesController.text = widget.member!.notes ?? '';
+      _gender = widget.member!.gender;
+      _birthdate = widget.member!.birthdate;
+      _clothesSize = widget.member!.clothingSize;
+      _shoeSize = widget.member!.shoeSize;
+    }
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     _notesController.dispose();
@@ -44,38 +59,104 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
     });
 
     try {
-      if (!mounted) return; // Added check
+      if (!mounted) return;
       final familyId =
           await context.read<AuthService>().getCurrentUserFamilyId();
       if (familyId == null) {
         throw Exception('User not authenticated');
       }
-      final id = const Uuid().v4(); // Changed UidGenerator to Uuid
 
       final member = FamilyMember(
-        id: id,
+        id: widget.member?.id ?? const Uuid().v4(),
         familyId: familyId,
         name: _nameController.text.trim(),
         birthdate: _birthdate,
         gender: _gender,
-        clothingSize: _clothesSize, // Added
-        shoeSize: _shoeSize, // Added
-        notes: _notesController.text.trim(), // Added
+        clothingSize: _clothesSize,
+        shoeSize: _shoeSize,
+        notes: _notesController.text.trim(),
       );
 
-      if (!mounted) return; // Added check
-      await context.read<FamilyMemberRepository>().addFamilyMember(member);
+      if (!mounted) return;
+      if (widget.member != null) {
+        await context.read<FamilyMemberRepository>().updateFamilyMember(member);
+      } else {
+        await context.read<FamilyMemberRepository>().addFamilyMember(member);
+      }
 
       if (mounted) {
         context.pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Family member added successfully')),
+          SnackBar(
+              content: Text(widget.member != null
+                  ? 'Family member updated successfully'
+                  : 'Family member added successfully')),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error adding member: $e')),
+          SnackBar(content: Text('Error saving member: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _deleteMember() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Member'),
+        content: const Text(
+            'Are you sure you want to delete this family member? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final familyId =
+          await context.read<AuthService>().getCurrentUserFamilyId();
+      if (familyId == null) {
+        throw Exception('User not authenticated');
+      }
+
+      if (!mounted) return;
+      await context
+          .read<FamilyMemberRepository>()
+          .deleteFamilyMember(familyId, widget.member!.id);
+
+      if (mounted) {
+        context.pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Family member deleted successfully')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error deleting member: $e')),
         );
       }
     } finally {
@@ -107,8 +188,9 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: const SeasonBoxAppBar(
-        title: 'Add Family Member',
+      appBar: SeasonBoxAppBar(
+        title:
+            widget.member != null ? 'Edit Family Member' : 'Add Family Member',
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -181,6 +263,7 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                               style: TextStyle(fontSize: 14)),
                           const SizedBox(height: 8),
                           TextFormField(
+                            initialValue: _clothesSize?.toString(),
                             decoration: const InputDecoration(
                               hintText: 'e.g. 110 (cm) or 5 (age)',
                             ),
@@ -194,6 +277,7 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                               style: TextStyle(fontSize: 14)),
                           const SizedBox(height: 8),
                           TextFormField(
+                            initialValue: _shoeSize?.toString(),
                             decoration: const InputDecoration(
                               hintText: 'e.g. 28',
                             ),
@@ -260,8 +344,8 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                               borderRadius: BorderRadius.circular(12),
                               boxShadow: [
                                 BoxShadow(
-                                  color:
-                                      const Color(0xFF6366F1).withOpacity(0.3),
+                                  color: const Color(0xFF6366F1)
+                                      .withValues(alpha: 0.3),
                                   blurRadius: 12,
                                   offset: const Offset(0, 6),
                                 ),
@@ -276,9 +360,9 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
-                              child: const Text(
-                                'Add',
-                                style: TextStyle(
+                              child: Text(
+                                widget.member != null ? 'Update' : 'Add',
+                                style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
@@ -289,6 +373,30 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                         ),
                       ],
                     ),
+                    if (widget.member != null) ...[
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: OutlinedButton(
+                          onPressed: _deleteMember,
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Colors.red),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'Delete Member',
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 24),
                   ],
                 ),

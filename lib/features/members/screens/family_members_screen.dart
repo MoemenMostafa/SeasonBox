@@ -37,6 +37,8 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
         throw Exception('User not authenticated');
       }
 
+      if (!mounted) return;
+
       final members = await context
           .read<FamilyMemberRepository>()
           .getFamilyMembers(familyId)
@@ -85,11 +87,7 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     // Calculate actual item count for this member
-    final itemCount = _items
-        .where((item) => item.title
-            .toLowerCase()
-            .contains(member.name.toLowerCase().split(' ').first))
-        .length;
+    final itemCount = _items.where((item) => item.memberId == member.id).length;
 
     return AppCard(
       child: Column(
@@ -219,7 +217,9 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
             children: [
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    context.push('/items', extra: member.id);
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: theme.colorScheme.primary,
                     foregroundColor: Colors.white,
@@ -253,7 +253,11 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: IconButton(
-                  onPressed: () {}, // TODO: Edit member
+                  onPressed: () {
+                    context
+                        .push('/add-member', extra: member)
+                        .then((_) => _loadMembers());
+                  },
                   icon: Icon(Icons.edit, color: theme.iconTheme.color),
                   tooltip: 'Edit',
                 ),

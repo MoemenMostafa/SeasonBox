@@ -15,7 +15,9 @@ import 'package:myapp/widgets/season_box_filter_chip.dart';
 import 'package:myapp/widgets/skeleton_container.dart';
 
 class ItemsScreen extends StatefulWidget {
-  const ItemsScreen({super.key});
+  final String? initialMemberId;
+
+  const ItemsScreen({super.key, this.initialMemberId});
 
   @override
   State<ItemsScreen> createState() => _ItemsScreenState();
@@ -28,10 +30,12 @@ class _ItemsScreenState extends State<ItemsScreen> {
   bool _isLoading = true;
   String _selectedFilter = 'All Items';
   String? _selectedCategory;
+  String? _selectedMemberId;
 
   @override
   void initState() {
     super.initState();
+    _selectedMemberId = widget.initialMemberId;
     _loadItems();
   }
 
@@ -74,6 +78,10 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
   List<Item> get _filteredItems {
     return _items.where((item) {
+      // Member filter
+      bool matchesMemberFilter =
+          _selectedMemberId == null || item.memberId == _selectedMemberId;
+
       // Status/Season filter
       bool matchesStatusFilter = _selectedFilter == 'All Items' ||
           (_selectedFilter == 'In Use' &&
@@ -91,7 +99,9 @@ class _ItemsScreenState extends State<ItemsScreen> {
       bool matchesCategoryFilter = _selectedCategory == null ||
           item.category.toLowerCase() == _selectedCategory!.toLowerCase();
 
-      return matchesStatusFilter && matchesCategoryFilter;
+      return matchesMemberFilter &&
+          matchesStatusFilter &&
+          matchesCategoryFilter;
     }).toList();
   }
 
@@ -99,6 +109,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
     setState(() {
       _selectedFilter = 'All Items';
       _selectedCategory = null;
+      _selectedMemberId = null;
     });
   }
 
