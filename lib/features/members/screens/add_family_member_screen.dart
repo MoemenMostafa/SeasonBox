@@ -5,7 +5,6 @@ import '../../../data/models/family_member.dart';
 import '../../../data/repositories/family_member_repository.dart';
 import '../../../features/auth/data/auth_service.dart';
 import 'package:uuid/uuid.dart';
-import '../../../widgets/season_box_app_bar.dart';
 import '../../../widgets/app_card.dart';
 
 class AddFamilyMemberScreen extends StatefulWidget {
@@ -194,9 +193,26 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: SeasonBoxAppBar(
-        title:
-            widget.member != null ? 'Edit Family Member' : 'Add Family Member',
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
+        title: Text(
+          widget.member != null ? 'Edit Family Member' : 'Add Family Member',
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+        ),
+        centerTitle: false,
+        backgroundColor: theme.scaffoldBackgroundColor,
+        elevation: 0,
+        actions: widget.member != null
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.help_outline),
+                  onPressed: () {},
+                ),
+              ]
+            : null,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -326,7 +342,7 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
                             ),
                             child: const Text(
                               'Cancel',
@@ -344,7 +360,7 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
                               elevation: 0,
                             ),
                             child: Text(

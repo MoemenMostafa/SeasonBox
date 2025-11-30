@@ -1,15 +1,15 @@
 import 'package:go_router/go_router.dart';
-import 'package:seasonbox/features/auth/presentation/screens/login_screen.dart';
-import 'package:seasonbox/features/auth/presentation/screens/splash_screen.dart';
-import 'package:seasonbox/app/routes/dashboard_screen.dart';
-import 'package:seasonbox/features/members/screens/add_family_member_screen.dart';
-import 'package:seasonbox/features/storage/screens/add_storage_location_screen.dart';
-import 'package:seasonbox/features/items/screens/add_item_screen.dart';
-import 'package:seasonbox/features/members/screens/family_members_screen.dart';
-import 'package:seasonbox/features/storage/screens/storage_screen.dart';
-import 'package:seasonbox/features/items/screens/items_screen.dart';
-import 'package:seasonbox/data/models/item.dart';
-import 'package:seasonbox/data/models/family_member.dart';
+import 'package:myapp/features/auth/presentation/screens/login_screen.dart';
+import 'package:myapp/features/auth/presentation/screens/splash_screen.dart';
+import 'package:myapp/app/routes/dashboard_screen.dart';
+import 'package:myapp/features/members/screens/add_family_member_screen.dart';
+import 'package:myapp/features/storage/screens/add_storage_location_screen.dart';
+import 'package:myapp/features/items/screens/add_item_screen.dart';
+import 'package:myapp/features/members/screens/family_members_screen.dart';
+import 'package:myapp/features/storage/screens/storage_screen.dart';
+import 'package:myapp/features/items/screens/items_screen.dart';
+import 'package:myapp/data/models/item.dart';
+import 'package:myapp/data/models/family_member.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(

@@ -1,4 +1,4 @@
-# seasonbox
+# myapp
 
 A new Flutter project.
 

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:seasonbox/features/home/presentation/screens/home_screen.dart';
-import 'package:seasonbox/features/profile/presentation/screens/profile_screen.dart';
-import 'package:seasonbox/features/items/screens/items_screen.dart';
-import 'package:seasonbox/features/members/screens/family_members_screen.dart';
-import 'package:seasonbox/features/storage/screens/storage_screen.dart';
+import 'package:myapp/features/home/presentation/screens/home_screen.dart';
+import 'package:myapp/features/profile/presentation/screens/profile_screen.dart';
+import 'package:myapp/features/items/screens/items_screen.dart';
+import 'package:myapp/features/members/screens/family_members_screen.dart';
+import 'package:myapp/features/storage/screens/storage_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});

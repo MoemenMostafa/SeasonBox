@@ -1,6 +1,6 @@
 
-name: season_box
-description: "Season Box is a Flutter application for managing family items."
+name: myapp
+description: "A new Flutter project."
 publish_to: 'none'
 version: 1.0.0+1
 

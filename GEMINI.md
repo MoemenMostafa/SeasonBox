@@ -119,7 +119,7 @@ void main() {
   runApp(
     ChangeNotifierProvider(
       create: (context) => ThemeProvider(),
-      child: const seasonbox(),
+      child: const MyApp(),
     ),
   );
 }
@@ -141,8 +141,8 @@ class ThemeProvider with ChangeNotifier {
   }
 }
 
-class seasonbox extends StatelessWidget {
-  const seasonbox({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -406,8 +406,8 @@ final GoRouter _router = GoRouter(
 
 // In your MaterialApp or CupertinoApp
 /*
-class seasonbox extends StatelessWidget {
-  const seasonbox({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -627,7 +627,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(seasonbox());
+  runApp(MyApp());
 }
 ```
 
