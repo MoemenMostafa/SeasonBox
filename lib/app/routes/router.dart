@@ -8,6 +8,7 @@ import 'package:myapp/features/items/screens/add_item_screen.dart';
 import 'package:myapp/features/members/screens/family_members_screen.dart';
 import 'package:myapp/features/storage/screens/storage_screen.dart';
 import 'package:myapp/features/items/screens/items_screen.dart';
+import 'package:myapp/data/models/item.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -24,7 +25,8 @@ class AppRouter {
           builder: (context, state) => const AddStorageLocationScreen()),
       GoRoute(
           path: '/add-item',
-          builder: (context, state) => const AddItemScreen()),
+          builder: (context, state) =>
+              AddItemScreen(item: state.extra as Item?)),
       GoRoute(
           path: '/members',
           builder: (context, state) => const FamilyMembersScreen()),

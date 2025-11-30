@@ -13,7 +13,9 @@ import '../../../widgets/app_card.dart';
 import '../../../widgets/season_box_app_bar.dart';
 
 class AddItemScreen extends StatefulWidget {
-  const AddItemScreen({super.key});
+  final Item? item; // Optional item for editing
+
+  const AddItemScreen({super.key, this.item});
 
   @override
   State<AddItemScreen> createState() => _AddItemScreenState();
@@ -72,6 +74,12 @@ class _AddItemScreenState extends State<AddItemScreen> {
     return []; // Empty for other categories, defaults to custom input
   }
 
+  List<String> _getSizesForCategory(String category) {
+    if (category == 'Clothes') return _clothesSizes;
+    if (category == 'Shoes') return _shoeSizes;
+    return [];
+  }
+
   final List<Map<String, dynamic>> _seasons = [
     {'label': 'Winter', 'icon': Icons.ac_unit, 'color': Colors.blue},
     {'label': 'Spring', 'icon': Icons.local_florist, 'color': Colors.green},
@@ -83,6 +91,27 @@ class _AddItemScreenState extends State<AddItemScreen> {
   void initState() {
     super.initState();
     _loadData();
+
+    // If editing, populate fields with existing item data
+    if (widget.item != null) {
+      _titleController.text = widget.item!.title;
+      _descriptionController.text = widget.item!.notes;
+      _selectedCategory = widget.item!.category;
+      _selectedGender = widget.item!.gender;
+      _selectedSize = widget.item!.size;
+      _quantity = widget.item!.quantity;
+      _assignedChildId = widget.item!.memberId;
+      _storageLocationId = widget.item!.storageLocationId;
+      _selectedSeasons.clear();
+      _selectedSeasons.addAll(widget.item!.seasonTags);
+
+      // Check if size is custom
+      final availableSizes = _getSizesForCategory(_selectedCategory);
+      _isCustomSize = !availableSizes.contains(_selectedSize);
+      if (_isCustomSize) {
+        _customSizeController.text = _selectedSize;
+      }
+    }
   }
 
   Future<void> _loadData() async {
@@ -135,6 +164,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
   Future<void> _saveItem() async {
     if (!_formKey.currentState!.validate()) return;
+
     if (_storageLocationId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a storage location')),
@@ -161,7 +191,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
       }
 
       final item = Item(
-        id: const Uuid().v4(),
+        id: widget.item?.id ?? const Uuid().v4(), // Use existing ID if editing
         familyId: familyId,
         title: _titleController.text.trim(),
         category: _selectedCategory,
@@ -169,25 +199,40 @@ class _AddItemScreenState extends State<AddItemScreen> {
         size: _isCustomSize ? _customSizeController.text.trim() : _selectedSize,
         seasonTags: _selectedSeasons.toList(),
         storageLocationId: _storageLocationId!,
+        memberId: _assignedChildId,
         quantity: _quantity,
         notes: _descriptionController.text.trim(),
-        addedAt: DateTime.now(),
-        status: 'stored', // Default status for new items
+        addedAt: widget.item?.addedAt ??
+            DateTime.now(), // Preserve original date if editing
+        status: 'Stored',
         photos: [], // Deferred to Sprint 3
       );
 
-      await context.read<ItemRepository>().addItem(item);
+      // Debug: Print memberId to verify it's being set
+      print('DEBUG: Saving item with memberId: ${_assignedChildId}');
+      print('DEBUG: Item toMap memberId: ${item.toMap()['memberId']}');
+
+      if (widget.item != null) {
+        // Update existing item
+        await context.read<ItemRepository>().updateItem(item);
+      } else {
+        // Add new item
+        await context.read<ItemRepository>().addItem(item);
+      }
 
       if (mounted) {
         context.pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Item added successfully')),
+          SnackBar(
+              content: Text(widget.item != null
+                  ? 'Item updated successfully'
+                  : 'Item added successfully')),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error adding item: $e')),
+          SnackBar(content: Text('Error saving item: $e')),
         );
       }
     } finally {
@@ -205,8 +250,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: const SeasonBoxAppBar(
-        title: 'Add New Item',
+      appBar: SeasonBoxAppBar(
+        title: widget.item != null ? 'Edit Item' : 'Add New Item',
       ),
       body: _isSaving
           ? const Center(child: CircularProgressIndicator())
@@ -524,9 +569,10 @@ class _AddItemScreenState extends State<AddItemScreen> {
                               style: TextStyle(fontSize: 14)),
                           const SizedBox(height: 8),
                           DropdownButtonFormField<String>(
+                            key: ValueKey(_assignedChildId),
                             initialValue: _assignedChildId,
                             decoration: const InputDecoration(
-                              hintText: 'Select child',
+                              hintText: 'Select member',
                               border: OutlineInputBorder(),
                               contentPadding: EdgeInsets.symmetric(
                                   horizontal: 12, vertical: 12),
@@ -537,8 +583,10 @@ class _AddItemScreenState extends State<AddItemScreen> {
                               ..._members.map((m) => DropdownMenuItem(
                                   value: m.id, child: Text(m.name))),
                             ],
-                            onChanged: (v) =>
-                                setState(() => _assignedChildId = v),
+                            onChanged: (v) {
+                              print('DEBUG: Dropdown changed to: $v');
+                              setState(() => _assignedChildId = v);
+                            },
                           ),
                         ],
                       ),
@@ -631,8 +679,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text('Save Item',
-                            style: TextStyle(
+                        child: Text(
+                            widget.item != null ? 'Update Item' : 'Save Item',
+                            style: const TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold)),
                       ),
                     ),

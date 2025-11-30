@@ -9,6 +9,7 @@ class Item {
   final Map<String, num>? sizeRange; // {min: number, max: number}
   final List<String> seasonTags;
   final String storageLocationId;
+  final String? memberId; // ID of the family member who owns this item
   final int quantity;
   final String notes;
   final DateTime addedAt;
@@ -27,6 +28,7 @@ class Item {
     this.sizeRange,
     this.seasonTags = const [],
     required this.storageLocationId,
+    this.memberId,
     this.quantity = 1,
     this.notes = '',
     required this.addedAt,
@@ -47,6 +49,7 @@ class Item {
       'sizeRange': sizeRange,
       'seasonTags': seasonTags,
       'storageLocationId': storageLocationId,
+      'memberId': memberId,
       'quantity': quantity,
       'notes': notes,
       'addedAt': addedAt.toIso8601String(),
@@ -70,6 +73,7 @@ class Item {
           : null,
       seasonTags: List<String>.from(map['seasonTags'] ?? []),
       storageLocationId: map['storageLocationId'] ?? '',
+      memberId: map['memberId'],
       quantity: map['quantity'] ?? 1,
       notes: map['notes'] ?? '',
       addedAt:

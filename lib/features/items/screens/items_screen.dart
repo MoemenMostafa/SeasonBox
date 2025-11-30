@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:myapp/data/models/item.dart';
+import 'package:myapp/data/models/storage_location.dart';
+import 'package:myapp/data/models/family_member.dart';
 import '../../../data/repositories/item_repository.dart';
+import '../../../data/repositories/storage_location_repository.dart';
+import '../../../data/repositories/family_member_repository.dart';
 import '../../../features/auth/data/auth_service.dart';
 import '../../../widgets/season_box_app_bar.dart';
 import 'package:myapp/widgets/app_card.dart';
 import 'package:myapp/widgets/season_box_add_button.dart';
-import 'package:myapp/widgets/capacity_indicator.dart';
 import 'package:myapp/widgets/season_box_filter_chip.dart';
 import 'package:myapp/widgets/skeleton_container.dart';
 
@@ -20,8 +23,11 @@ class ItemsScreen extends StatefulWidget {
 
 class _ItemsScreenState extends State<ItemsScreen> {
   List<Item> _items = [];
+  List<StorageLocation> _locations = [];
+  List<FamilyMember> _members = [];
   bool _isLoading = true;
   String _selectedFilter = 'All Items';
+  String? _selectedCategory;
 
   @override
   void initState() {
@@ -36,13 +42,19 @@ class _ItemsScreenState extends State<ItemsScreen> {
       if (familyId == null) {
         throw Exception('User not authenticated');
       }
-      final items = await context
-          .read<ItemRepository>()
-          .getItems(familyId)
-          .timeout(const Duration(seconds: 5));
+
+      // Load items, storage locations, and family members in parallel
+      final results = await Future.wait([
+        context.read<ItemRepository>().getItems(familyId),
+        context.read<StorageLocationRepository>().getLocations(familyId),
+        context.read<FamilyMemberRepository>().getFamilyMembers(familyId),
+      ]).timeout(const Duration(seconds: 5));
+
       if (mounted) {
         setState(() {
-          _items = items;
+          _items = results[0] as List<Item>;
+          _locations = results[1] as List<StorageLocation>;
+          _members = results[2] as List<FamilyMember>;
           _isLoading = false;
         });
       }
@@ -58,6 +70,36 @@ class _ItemsScreenState extends State<ItemsScreen> {
     }
   }
 
+  List<Item> get _filteredItems {
+    return _items.where((item) {
+      // Status/Season filter
+      bool matchesStatusFilter = _selectedFilter == 'All Items' ||
+          (_selectedFilter == 'In Use' &&
+              item.status.toLowerCase() == 'in use') ||
+          (_selectedFilter == 'Stored' &&
+              item.status.toLowerCase() == 'stored') ||
+          (_selectedFilter == 'Winter' &&
+              item.seasonTags
+                  .any((tag) => tag.toLowerCase().contains('winter'))) ||
+          (_selectedFilter == 'Summer' &&
+              item.seasonTags
+                  .any((tag) => tag.toLowerCase().contains('summer')));
+
+      // Category filter
+      bool matchesCategoryFilter = _selectedCategory == null ||
+          item.category.toLowerCase() == _selectedCategory!.toLowerCase();
+
+      return matchesStatusFilter && matchesCategoryFilter;
+    }).toList();
+  }
+
+  void _clearAllFilters() {
+    setState(() {
+      _selectedFilter = 'All Items';
+      _selectedCategory = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -67,7 +109,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: SeasonBoxAppBar(
         title: 'Items',
-        subtitle: '${_items.length} total items',
+        subtitle: '${_filteredItems.length} total items',
         actions: [
           IconButton(
             icon: const Icon(Icons.search, color: Colors.white),
@@ -136,7 +178,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
                               ),
                             ),
                             TextButton(
-                              onPressed: () {},
+                              onPressed: _clearAllFilters,
                               child: const Text('Clear All'),
                             ),
                           ],
@@ -145,13 +187,13 @@ class _ItemsScreenState extends State<ItemsScreen> {
                         Row(
                           children: [
                             _buildQuickFilterCard(
-                                'Clothes', Icons.checkroom, theme),
+                                'Clothes', Icons.checkroom, theme, 'Clothes'),
                             const SizedBox(width: 12),
                             _buildQuickFilterCard(
-                                'Shoes', Icons.do_not_step, theme),
+                                'Shoes', Icons.do_not_step, theme, 'Shoes'),
                             const SizedBox(width: 12),
-                            _buildQuickFilterCard(
-                                'Accessories', Icons.style, theme),
+                            _buildQuickFilterCard('Accessories', Icons.style,
+                                theme, 'Accessories'),
                           ],
                         ),
                       ],
@@ -163,9 +205,9 @@ class _ItemsScreenState extends State<ItemsScreen> {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: _items.length,
+                    itemCount: _filteredItems.length,
                     itemBuilder: (context, index) {
-                      final item = _items[index];
+                      final item = _filteredItems[index];
                       return _buildItemCard(item, theme, isDark);
                     },
                   ),
@@ -179,37 +221,87 @@ class _ItemsScreenState extends State<ItemsScreen> {
     );
   }
 
-  Widget _buildQuickFilterCard(String title, IconData icon, ThemeData theme) {
+  Widget _buildQuickFilterCard(
+      String title, IconData icon, ThemeData theme, String category) {
+    final isSelected = _selectedCategory == category;
+
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: theme.dividerColor.withValues(alpha: 0.1),
-          ),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: Colors.grey.shade600),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: Colors.grey.shade600,
-              ),
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _selectedCategory = isSelected ? null : category;
+          });
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? theme.colorScheme.primary.withValues(alpha: 0.1)
+                : theme.cardColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected
+                  ? theme.colorScheme.primary
+                  : theme.dividerColor.withValues(alpha: 0.1),
+              width: isSelected ? 2 : 1,
             ),
-          ],
+          ),
+          child: Column(
+            children: [
+              Icon(
+                icon,
+                color: isSelected
+                    ? theme.colorScheme.primary
+                    : Colors.grey.shade600,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: isSelected
+                      ? theme.colorScheme.primary
+                      : Colors.grey.shade600,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildItemCard(Item item, ThemeData theme, bool isDark) {
+    // Find storage location
+    final location = _locations.firstWhere(
+      (l) => l.id == item.storageLocationId,
+      orElse: () => StorageLocation(
+        id: '',
+        familyId: '',
+        name: 'Unknown',
+        type: 'Box',
+        description: '',
+      ),
+    );
+
+    // Find family member
+    final member = item.memberId != null
+        ? _members.firstWhere(
+            (m) => m.id == item.memberId,
+            orElse: () => FamilyMember(
+              id: '',
+              familyId: '',
+              name: 'Unknown',
+              birthdate: DateTime.now(),
+              gender: 'Unisex',
+            ),
+          )
+        : null;
+
     return AppCard(
       onTap: () {
-        // TODO: Navigate to item detail
+        // Navigate to edit item screen
+        context.push('/add-item', extra: item).then((_) => _loadItems());
       },
       padding: const EdgeInsets.all(12),
       child: Column(
@@ -266,7 +358,9 @@ class _ItemsScreenState extends State<ItemsScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      item.seasonTags.join(', '),
+                      item.seasonTags.isNotEmpty
+                          ? item.seasonTags.join(', ')
+                          : 'No season tags',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: Colors.grey.shade500,
                       ),
@@ -290,37 +384,43 @@ class _ItemsScreenState extends State<ItemsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const CircleAvatar(
-                    radius: 12,
-                    backgroundImage:
-                        AssetImage('assets/images/placeholder_child.png'),
-                    // Fallback if asset missing
-                    backgroundColor: Colors.purple,
-                    child: Text('E',
-                        style: TextStyle(fontSize: 10, color: Colors.white)),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Emma', // Placeholder
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey.shade600,
+              if (member != null)
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 12,
+                      backgroundColor: Colors.purple,
+                      child: Text(
+                        member.name.isNotEmpty
+                            ? member.name[0].toUpperCase()
+                            : '?',
+                        style:
+                            const TextStyle(fontSize: 10, color: Colors.white),
+                      ),
                     ),
+                    const SizedBox(width: 8),
+                    Text(
+                      member.name,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                )
+              else
+                Text(
+                  'Quantity: ${item.quantity}',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey.shade600,
                   ),
-                ],
-              ),
+                ),
               Row(
                 children: [
-                  const CapacityIndicator(
-                    percentage: 75,
-                  ),
-                  const SizedBox(width: 8),
                   Icon(Icons.location_on,
                       size: 16, color: Colors.grey.shade500),
                   const SizedBox(width: 4),
                   Text(
-                    'Box A3', // Placeholder
+                    location.name,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: Colors.grey.shade600,
                     ),
