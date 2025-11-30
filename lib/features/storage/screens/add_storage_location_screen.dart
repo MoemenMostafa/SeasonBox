@@ -38,6 +38,8 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
     try {
       final familyId =
           await context.read<AuthService>().getCurrentUserFamilyId();
+      if (!mounted) return;
+
       if (familyId == null) {
         throw Exception('User not authenticated');
       }
@@ -74,6 +76,8 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
     try {
       final familyId =
           await context.read<AuthService>().getCurrentUserFamilyId();
+      if (!mounted) return;
+
       if (familyId == null) {
         throw Exception('User not authenticated');
       }
@@ -91,6 +95,7 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
         qrCodeId: null, // Not using this for now
       );
 
+      if (!mounted) return;
       await context.read<StorageLocationRepository>().addLocation(location);
 
       if (mounted) {
@@ -149,7 +154,6 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Storage Name',
                         hintText: 'e.g., Box A4, Emma\'s Closet',
-                        border: OutlineInputBorder(),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -165,7 +169,6 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
                       initialValue: _parentLocationId,
                       decoration: const InputDecoration(
                         labelText: 'Parent Location (Optional)',
-                        border: OutlineInputBorder(),
                       ),
                       items: [
                         const DropdownMenuItem(
@@ -184,7 +187,6 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Description (Optional)',
                         hintText: 'Additional details...',
-                        border: OutlineInputBorder(),
                         alignLabelWithHint: true,
                       ),
                       maxLines: 3,
@@ -240,16 +242,46 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
                     const SizedBox(height: 32),
 
                     // Submit Button
-                    SizedBox(
+                    // Submit Button
+                    Container(
                       width: double.infinity,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0xFF6366F1),
+                            Color(0xFF8B5CF6)
+                          ], // Indigo to Violet
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color:
+                                const Color(0xFF6366F1).withValues(alpha: 0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
                       child: ElevatedButton(
                         onPressed: _saveLocation,
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor: Theme.of(context).primaryColor,
-                          foregroundColor: Colors.white,
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                        child: const Text('Create Storage'),
+                        child: const Text(
+                          'Create Storage',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -272,13 +304,11 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
             color: isSelected
-                ? (isDark
-                    ? Colors.blue.withValues(alpha: 0.2)
-                    : Colors.blue.shade50)
+                ? theme.colorScheme.primary
                 : (isDark ? theme.cardColor : Colors.white),
             border: Border.all(
               color: isSelected
-                  ? Colors.blue
+                  ? theme.colorScheme.primary
                   : (isDark
                       ? Colors.white.withValues(alpha: 0.1)
                       : Colors.grey.shade300),
@@ -290,7 +320,7 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
             children: [
               Icon(icon,
                   color: isSelected
-                      ? Colors.blue
+                      ? Colors.white
                       : (isDark ? Colors.grey.shade400 : Colors.grey),
                   size: 32),
               const SizedBox(height: 8),
@@ -298,7 +328,7 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
                 label,
                 style: TextStyle(
                   color: isSelected
-                      ? Colors.blue
+                      ? Colors.white
                       : (isDark ? Colors.grey.shade300 : Colors.grey.shade700),
                   fontWeight: FontWeight.bold,
                 ),

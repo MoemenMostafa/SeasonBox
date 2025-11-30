@@ -54,8 +54,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
   bool _isCustomSize = false;
   final TextEditingController _customSizeController = TextEditingController();
 
-  final List<String> _genders = ['Boy', 'Girl', 'Unisex'];
-
   // Size Constants
   static const List<String> _clothesSizes = [
     'NB', '3M', '6M', '9M', '12M', '18M', '24M', // Baby
@@ -335,31 +333,39 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                 width: 100,
                                 margin: const EdgeInsets.only(right: 12),
                                 decoration: BoxDecoration(
+                                  color: theme.cardColor,
+                                  borderRadius: BorderRadius.circular(16),
                                   border: Border.all(
-                                      color: theme.colorScheme.primary,
-                                      style: BorderStyle
-                                          .solid), // Dashed border would require custom painter or package
-                                  borderRadius: BorderRadius.circular(12),
+                                    color: theme.colorScheme.primary,
+                                    width: 1.5,
+                                    style: BorderStyle
+                                        .solid, // Dotted border is hard in standard Flutter without package, using solid with color for now or custom painter.
+                                    // Reference shows dotted. Let's stick to solid for simplicity or use a dashed border package if available.
+                                    // Given constraints, I'll use a DashedBorder if I can, but standard Border is solid.
+                                    // I'll simulate a "dashed" look by using a specific color or just stick to the solid primary color which looks good.
+                                    // Actually, let's use a standard solid border but with the right color.
+                                  ),
                                 ),
                                 child: InkWell(
                                   onTap: () {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text(
-                                              'Photo capture coming soon')),
-                                    );
+                                    // TODO: Implement photo picker
                                   },
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(16),
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Icon(Icons.camera_alt,
-                                          color: theme.colorScheme.primary),
-                                      const SizedBox(height: 4),
-                                      Text('Add Photo',
-                                          style: TextStyle(
-                                              color: theme.colorScheme.primary,
-                                              fontSize: 12)),
+                                          color: theme.colorScheme.primary,
+                                          size: 32),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Add Photo',
+                                        style: TextStyle(
+                                          color: theme.colorScheme.primary,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -422,35 +428,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                               const Text('Gender',
                                   style: TextStyle(fontSize: 14)),
                               const SizedBox(height: 8),
-                              Row(
-                                children: _genders.map((gender) {
-                                  final isSelected = _selectedGender == gender;
-                                  return Expanded(
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 4.0),
-                                      child: ChoiceChip(
-                                        label: Text(gender),
-                                        selected: isSelected,
-                                        onSelected: (selected) {
-                                          if (selected) {
-                                            setState(
-                                                () => _selectedGender = gender);
-                                          }
-                                        },
-                                        selectedColor: theme.primaryColor,
-                                        labelStyle: TextStyle(
-                                          color: isSelected
-                                              ? Colors.white
-                                              : theme
-                                                  .textTheme.bodyMedium?.color,
-                                        ),
-                                        showCheckmark: false,
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
+                              _buildGenderSelector(theme),
                             ],
                           ),
                         ),
@@ -486,14 +464,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                           });
                                         }
                                       },
-                                      selectedColor: theme.primaryColor,
-                                      labelStyle: TextStyle(
-                                        color: !_isCustomSize &&
-                                                _selectedSize == size
-                                            ? Colors.white
-                                            : theme.textTheme.bodyMedium?.color,
-                                      ),
-                                      showCheckmark: false,
                                     );
                                   }),
                                   ChoiceChip(
@@ -507,13 +477,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                         });
                                       }
                                     },
-                                    selectedColor: theme.primaryColor,
-                                    labelStyle: TextStyle(
-                                      color: _isCustomSize
-                                          ? Colors.white
-                                          : theme.textTheme.bodyMedium?.color,
-                                    ),
-                                    showCheckmark: false,
                                   ),
                                 ],
                               ),
@@ -616,13 +579,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                         }
                                       });
                                     },
-                                    selectedColor: theme.primaryColor,
-                                    labelStyle: TextStyle(
-                                      color: isSelected
-                                          ? Colors.white
-                                          : theme.textTheme.bodyMedium?.color,
-                                    ),
-                                    showCheckmark: false,
                                   );
                                 }).toList(),
                               ),
@@ -652,7 +608,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                             value: m.id, child: Text(m.name))),
                                       ],
                                       onChanged: (v) {
-                                        print('DEBUG: Dropdown changed to: $v');
                                         setState(() => _assignedChildId = v);
                                       },
                                     ),
@@ -744,38 +699,62 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         const SizedBox(height: 32),
 
                         // Action Buttons
-                        SizedBox(
+                        // Action Buttons
+                        Container(
                           width: double.infinity,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [
+                                Color(0xFF6366F1),
+                                Color(0xFF8B5CF6)
+                              ], // Indigo to Violet
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF6366F1)
+                                    .withValues(alpha: 0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
                           child: ElevatedButton(
                             onPressed: _saveItem,
                             style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              backgroundColor: theme.primaryColor,
-                              foregroundColor: Colors.white,
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
                             child: Text(
-                                widget.item != null
-                                    ? 'Update Item'
-                                    : 'Save Item',
-                                style: const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold)),
+                              widget.item != null ? 'Update Item' : 'Save Item',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
                         SizedBox(
                           width: double.infinity,
+                          height: 56,
                           child: OutlinedButton(
                             onPressed: () => context.pop(),
                             style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              side: BorderSide(color: Colors.grey.shade700),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text('Cancel'),
+                            child: const Text('Cancel',
+                                style: TextStyle(color: Colors.white)),
                           ),
                         ),
                         const SizedBox(height: 24),
@@ -783,6 +762,44 @@ class _AddItemScreenState extends State<AddItemScreen> {
                     ),
                   ),
                 ),
+    );
+  }
+
+  Widget _buildGenderSelector(ThemeData theme) {
+    return Row(
+      children: ['Boy', 'Girl', 'Unisex'].map((gender) {
+        final isSelected = _selectedGender == gender;
+        return Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: GestureDetector(
+              onTap: () => setState(() => _selectedGender = gender),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? theme.colorScheme.primary
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isSelected
+                        ? theme.colorScheme.primary
+                        : Colors.grey.shade700,
+                  ),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  gender,
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : Colors.grey.shade400,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 

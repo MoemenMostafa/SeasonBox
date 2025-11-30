@@ -43,6 +43,8 @@ class _ItemsScreenState extends State<ItemsScreen> {
         throw Exception('User not authenticated');
       }
 
+      if (!mounted) return;
+
       // Load items, storage locations, and family members in parallel
       final results = await Future.wait([
         context.read<ItemRepository>().getItems(familyId),
@@ -224,6 +226,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
   Widget _buildQuickFilterCard(
       String title, IconData icon, ThemeData theme, String category) {
     final isSelected = _selectedCategory == category;
+    final isDark = theme.brightness == Brightness.dark;
 
     return Expanded(
       child: GestureDetector(
@@ -236,13 +239,12 @@ class _ItemsScreenState extends State<ItemsScreen> {
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
             color: isSelected
-                ? theme.colorScheme.primary.withValues(alpha: 0.1)
-                : theme.cardColor,
+                ? theme.colorScheme.primary
+                : (isDark ? const Color(0xFF334155) : theme.cardColor),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isSelected
-                  ? theme.colorScheme.primary
-                  : theme.dividerColor.withValues(alpha: 0.1),
+              color:
+                  isSelected ? theme.colorScheme.primary : Colors.transparent,
               width: isSelected ? 2 : 1,
             ),
           ),
@@ -251,16 +253,16 @@ class _ItemsScreenState extends State<ItemsScreen> {
               Icon(
                 icon,
                 color: isSelected
-                    ? theme.colorScheme.primary
-                    : Colors.grey.shade600,
+                    ? Colors.white
+                    : (isDark ? Colors.grey.shade400 : Colors.grey.shade600),
               ),
               const SizedBox(height: 8),
               Text(
                 title,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: isSelected
-                      ? theme.colorScheme.primary
-                      : Colors.grey.shade600,
+                      ? Colors.white
+                      : (isDark ? Colors.grey.shade300 : Colors.grey.shade600),
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
@@ -314,7 +316,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
+                  color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
                   borderRadius: BorderRadius.circular(12),
                   image: item.photos.isNotEmpty
                       ? DecorationImage(
@@ -324,7 +326,10 @@ class _ItemsScreenState extends State<ItemsScreen> {
                       : null,
                 ),
                 child: item.photos.isEmpty
-                    ? Icon(Icons.image, color: Colors.grey.shade400)
+                    ? Icon(Icons.image,
+                        color: isDark
+                            ? Colors.grey.shade600
+                            : Colors.grey.shade400)
                     : null,
               ),
               const SizedBox(width: 16),
@@ -346,14 +351,16 @@ class _ItemsScreenState extends State<ItemsScreen> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        _buildStatusChip(item.status),
+                        _buildStatusChip(item.status, isDark),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'Size ${item.size} • ${item.gender}',
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.grey.shade600,
+                        color: isDark
+                            ? Colors.grey.shade400
+                            : Colors.grey.shade600,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -362,7 +369,9 @@ class _ItemsScreenState extends State<ItemsScreen> {
                           ? item.seasonTags.join(', ')
                           : 'No season tags',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.grey.shade500,
+                        color: isDark
+                            ? Colors.grey.shade500
+                            : Colors.grey.shade500,
                       ),
                     ),
                   ],
@@ -402,7 +411,9 @@ class _ItemsScreenState extends State<ItemsScreen> {
                     Text(
                       member.name,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.grey.shade600,
+                        color: isDark
+                            ? Colors.grey.shade400
+                            : Colors.grey.shade600,
                       ),
                     ),
                   ],
@@ -411,7 +422,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
                 Text(
                   'Quantity: ${item.quantity}',
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey.shade600,
+                    color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
                   ),
                 ),
               Row(
@@ -422,7 +433,8 @@ class _ItemsScreenState extends State<ItemsScreen> {
                   Text(
                     location.name,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey.shade600,
+                      color:
+                          isDark ? Colors.grey.shade400 : Colors.grey.shade600,
                     ),
                   ),
                 ],
@@ -434,30 +446,36 @@ class _ItemsScreenState extends State<ItemsScreen> {
     );
   }
 
-  Widget _buildStatusChip(String status) {
+  Widget _buildStatusChip(String status, bool isDark) {
     Color color;
     Color textColor;
     String label = status;
 
     switch (status.toLowerCase()) {
       case 'in use':
-        color = Colors.green.shade100;
-        textColor = Colors.green.shade800;
+        color = isDark
+            ? Colors.green.withValues(alpha: 0.2)
+            : Colors.green.shade100;
+        textColor = isDark ? Colors.green.shade300 : Colors.green.shade800;
         label = 'In Use';
         break;
       case 'stored':
-        color = Colors.blue.shade100;
-        textColor = Colors.blue.shade800;
+        color =
+            isDark ? Colors.blue.withValues(alpha: 0.2) : Colors.blue.shade100;
+        textColor = isDark ? Colors.blue.shade300 : Colors.blue.shade800;
         label = 'Stored';
         break;
       case 'outgrown':
-        color = Colors.orange.shade100;
-        textColor = Colors.orange.shade800;
+        color = isDark
+            ? Colors.orange.withValues(alpha: 0.2)
+            : Colors.orange.shade100;
+        textColor = isDark ? Colors.orange.shade300 : Colors.orange.shade800;
         label = 'Outgrown';
         break;
       default:
-        color = Colors.grey.shade200;
-        textColor = Colors.grey.shade800;
+        color =
+            isDark ? Colors.grey.withValues(alpha: 0.2) : Colors.grey.shade200;
+        textColor = isDark ? Colors.grey.shade400 : Colors.grey.shade800;
     }
 
     return Container(

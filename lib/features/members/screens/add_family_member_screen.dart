@@ -121,7 +121,6 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                       controller: _nameController,
                       decoration: const InputDecoration(
                         labelText: 'Member Name',
-                        border: OutlineInputBorder(),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -137,7 +136,6 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                       initialValue: _gender,
                       decoration: const InputDecoration(
                         labelText: 'Gender',
-                        border: OutlineInputBorder(),
                       ),
                       items: ['Boy', 'Girl', 'Unisex']
                           .map((label) => DropdownMenuItem(
@@ -159,7 +157,6 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                       child: InputDecorator(
                         decoration: const InputDecoration(
                           labelText: 'Birthdate',
-                          border: OutlineInputBorder(),
                           suffixIcon: Icon(Icons.calendar_today),
                         ),
                         child: Text(
@@ -178,7 +175,6 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                     TextFormField(
                       decoration: const InputDecoration(
                         labelText: 'Clothing Size',
-                        border: OutlineInputBorder(),
                         helperText: 'e.g. 110 (cm) or 5 (age)',
                       ),
                       keyboardType: TextInputType.number,
@@ -192,7 +188,6 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                     TextFormField(
                       decoration: const InputDecoration(
                         labelText: 'Shoe Size',
-                        border: OutlineInputBorder(),
                         helperText: 'e.g. 28',
                       ),
                       keyboardType: TextInputType.number,
@@ -207,23 +202,52 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                       controller: _notesController,
                       decoration: const InputDecoration(
                         labelText: 'Notes (Optional)',
-                        border: OutlineInputBorder(),
                       ),
                       maxLines: 3,
                     ),
                     const SizedBox(height: 32),
 
                     // Submit Button
-                    SizedBox(
+                    // Submit Button
+                    Container(
                       width: double.infinity,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0xFF6366F1),
+                            Color(0xFF8B5CF6)
+                          ], // Indigo to Violet
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color:
+                                const Color(0xFF6366F1).withValues(alpha: 0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
                       child: ElevatedButton(
                         onPressed: _saveMember,
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor: Colors.deepPurple,
-                          foregroundColor: Colors.white,
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                        child: const Text('Add Family Member'),
+                        child: const Text(
+                          'Add Family Member',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
                     ),
                   ],
