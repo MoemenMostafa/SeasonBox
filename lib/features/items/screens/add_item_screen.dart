@@ -92,27 +92,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
   @override
   void initState() {
     super.initState();
-
-    // If editing, populate fields with existing item data
-    if (widget.item != null) {
-      _titleController.text = widget.item!.title;
-      _descriptionController.text = widget.item!.notes;
-      _selectedCategory = widget.item!.category;
-      _selectedGender = widget.item!.gender;
-      _selectedSize = widget.item!.size;
-      _quantity = widget.item!.quantity;
-      _assignedChildId = widget.item!.memberId;
-      _storageLocationId = widget.item!.storageLocationId;
-      _selectedSeasons.clear();
-      _selectedSeasons.addAll(widget.item!.seasonTags);
-
-      // Check if size is custom
-      final availableSizes = _getSizesForCategory(_selectedCategory);
-      _isCustomSize = !availableSizes.contains(_selectedSize);
-      if (_isCustomSize) {
-        _customSizeController.text = _selectedSize;
-      }
-    }
+    // Field population is deferred to _onTransitionComplete to prevent UI freeze
   }
 
   @override
@@ -137,9 +117,26 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
   void _onTransitionComplete() {
     if (mounted) {
+      // Populate fields BEFORE setState to avoid triggering form rebuild
+      // This ensures the skeleton stays visible during field population
+      if (widget.item != null) {
+        _titleController.text = widget.item!.title;
+        _descriptionController.text = widget.item!.notes;
+        _selectedCategory = widget.item!.category;
+        _selectedGender = widget.item!.gender;
+        _selectedSize = widget.item!.size;
+        _quantity = widget.item!.quantity;
+        _assignedChildId = widget.item!.memberId;
+        _storageLocationId = widget.item!.storageLocationId;
+        _selectedSeasons.clear();
+        _selectedSeasons.addAll(widget.item!.seasonTags);
+      }
+
+      // NOW switch to form - single setState at the end
       setState(() {
         _isTransitionComplete = true;
       });
+
       // Defer data loading to the next frame to ensure the Form renders first
       // and the UI remains responsive.
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -188,6 +185,16 @@ class _AddItemScreenState extends State<AddItemScreen> {
           _locations = locations;
           _isLoadingData = false;
         });
+
+        // Initialize custom size if editing an item
+        // This is deferred to after data load to prevent UI freeze
+        if (widget.item != null) {
+          final availableSizes = _getSizesForCategory(_selectedCategory);
+          _isCustomSize = !availableSizes.contains(_selectedSize);
+          if (_isCustomSize) {
+            _customSizeController.text = _selectedSize;
+          }
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -319,11 +326,12 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         const SizedBox(height: 8),
                         SizedBox(
                           height: 100,
-                          child: ListView(
+                          child: ListView.builder(
                             scrollDirection: Axis.horizontal,
-                            children: [
+                            itemCount: 1,
+                            itemBuilder: (context, index) {
                               // Add Photo Button
-                              Container(
+                              return Container(
                                 width: 100,
                                 margin: const EdgeInsets.only(right: 12),
                                 decoration: BoxDecoration(
@@ -355,9 +363,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                     ],
                                   ),
                                 ),
-                              ),
+                              );
                               // Placeholder for existing photos (if any)
-                            ],
+                            },
                           ),
                         ),
                         const SizedBox(height: 24),
@@ -564,8 +572,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        // Season & Child Section
-                        const Text('Season & Child',
+                        // Season & Member Section
+                        const Text('Season & Member',
                             style: TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
@@ -630,7 +638,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                     )
                                   : DropdownButtonFormField<String>(
                                       key: ValueKey(_assignedChildId),
-                                      value: _assignedChildId,
+                                      initialValue: _assignedChildId,
                                       decoration: const InputDecoration(
                                         hintText: 'Select member',
                                         border: OutlineInputBorder(),
@@ -672,7 +680,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                           BorderRadius.all(Radius.circular(4)),
                                     )
                                   : DropdownButtonFormField<String>(
-                                      value: _storageLocationId,
+                                      initialValue: _storageLocationId,
                                       decoration: const InputDecoration(
                                         hintText: 'Select location',
                                         border: OutlineInputBorder(),
