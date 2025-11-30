@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:myapp/data/models/item.dart';
-import 'package:myapp/data/models/storage_location.dart';
-import 'package:myapp/data/models/family_member.dart';
-import '../../../data/repositories/item_repository.dart';
-import '../../../data/repositories/storage_location_repository.dart';
-import '../../../data/repositories/family_member_repository.dart';
-import '../../../features/auth/data/auth_service.dart';
-import '../../../widgets/season_box_app_bar.dart';
-import 'package:myapp/widgets/app_card.dart';
-import 'package:myapp/widgets/season_box_add_button.dart';
-import 'package:myapp/widgets/season_box_filter_chip.dart';
-import 'package:myapp/widgets/skeleton_container.dart';
+import 'package:seasonbox/data/models/item.dart';
+import 'package:seasonbox/data/models/storage_location.dart';
+import 'package:seasonbox/data/models/family_member.dart';
+import 'package:seasonbox/data/repositories/item_repository.dart';
+import 'package:seasonbox/data/repositories/storage_location_repository.dart';
+import 'package:seasonbox/data/repositories/family_member_repository.dart';
+import 'package:seasonbox/features/auth/data/auth_service.dart';
+import 'package:seasonbox/widgets/season_box_app_bar.dart';
+import 'package:seasonbox/widgets/app_card.dart';
+import 'package:seasonbox/widgets/season_box_add_button.dart';
+import 'package:seasonbox/widgets/season_box_filter_chip.dart';
+import 'package:seasonbox/widgets/skeleton_container.dart';
 
 class ItemsScreen extends StatefulWidget {
   final String? initialMemberId;

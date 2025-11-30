@@ -1,17 +1,17 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:myapp/data/services/user_service.dart';
+import 'package:seasonbox/data/services/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:myapp/firebase_options.dart';
-import 'package:myapp/features/auth/data/auth_service.dart';
-import 'package:myapp/app/routes/router.dart';
-import 'package:myapp/app/theme/theme.dart';
-import 'package:myapp/data/services/firestore_service.dart';
-import 'package:myapp/data/repositories/family_repository.dart';
-import 'package:myapp/data/repositories/family_member_repository.dart';
-import 'package:myapp/data/repositories/item_repository.dart';
-import 'package:myapp/data/repositories/storage_location_repository.dart';
+import 'package:seasonbox/firebase_options.dart';
+import 'package:seasonbox/features/auth/data/auth_service.dart';
+import 'package:seasonbox/app/routes/router.dart';
+import 'package:seasonbox/app/theme/theme.dart';
+import 'package:seasonbox/data/services/firestore_service.dart';
+import 'package:seasonbox/data/repositories/family_repository.dart';
+import 'package:seasonbox/data/repositories/family_member_repository.dart';
+import 'package:seasonbox/data/repositories/item_repository.dart';
+import 'package:seasonbox/data/repositories/storage_location_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

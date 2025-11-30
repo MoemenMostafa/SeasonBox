@@ -261,10 +261,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
         photos: [], // Deferred to Sprint 3
       );
 
-      // Debug: Print memberId to verify it's being set
-      print('DEBUG: Saving item with memberId: ${_assignedChildId}');
-      print('DEBUG: Item toMap memberId: ${item.toMap()['memberId']}');
-
       if (widget.item != null) {
         // Update existing item
         await context.read<ItemRepository>().updateItem(item);
@@ -804,71 +800,71 @@ class _AddItemScreenState extends State<AddItemScreen> {
   }
 
   Widget _buildLoadingSkeleton() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+    return const SingleChildScrollView(
+      padding: EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Photos Section
-          const SkeletonContainer.rectangular(
+          SkeletonContainer.rectangular(
             width: 100,
             height: 24,
             borderRadius: BorderRadius.all(Radius.circular(4)),
           ),
-          const SizedBox(height: 8),
-          const SkeletonContainer.rectangular(
+          SizedBox(height: 8),
+          SkeletonContainer.rectangular(
             height: 100,
             borderRadius: BorderRadius.all(Radius.circular(12)),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
 
           // Item Details Section
-          const SkeletonContainer.rectangular(
+          SkeletonContainer.rectangular(
             width: 120,
             height: 24,
             borderRadius: BorderRadius.all(Radius.circular(4)),
           ),
-          const SizedBox(height: 8),
-          const SkeletonContainer.rectangular(
+          SizedBox(height: 8),
+          SkeletonContainer.rectangular(
             height: 200,
             borderRadius: BorderRadius.all(Radius.circular(12)),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
 
           // Size Section
-          const SkeletonContainer.rectangular(
+          SkeletonContainer.rectangular(
             width: 100,
             height: 24,
             borderRadius: BorderRadius.all(Radius.circular(4)),
           ),
-          const SizedBox(height: 8),
-          const SkeletonContainer.rectangular(
+          SizedBox(height: 8),
+          SkeletonContainer.rectangular(
             height: 150,
             borderRadius: BorderRadius.all(Radius.circular(12)),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
 
           // Season & Member Section
-          const SkeletonContainer.rectangular(
+          SkeletonContainer.rectangular(
             width: 140,
             height: 24,
             borderRadius: BorderRadius.all(Radius.circular(4)),
           ),
-          const SizedBox(height: 8),
-          const SkeletonContainer.rectangular(
+          SizedBox(height: 8),
+          SkeletonContainer.rectangular(
             height: 180,
             borderRadius: BorderRadius.all(Radius.circular(12)),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
 
           // Storage Location Section
-          const SkeletonContainer.rectangular(
+          SkeletonContainer.rectangular(
             width: 130,
             height: 24,
             borderRadius: BorderRadius.all(Radius.circular(4)),
           ),
-          const SizedBox(height: 8),
-          const SkeletonContainer.rectangular(
+          SizedBox(height: 8),
+          SkeletonContainer.rectangular(
             height: 120,
             borderRadius: BorderRadius.all(Radius.circular(12)),
           ),
