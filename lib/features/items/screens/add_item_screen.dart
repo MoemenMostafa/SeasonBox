@@ -11,6 +11,7 @@ import '../../../data/repositories/storage_location_repository.dart';
 import '../../../features/auth/data/auth_service.dart';
 import '../../../widgets/app_card.dart';
 import '../../../widgets/season_box_app_bar.dart';
+import '../../../widgets/skeleton_container.dart';
 
 class AddItemScreen extends StatefulWidget {
   final Item? item; // Optional item for editing
@@ -39,6 +40,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
   List<FamilyMember> _members = [];
   List<StorageLocation> _locations = [];
   bool _isLoadingData = true;
+  bool _isTransitionComplete = false;
   bool _isSaving = false;
 
   final List<String> _categories = [
@@ -90,7 +92,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
   @override
   void initState() {
     super.initState();
-    _loadData();
 
     // If editing, populate fields with existing item data
     if (widget.item != null) {
@@ -114,7 +115,54 @@ class _AddItemScreenState extends State<AddItemScreen> {
     }
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Clever solution: Listen to the route transition animation
+    // and start loading data only after the transition is fully completed.
+    // This guarantees zero jank during the slide-in animation.
+    if (_isLoadingData) {
+      final route = ModalRoute.of(context);
+      if (route is PageRoute) {
+        if (route.animation?.status == AnimationStatus.completed) {
+          _onTransitionComplete();
+        } else {
+          route.animation?.addStatusListener(_onRouteAnimationStatusChanged);
+        }
+      } else {
+        _onTransitionComplete();
+      }
+    }
+  }
+
+  void _onTransitionComplete() {
+    if (mounted) {
+      setState(() {
+        _isTransitionComplete = true;
+      });
+      // Defer data loading to the next frame to ensure the Form renders first
+      // and the UI remains responsive.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _loadData();
+        }
+      });
+    }
+  }
+
+  void _onRouteAnimationStatusChanged(AnimationStatus status) {
+    if (status == AnimationStatus.completed) {
+      _onTransitionComplete();
+      // Remove listener to prevent memory leaks
+      final route = ModalRoute.of(context);
+      route?.animation?.removeStatusListener(_onRouteAnimationStatusChanged);
+    }
+  }
+
   Future<void> _loadData() async {
+    // Prevent double loading
+    if (!_isLoadingData && _members.isNotEmpty) return;
+
     try {
       // Get family ID from authenticated user
       final familyId =
@@ -255,129 +303,310 @@ class _AddItemScreenState extends State<AddItemScreen> {
       ),
       body: _isSaving
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Photos Section
-                    const Text('Photos',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      height: 100,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        children: [
-                          // Add Photo Button
-                          Container(
-                            width: 100,
-                            margin: const EdgeInsets.only(right: 12),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                  color: theme.primaryColor,
-                                  style: BorderStyle
-                                      .solid), // Dashed border would require custom painter or package
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: InkWell(
-                              onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content:
-                                          Text('Photo capture coming soon')),
-                                );
-                              },
-                              borderRadius: BorderRadius.circular(12),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.camera_alt,
-                                      color: theme.primaryColor),
-                                  const SizedBox(height: 4),
-                                  Text('Add Photo',
-                                      style: TextStyle(
-                                          color: theme.primaryColor,
-                                          fontSize: 12)),
-                                ],
+          : !_isTransitionComplete
+              ? _buildLoadingSkeleton()
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Photos Section
+                        const Text('Photos',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          height: 100,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            children: [
+                              // Add Photo Button
+                              Container(
+                                width: 100,
+                                margin: const EdgeInsets.only(right: 12),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: theme.colorScheme.primary,
+                                      style: BorderStyle
+                                          .solid), // Dashed border would require custom painter or package
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: InkWell(
+                                  onTap: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text(
+                                              'Photo capture coming soon')),
+                                    );
+                                  },
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.camera_alt,
+                                          color: theme.colorScheme.primary),
+                                      const SizedBox(height: 4),
+                                      Text('Add Photo',
+                                          style: TextStyle(
+                                              color: theme.colorScheme.primary,
+                                              fontSize: 12)),
+                                    ],
+                                  ),
+                                ),
                               ),
-                            ),
+                              // Placeholder for existing photos (if any)
+                            ],
                           ),
-                          // Placeholder for existing photos (if any)
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
+                        ),
+                        const SizedBox(height: 24),
 
-                    // Item Details Section
-                    const Text('Item Details',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    AppCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Item Name',
-                              style: TextStyle(fontSize: 14)),
-                          const SizedBox(height: 8),
-                          TextFormField(
-                            controller: _titleController,
-                            decoration: const InputDecoration(
-                              hintText: 'e.g., Winter Jacket',
-                              border: OutlineInputBorder(),
-                              contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 12),
-                            ),
-                            validator: (value) =>
-                                value?.isEmpty == true ? 'Required' : null,
+                        // Item Details Section
+                        const Text('Item Details',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        AppCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Item Name',
+                                  style: TextStyle(fontSize: 14)),
+                              const SizedBox(height: 8),
+                              TextFormField(
+                                controller: _titleController,
+                                decoration: const InputDecoration(
+                                  hintText: 'e.g., Winter Jacket',
+                                  border: OutlineInputBorder(),
+                                  contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 12),
+                                ),
+                                validator: (value) =>
+                                    value?.isEmpty == true ? 'Required' : null,
+                              ),
+                              const SizedBox(height: 16),
+                              const Text('Category',
+                                  style: TextStyle(fontSize: 14)),
+                              const SizedBox(height: 8),
+                              DropdownButtonFormField<String>(
+                                initialValue: _selectedCategory,
+                                decoration: const InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 12),
+                                ),
+                                items: _categories
+                                    .map((c) => DropdownMenuItem(
+                                        value: c, child: Text(c)))
+                                    .toList(),
+                                onChanged: (v) {
+                                  setState(() {
+                                    _selectedCategory = v!;
+                                    // Reset size selection when category changes
+                                    _isCustomSize = false;
+                                    _selectedSize = '';
+                                    _customSizeController.clear();
+                                  });
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                              const Text('Gender',
+                                  style: TextStyle(fontSize: 14)),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: _genders.map((gender) {
+                                  final isSelected = _selectedGender == gender;
+                                  return Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 4.0),
+                                      child: ChoiceChip(
+                                        label: Text(gender),
+                                        selected: isSelected,
+                                        onSelected: (selected) {
+                                          if (selected) {
+                                            setState(
+                                                () => _selectedGender = gender);
+                                          }
+                                        },
+                                        selectedColor: theme.primaryColor,
+                                        labelStyle: TextStyle(
+                                          color: isSelected
+                                              ? Colors.white
+                                              : theme
+                                                  .textTheme.bodyMedium?.color,
+                                        ),
+                                        showCheckmark: false,
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 16),
-                          const Text('Category',
-                              style: TextStyle(fontSize: 14)),
-                          const SizedBox(height: 8),
-                          DropdownButtonFormField<String>(
-                            initialValue: _selectedCategory,
-                            decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                              contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 12),
-                            ),
-                            items: _categories
-                                .map((c) =>
-                                    DropdownMenuItem(value: c, child: Text(c)))
-                                .toList(),
-                            onChanged: (v) {
-                              setState(() {
-                                _selectedCategory = v!;
-                                // Reset size selection when category changes
-                                _isCustomSize = false;
-                                _selectedSize = '';
-                                _customSizeController.clear();
-                              });
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          const Text('Gender', style: TextStyle(fontSize: 14)),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: _genders.map((gender) {
-                              final isSelected = _selectedGender == gender;
-                              return Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 4.0),
-                                  child: ChoiceChip(
-                                    label: Text(gender),
-                                    selected: isSelected,
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Size Section
+                        const Text('Size',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        AppCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Size',
+                                  style: TextStyle(fontSize: 14)),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  ..._currentSizes.map((size) {
+                                    return ChoiceChip(
+                                      label: Text(size),
+                                      selected: !_isCustomSize &&
+                                          _selectedSize == size,
+                                      onSelected: (selected) {
+                                        if (selected) {
+                                          setState(() {
+                                            _isCustomSize = false;
+                                            _selectedSize = size;
+                                            _customSizeController.clear();
+                                          });
+                                        }
+                                      },
+                                      selectedColor: theme.primaryColor,
+                                      labelStyle: TextStyle(
+                                        color: !_isCustomSize &&
+                                                _selectedSize == size
+                                            ? Colors.white
+                                            : theme.textTheme.bodyMedium?.color,
+                                      ),
+                                      showCheckmark: false,
+                                    );
+                                  }),
+                                  ChoiceChip(
+                                    label: const Text('Other'),
+                                    selected: _isCustomSize,
                                     onSelected: (selected) {
                                       if (selected) {
-                                        setState(
-                                            () => _selectedGender = gender);
+                                        setState(() {
+                                          _isCustomSize = true;
+                                          _selectedSize = '';
+                                        });
                                       }
+                                    },
+                                    selectedColor: theme.primaryColor,
+                                    labelStyle: TextStyle(
+                                      color: _isCustomSize
+                                          ? Colors.white
+                                          : theme.textTheme.bodyMedium?.color,
+                                    ),
+                                    showCheckmark: false,
+                                  ),
+                                ],
+                              ),
+                              if (_isCustomSize) ...[
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: _customSizeController,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Enter Custom Size',
+                                    hintText: 'e.g., 32W, 10.5, etc.',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  validator: (value) {
+                                    if (_isCustomSize &&
+                                        (value == null || value.isEmpty)) {
+                                      return 'Please enter a size';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ],
+                              const SizedBox(height: 16),
+                              const Text('Quantity',
+                                  style: TextStyle(fontSize: 14)),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  IconButton.filledTonal(
+                                    onPressed: () {
+                                      if (_quantity > 1) {
+                                        setState(() => _quantity--);
+                                      }
+                                    },
+                                    icon: const Icon(Icons.remove),
+                                  ),
+                                  Container(
+                                    width: 60,
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      '$_quantity',
+                                      style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                  IconButton.filled(
+                                    onPressed: () {
+                                      setState(() => _quantity++);
+                                    },
+                                    icon: const Icon(Icons.add),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Season & Child Section
+                        const Text('Season & Child',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        AppCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Season(s)',
+                                  style: TextStyle(fontSize: 14)),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: _seasons.map((season) {
+                                  final label = season['label'] as String;
+                                  final icon = season['icon'] as IconData;
+                                  final color = season['color'] as Color;
+                                  final isSelected =
+                                      _selectedSeasons.contains(label);
+                                  return FilterChip(
+                                    label: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(icon,
+                                            size: 16,
+                                            color: isSelected
+                                                ? Colors.white
+                                                : color),
+                                        const SizedBox(width: 4),
+                                        Text(label),
+                                      ],
+                                    ),
+                                    selected: isSelected,
+                                    onSelected: (selected) {
+                                      setState(() {
+                                        if (selected) {
+                                          _selectedSeasons.add(label);
+                                        } else {
+                                          _selectedSeasons.remove(label);
+                                        }
+                                      });
                                     },
                                     selectedColor: theme.primaryColor,
                                     labelStyle: TextStyle(
@@ -386,324 +615,240 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                           : theme.textTheme.bodyMedium?.color,
                                     ),
                                     showCheckmark: false,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Size Section
-                    const Text('Size',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    AppCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Size', style: TextStyle(fontSize: 14)),
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              ..._currentSizes.map((size) {
-                                return ChoiceChip(
-                                  label: Text(size),
-                                  selected:
-                                      !_isCustomSize && _selectedSize == size,
-                                  onSelected: (selected) {
-                                    if (selected) {
-                                      setState(() {
-                                        _isCustomSize = false;
-                                        _selectedSize = size;
-                                        _customSizeController.clear();
-                                      });
-                                    }
-                                  },
-                                  selectedColor: theme.primaryColor,
-                                  labelStyle: TextStyle(
-                                    color:
-                                        !_isCustomSize && _selectedSize == size
-                                            ? Colors.white
-                                            : theme.textTheme.bodyMedium?.color,
-                                  ),
-                                  showCheckmark: false,
-                                );
-                              }),
-                              ChoiceChip(
-                                label: const Text('Other'),
-                                selected: _isCustomSize,
-                                onSelected: (selected) {
-                                  if (selected) {
-                                    setState(() {
-                                      _isCustomSize = true;
-                                      _selectedSize = '';
-                                    });
-                                  }
-                                },
-                                selectedColor: theme.primaryColor,
-                                labelStyle: TextStyle(
-                                  color: _isCustomSize
-                                      ? Colors.white
-                                      : theme.textTheme.bodyMedium?.color,
-                                ),
-                                showCheckmark: false,
+                                  );
+                                }).toList(),
                               ),
+                              const SizedBox(height: 16),
+                              const Text('Assigned To',
+                                  style: TextStyle(fontSize: 14)),
+                              const SizedBox(height: 8),
+                              _isLoadingData
+                                  ? const SkeletonContainer.rectangular(
+                                      height: 48,
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(4)),
+                                    )
+                                  : DropdownButtonFormField<String>(
+                                      key: ValueKey(_assignedChildId),
+                                      value: _assignedChildId,
+                                      decoration: const InputDecoration(
+                                        hintText: 'Select member',
+                                        border: OutlineInputBorder(),
+                                        contentPadding: EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 12),
+                                      ),
+                                      items: [
+                                        const DropdownMenuItem(
+                                            value: null, child: Text('None')),
+                                        ..._members.map((m) => DropdownMenuItem(
+                                            value: m.id, child: Text(m.name))),
+                                      ],
+                                      onChanged: (v) {
+                                        print('DEBUG: Dropdown changed to: $v');
+                                        setState(() => _assignedChildId = v);
+                                      },
+                                    ),
                             ],
-                          ),
-                          if (_isCustomSize) ...[
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              controller: _customSizeController,
-                              decoration: const InputDecoration(
-                                labelText: 'Enter Custom Size',
-                                hintText: 'e.g., 32W, 10.5, etc.',
-                                border: OutlineInputBorder(),
-                              ),
-                              validator: (value) {
-                                if (_isCustomSize &&
-                                    (value == null || value.isEmpty)) {
-                                  return 'Please enter a size';
-                                }
-                                return null;
-                              },
-                            ),
-                          ],
-                          const SizedBox(height: 16),
-                          const Text('Quantity',
-                              style: TextStyle(fontSize: 14)),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              IconButton.filledTonal(
-                                onPressed: () {
-                                  if (_quantity > 1) {
-                                    setState(() => _quantity--);
-                                  }
-                                },
-                                icon: const Icon(Icons.remove),
-                              ),
-                              Container(
-                                width: 60,
-                                alignment: Alignment.center,
-                                child: Text(
-                                  '$_quantity',
-                                  style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                              IconButton.filled(
-                                onPressed: () {
-                                  setState(() => _quantity++);
-                                },
-                                icon: const Icon(Icons.add),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Season & Child Section
-                    const Text('Season & Child',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    AppCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Season(s)',
-                              style: TextStyle(fontSize: 14)),
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: _seasons.map((season) {
-                              final label = season['label'] as String;
-                              final icon = season['icon'] as IconData;
-                              final color = season['color'] as Color;
-                              final isSelected =
-                                  _selectedSeasons.contains(label);
-                              return FilterChip(
-                                label: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(icon,
-                                        size: 16,
-                                        color:
-                                            isSelected ? Colors.white : color),
-                                    const SizedBox(width: 4),
-                                    Text(label),
-                                  ],
-                                ),
-                                selected: isSelected,
-                                onSelected: (selected) {
-                                  setState(() {
-                                    if (selected) {
-                                      _selectedSeasons.add(label);
-                                    } else {
-                                      _selectedSeasons.remove(label);
-                                    }
-                                  });
-                                },
-                                selectedColor: theme.primaryColor,
-                                labelStyle: TextStyle(
-                                  color: isSelected
-                                      ? Colors.white
-                                      : theme.textTheme.bodyMedium?.color,
-                                ),
-                                showCheckmark: false,
-                              );
-                            }).toList(),
-                          ),
-                          const SizedBox(height: 16),
-                          const Text('Assigned To',
-                              style: TextStyle(fontSize: 14)),
-                          const SizedBox(height: 8),
-                          DropdownButtonFormField<String>(
-                            key: ValueKey(_assignedChildId),
-                            initialValue: _assignedChildId,
-                            decoration: const InputDecoration(
-                              hintText: 'Select member',
-                              border: OutlineInputBorder(),
-                              contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 12),
-                            ),
-                            items: [
-                              const DropdownMenuItem(
-                                  value: null, child: Text('None')),
-                              ..._members.map((m) => DropdownMenuItem(
-                                  value: m.id, child: Text(m.name))),
-                            ],
-                            onChanged: (v) {
-                              print('DEBUG: Dropdown changed to: $v');
-                              setState(() => _assignedChildId = v);
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Storage Location Section
-                    const Text('Storage Location',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    AppCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Location',
-                              style: TextStyle(fontSize: 14)),
-                          const SizedBox(height: 8),
-                          DropdownButtonFormField<String>(
-                            initialValue: _storageLocationId,
-                            decoration: const InputDecoration(
-                              hintText: 'Select location',
-                              border: OutlineInputBorder(),
-                              contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 12),
-                            ),
-                            items: _locations
-                                .map((l) => DropdownMenuItem(
-                                    value: l.id, child: Text(l.name)))
-                                .toList(),
-                            onChanged: (v) =>
-                                setState(() => _storageLocationId = v),
-                            validator: (v) =>
-                                v == null ? 'Please select a location' : null,
-                          ),
-                          const SizedBox(height: 16),
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton.icon(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text('QR Scanning coming soon')),
-                                );
-                              },
-                              icon: const Icon(Icons.qr_code_scanner),
-                              label: const Text('Scan QR Code'),
-                              style: OutlinedButton.styleFrom(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 12),
-                                backgroundColor:
-                                    Colors.cyan.withValues(alpha: 0.1),
-                                foregroundColor: Colors.cyan,
-                                side: BorderSide.none,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Notes Section
-                    const Text('Notes (Optional)',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    AppCard(
-                      child: TextFormField(
-                        controller: _descriptionController,
-                        maxLines: 4,
-                        decoration: const InputDecoration(
-                          hintText: 'Add any additional notes about item...',
-                          border: InputBorder.none,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Action Buttons
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _saveItem,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor: theme.primaryColor,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: Text(
-                            widget.item != null ? 'Update Item' : 'Save Item',
-                            style: const TextStyle(
+                        const SizedBox(height: 24),
+
+                        // Storage Location Section
+                        const Text('Storage Location',
+                            style: TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold)),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton(
-                        onPressed: () => context.pop(),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                        const SizedBox(height: 8),
+                        AppCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Location',
+                                  style: TextStyle(fontSize: 14)),
+                              const SizedBox(height: 8),
+                              _isLoadingData
+                                  ? const SkeletonContainer.rectangular(
+                                      height: 48,
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(4)),
+                                    )
+                                  : DropdownButtonFormField<String>(
+                                      value: _storageLocationId,
+                                      decoration: const InputDecoration(
+                                        hintText: 'Select location',
+                                        border: OutlineInputBorder(),
+                                        contentPadding: EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 12),
+                                      ),
+                                      items: _locations
+                                          .map((l) => DropdownMenuItem(
+                                              value: l.id, child: Text(l.name)))
+                                          .toList(),
+                                      onChanged: (v) => setState(
+                                          () => _storageLocationId = v),
+                                      validator: (v) => v == null
+                                          ? 'Please select a location'
+                                          : null,
+                                    ),
+                              const SizedBox(height: 16),
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton.icon(
+                                  onPressed: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content:
+                                              Text('QR Scanning coming soon')),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.qr_code_scanner),
+                                  label: const Text('Scan QR Code'),
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12),
+                                    backgroundColor:
+                                        Colors.cyan.withValues(alpha: 0.1),
+                                    foregroundColor: Colors.cyan,
+                                    side: BorderSide.none,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        child: const Text('Cancel'),
-                      ),
+                        const SizedBox(height: 24),
+
+                        // Notes Section
+                        const Text('Notes (Optional)',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        AppCard(
+                          child: TextFormField(
+                            controller: _descriptionController,
+                            maxLines: 4,
+                            decoration: const InputDecoration(
+                              hintText:
+                                  'Add any additional notes about item...',
+                              border: InputBorder.none,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+
+                        // Action Buttons
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _saveItem,
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              backgroundColor: theme.primaryColor,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                                widget.item != null
+                                    ? 'Update Item'
+                                    : 'Save Item',
+                                style: const TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            onPressed: () => context.pop(),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text('Cancel'),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
                     ),
-                    const SizedBox(height: 24),
-                  ],
+                  ),
                 ),
-              ),
-            ),
+    );
+  }
+
+  Widget _buildLoadingSkeleton() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Photos Section
+          const SkeletonContainer.rectangular(
+            width: 100,
+            height: 24,
+            borderRadius: BorderRadius.all(Radius.circular(4)),
+          ),
+          const SizedBox(height: 8),
+          const SkeletonContainer.rectangular(
+            height: 100,
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+          ),
+          const SizedBox(height: 24),
+
+          // Item Details Section
+          const SkeletonContainer.rectangular(
+            width: 120,
+            height: 24,
+            borderRadius: BorderRadius.all(Radius.circular(4)),
+          ),
+          const SizedBox(height: 8),
+          const SkeletonContainer.rectangular(
+            height: 200,
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+          ),
+          const SizedBox(height: 24),
+
+          // Size Section
+          const SkeletonContainer.rectangular(
+            width: 100,
+            height: 24,
+            borderRadius: BorderRadius.all(Radius.circular(4)),
+          ),
+          const SizedBox(height: 8),
+          const SkeletonContainer.rectangular(
+            height: 150,
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+          ),
+          const SizedBox(height: 24),
+
+          // Season & Member Section
+          const SkeletonContainer.rectangular(
+            width: 140,
+            height: 24,
+            borderRadius: BorderRadius.all(Radius.circular(4)),
+          ),
+          const SizedBox(height: 8),
+          const SkeletonContainer.rectangular(
+            height: 180,
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+          ),
+          const SizedBox(height: 24),
+
+          // Storage Location Section
+          const SkeletonContainer.rectangular(
+            width: 130,
+            height: 24,
+            borderRadius: BorderRadius.all(Radius.circular(4)),
+          ),
+          const SizedBox(height: 8),
+          const SkeletonContainer.rectangular(
+            height: 120,
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+          ),
+        ],
+      ),
     );
   }
 }
