@@ -260,7 +260,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return SizedBox(
       height: 120,
       child: ListView.builder(
-        scrollDirection: Axis.horizontal,
         itemCount: _members.length,
         itemBuilder: (context, index) {
           final member = _members[index];

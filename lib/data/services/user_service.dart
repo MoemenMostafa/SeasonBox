@@ -30,7 +30,6 @@ class UserService {
     if (existingFamily == null) {
       final family = Family(
         id: firebaseUser.uid,
-        members: [firebaseUser.uid],
         settings: const {},
       );
       await _familyRepository.createFamily(family);

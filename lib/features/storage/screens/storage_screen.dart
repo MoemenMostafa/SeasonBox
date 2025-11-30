@@ -319,36 +319,100 @@ class _StorageScreenState extends State<StorageScreen> {
   }
 
   Widget _buildStorageList(ThemeData theme, bool isDark) {
-    // Filter logic
+    // Enhanced filter logic
     final filteredLocations = _locations.where((l) {
-      final matchesSearch =
-          l.name.toLowerCase().contains(_searchController.text.toLowerCase());
-      final matchesFilter = _selectedFilter == 'All' ||
-          (_selectedFilter == 'Closets' && l.type == 'Closet') ||
-          (_selectedFilter == 'Basement' && l.name.contains('Basement')) ||
-          (_selectedFilter == 'Attic' && l.name.contains('Attic'));
+      // Search filter - check name and description
+      final searchQuery = _searchController.text.toLowerCase();
+      final matchesSearch = searchQuery.isEmpty ||
+          l.name.toLowerCase().contains(searchQuery) ||
+          l.description.toLowerCase().contains(searchQuery) ||
+          l.type.toLowerCase().contains(searchQuery);
+
+      // Type/Location filter
+      bool matchesFilter = false;
+      if (_selectedFilter == 'All') {
+        matchesFilter = true;
+      } else if (_selectedFilter == 'Closets') {
+        matchesFilter = l.type.toLowerCase() == 'closet';
+      } else if (_selectedFilter == 'Basement' || _selectedFilter == 'Attic') {
+        // Check if location name contains the filter term OR if parent location contains it
+        final filterTerm = _selectedFilter.toLowerCase();
+        final nameMatches = l.name.toLowerCase().contains(filterTerm);
+
+        // Check parent location if it exists
+        bool parentMatches = false;
+        if (l.parentId != null) {
+          final parent = _locations.firstWhere(
+            (loc) => loc.id == l.parentId,
+            orElse: () => l,
+          );
+          parentMatches = parent.name.toLowerCase().contains(filterTerm);
+        }
+
+        matchesFilter = nameMatches || parentMatches;
+      } else {
+        // For any other custom filters, try to match by name or type
+        matchesFilter =
+            l.name.toLowerCase().contains(_selectedFilter.toLowerCase()) ||
+                l.type.toLowerCase().contains(_selectedFilter.toLowerCase());
+      }
+
       return matchesSearch && matchesFilter;
     }).toList();
 
-    // Grouping logic (simplified for now)
-    final basementLocations = filteredLocations
-        .where((l) => l.name.contains('Basement') || l.type == 'Box')
-        .toList();
-    final otherLocations = filteredLocations
-        .where((l) => !l.name.contains('Basement') && l.type != 'Box')
+    // Enhanced hierarchical grouping logic
+    Map<String?, List<StorageLocation>> groupedLocations = {};
+    for (var location in filteredLocations) {
+      final parentId = location.parentId;
+      if (!groupedLocations.containsKey(parentId)) {
+        groupedLocations[parentId] = [];
+      }
+      groupedLocations[parentId]!.add(location);
+    }
+
+    // Top-level locations (no parent)
+    final topLevelLocations = groupedLocations[null] ?? [];
+
+    // Build sections
+    List<Widget> sections = [];
+
+    // Add top-level locations grouped by type or area
+    final boxLocations =
+        topLevelLocations.where((l) => l.type == 'Box').toList();
+    final closetLocations =
+        topLevelLocations.where((l) => l.type == 'Closet').toList();
+    final areaLocations =
+        topLevelLocations.where((l) => l.type == 'Area').toList();
+    final otherLocations = topLevelLocations
+        .where((l) => l.type != 'Box' && l.type != 'Closet' && l.type != 'Area')
         .toList();
 
+    if (boxLocations.isNotEmpty) {
+      sections.add(_buildSectionHeader('Boxes', theme));
+      sections.addAll(boxLocations
+          .map((l) => _buildLocationCard(l, theme, groupedLocations)));
+    }
+
+    if (closetLocations.isNotEmpty) {
+      sections.add(_buildSectionHeader('Closets', theme));
+      sections.addAll(closetLocations
+          .map((l) => _buildLocationCard(l, theme, groupedLocations)));
+    }
+
+    if (areaLocations.isNotEmpty) {
+      sections.add(_buildSectionHeader('Areas', theme));
+      sections.addAll(areaLocations
+          .map((l) => _buildLocationCard(l, theme, groupedLocations)));
+    }
+
+    if (otherLocations.isNotEmpty) {
+      sections.add(_buildSectionHeader('Other Storage', theme));
+      sections.addAll(otherLocations
+          .map((l) => _buildLocationCard(l, theme, groupedLocations)));
+    }
+
     return SliverList(
-      delegate: SliverChildListDelegate([
-        if (basementLocations.isNotEmpty) ...[
-          _buildSectionHeader('Basement Storage', theme),
-          ...basementLocations.map((l) => _buildLocationCard(l, theme)),
-        ],
-        if (otherLocations.isNotEmpty) ...[
-          _buildSectionHeader('Other Storage', theme),
-          ...otherLocations.map((l) => _buildLocationCard(l, theme)),
-        ],
-      ]),
+      delegate: SliverChildListDelegate(sections),
     );
   }
 
@@ -376,81 +440,116 @@ class _StorageScreenState extends State<StorageScreen> {
     );
   }
 
-  Widget _buildLocationCard(StorageLocation location, ThemeData theme) {
+  Widget _buildLocationCard(StorageLocation location, ThemeData theme,
+      Map<String?, List<StorageLocation>> groupedLocations) {
     final color = _getColorForType(location.type);
     final icon = _getIconForType(location.type);
+    final childLocations = groupedLocations[location.id] ?? [];
 
-    return AppCard(
-      child: Column(
-        children: [
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: AppCard(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: color),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        location.name,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${location.type} • ${location.description.isNotEmpty ? location.description : "No description"}',
+                        style: TextStyle(
+                          color: theme.textTheme.bodySmall?.color
+                              ?.withValues(alpha: 0.7),
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (childLocations.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: theme.brightness == Brightness.dark
+                          ? Colors.white.withValues(alpha: 0.1)
+                          : Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.keyboard_arrow_down, size: 20),
+                  ),
+              ],
             ),
-            title: Text(
-              location.name,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            subtitle: Text(
-              '${location.type} • ${location.description.isNotEmpty ? location.description : "No description"}',
-              style: TextStyle(
-                  color:
-                      theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7)),
-            ),
-            trailing: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: theme.brightness == Brightness.dark
-                    ? Colors.white.withValues(alpha: 0.1)
-                    : Colors.grey[100],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.keyboard_arrow_down),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Row(
+            const SizedBox(height: 12),
+            Row(
               children: [
                 const CapacityIndicator(
                   percentage: 95,
                 ),
-                const SizedBox(width: 8),
-                if (location.qrCodeId != null)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      'QR: ${location.qrCodeId}',
-                      style: const TextStyle(
-                          color: Colors.blue,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
                 const Spacer(),
                 Text(
                   'View Items',
                   style: TextStyle(
                     color: theme.colorScheme.primary,
                     fontWeight: FontWeight.bold,
+                    fontSize: 14,
                   ),
                 ),
               ],
             ),
-          ),
-        ],
+            // Show child locations if any
+            if (childLocations.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              const Divider(height: 1),
+              const SizedBox(height: 8),
+              ...childLocations.map((child) => Padding(
+                    padding: const EdgeInsets.only(left: 16, top: 8),
+                    child: Row(
+                      children: [
+                        Icon(
+                          _getIconForType(child.type),
+                          size: 16,
+                          color: _getColorForType(child.type),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            child.name,
+                            style: theme.textTheme.bodyMedium,
+                          ),
+                        ),
+                        Text(
+                          child.type,
+                          style: TextStyle(
+                            color: theme.textTheme.bodySmall?.color
+                                ?.withValues(alpha: 0.6),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )),
+            ],
+          ],
+        ),
       ),
     );
   }
