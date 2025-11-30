@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import '../../../data/models/family_member.dart';
-import '../../../data/repositories/family_member_repository.dart';
-import '../../../features/auth/data/auth_service.dart';
+import 'package:seasonbox/data/models/family_member.dart';
+import 'package:seasonbox/data/repositories/family_member_repository.dart';
+import 'package:seasonbox/features/auth/data/auth_service.dart';
 import 'package:uuid/uuid.dart';
-import '../../../widgets/app_card.dart';
+import 'package:seasonbox/widgets/app_card.dart';
+import 'package:seasonbox/widgets/season_box_app_bar.dart';
 
 class AddFamilyMemberScreen extends StatefulWidget {
   final FamilyMember? member;
@@ -193,18 +194,9 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
-        title: Text(
-          widget.member != null ? 'Edit Family Member' : 'Add Family Member',
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-        ),
-        centerTitle: false,
-        backgroundColor: theme.scaffoldBackgroundColor,
-        elevation: 0,
+      appBar: SeasonBoxAppBar(
+        title:
+            widget.member != null ? 'Edit Family Member' : 'Add Family Member',
         actions: widget.member != null
             ? [
                 IconButton(
@@ -232,7 +224,7 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Child\'s Name',
+                          const Text('Member\'s Name',
                               style: TextStyle(fontSize: 14)),
                           const SizedBox(height: 8),
                           TextFormField(

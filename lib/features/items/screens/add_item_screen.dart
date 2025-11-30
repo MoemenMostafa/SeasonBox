@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
-import '../../../data/models/family_member.dart';
-import '../../../data/models/item.dart';
-import '../../../data/models/storage_location.dart';
-import '../../../data/repositories/family_member_repository.dart';
-import '../../../data/repositories/item_repository.dart';
-import '../../../data/repositories/storage_location_repository.dart';
-import '../../../features/auth/data/auth_service.dart';
-import '../../../widgets/app_card.dart';
-import '../../../widgets/season_box_app_bar.dart';
-import '../../../widgets/skeleton_container.dart';
+import 'package:seasonbox/data/models/family_member.dart';
+import 'package:seasonbox/data/models/item.dart';
+import 'package:seasonbox/data/models/storage_location.dart';
+import 'package:seasonbox/data/repositories/family_member_repository.dart';
+import 'package:seasonbox/data/repositories/item_repository.dart';
+import 'package:seasonbox/data/repositories/storage_location_repository.dart';
+import 'package:seasonbox/features/auth/data/auth_service.dart';
+import 'package:seasonbox/widgets/app_card.dart';
+import 'package:seasonbox/widgets/season_box_app_bar.dart';
+import 'package:seasonbox/widgets/skeleton_container.dart';
 
 class AddItemScreen extends StatefulWidget {
   final Item? item; // Optional item for editing
