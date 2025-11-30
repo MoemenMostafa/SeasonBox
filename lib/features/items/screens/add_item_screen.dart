@@ -775,7 +775,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
             child: GestureDetector(
               onTap: () => setState(() => _selectedGender = gender),
               child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: const EdgeInsets.symmetric(vertical: 20),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? theme.colorScheme.primary

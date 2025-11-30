@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:myapp/widgets/season_box_app_bar.dart';
-import 'package:myapp/widgets/app_footer.dart';
+import 'package:seasonbox/widgets/season_box_app_bar.dart';
+import 'package:seasonbox/widgets/app_footer.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});

@@ -301,7 +301,7 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
         onTap: () => setState(() => _selectedType = type),
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 4),
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(vertical: 20),
           decoration: BoxDecoration(
             color: isSelected
                 ? theme.colorScheme.primary

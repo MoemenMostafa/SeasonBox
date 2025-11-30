@@ -1,6 +1,6 @@
 {
-    "name": "myapp",
-    "short_name": "myapp",
+    "name": "seasonbox",
+    "short_name": "seasonbox",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

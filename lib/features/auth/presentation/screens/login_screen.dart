@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:myapp/features/auth/data/auth_service.dart';
-import 'package:myapp/data/services/user_service.dart';
-import 'package:myapp/app/theme/theme.dart';
+import 'package:seasonbox/features/auth/data/auth_service.dart';
+import 'package:seasonbox/data/services/user_service.dart';
+import 'package:seasonbox/app/theme/theme.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
