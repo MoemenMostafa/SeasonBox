@@ -6,6 +6,9 @@ class FamilyMember {
   final String name;
   final DateTime birthdate;
   final String gender;
+  final double? clothingSize;
+  final double? shoeSize;
+  final String? notes;
   final Map<String, double> currentSizeByCategory;
   final List<Map<String, dynamic>> sizeHistory;
 
@@ -15,6 +18,9 @@ class FamilyMember {
     required this.name,
     required this.birthdate,
     required this.gender,
+    this.clothingSize,
+    this.shoeSize,
+    this.notes,
     this.currentSizeByCategory = const {},
     this.sizeHistory = const [],
   });
@@ -25,6 +31,9 @@ class FamilyMember {
       'name': name,
       'birthdate': Timestamp.fromDate(birthdate),
       'gender': gender,
+      'clothingSize': clothingSize,
+      'shoeSize': shoeSize,
+      'notes': notes,
       'currentSizeByCategory': currentSizeByCategory,
       'sizeHistory': sizeHistory,
     };
@@ -37,6 +46,9 @@ class FamilyMember {
       name: map['name'] ?? '',
       birthdate: (map['birthdate'] as Timestamp).toDate(),
       gender: map['gender'] ?? 'Unisex',
+      clothingSize: map['clothingSize']?.toDouble(),
+      shoeSize: map['shoeSize']?.toDouble(),
+      notes: map['notes'],
       currentSizeByCategory:
           Map<String, double>.from(map['currentSizeByCategory'] ?? {}),
       sizeHistory: List<Map<String, dynamic>>.from(map['sizeHistory'] ?? []),
