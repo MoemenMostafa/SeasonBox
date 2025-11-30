@@ -16,11 +16,11 @@ import 'package:seasonbox/data/repositories/storage_location_repository.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const MyApp());
+  runApp(const SeasonBox());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class SeasonBox extends StatelessWidget {
+  const SeasonBox({super.key});
 
   @override
   Widget build(BuildContext context) {
