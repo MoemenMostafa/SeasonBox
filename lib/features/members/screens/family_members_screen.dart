@@ -170,10 +170,10 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                                   ?.withValues(alpha: 0.7))),
                       const SizedBox(height: 4),
                       Text(
-                          'Clothes: ${member.currentSizeByCategory['clothes']?.toStringAsFixed(0) ?? '-'}',
+                          'Clothes: ${member.clothingSize?.toStringAsFixed(0) ?? '-'}',
                           style: const TextStyle(fontWeight: FontWeight.bold)),
                       Text(
-                          'Shoes: ${member.currentSizeByCategory['shoes']?.toStringAsFixed(0) ?? '-'}',
+                          'Shoes: ${member.shoeSize?.toStringAsFixed(0) ?? '-'}',
                           style: const TextStyle(fontWeight: FontWeight.bold)),
                     ],
                   ),

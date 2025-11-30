@@ -5,7 +5,6 @@ import '../../../data/models/family_member.dart';
 import '../../../data/repositories/family_member_repository.dart';
 import '../../../features/auth/data/auth_service.dart';
 import 'package:uuid/uuid.dart';
-import '../../../widgets/season_box_app_bar.dart';
 import '../../../widgets/app_card.dart';
 
 class AddFamilyMemberScreen extends StatefulWidget {
@@ -21,6 +20,8 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _notesController = TextEditingController();
+  final _clothingSizeController = TextEditingController();
+  final _shoeSizeController = TextEditingController();
 
   String _gender = 'Unisex';
   DateTime _birthdate = DateTime.now();
@@ -41,6 +42,8 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
       _birthdate = widget.member!.birthdate;
       _clothesSize = widget.member!.clothingSize;
       _shoeSize = widget.member!.shoeSize;
+      _clothingSizeController.text = _clothesSize?.toString() ?? '';
+      _shoeSizeController.text = _shoeSize?.toString() ?? '';
     }
   }
 
@@ -48,6 +51,8 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
   void dispose() {
     _nameController.dispose();
     _notesController.dispose();
+    _clothingSizeController.dispose();
+    _shoeSizeController.dispose();
     super.dispose();
   }
 
@@ -188,9 +193,26 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: SeasonBoxAppBar(
-        title:
-            widget.member != null ? 'Edit Family Member' : 'Add Family Member',
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
+        title: Text(
+          widget.member != null ? 'Edit Family Member' : 'Add Family Member',
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+        ),
+        centerTitle: false,
+        backgroundColor: theme.scaffoldBackgroundColor,
+        elevation: 0,
+        actions: widget.member != null
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.help_outline),
+                  onPressed: () {},
+                ),
+              ]
+            : null,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -263,7 +285,7 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                               style: TextStyle(fontSize: 14)),
                           const SizedBox(height: 8),
                           TextFormField(
-                            initialValue: _clothesSize?.toString(),
+                            controller: _clothingSizeController,
                             decoration: const InputDecoration(
                               hintText: 'e.g. 110 (cm) or 5 (age)',
                             ),
@@ -277,7 +299,7 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                               style: TextStyle(fontSize: 14)),
                           const SizedBox(height: 8),
                           TextFormField(
-                            initialValue: _shoeSize?.toString(),
+                            controller: _shoeSizeController,
                             decoration: const InputDecoration(
                               hintText: 'e.g. 28',
                             ),
@@ -313,60 +335,39 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                     Row(
                       children: [
                         Expanded(
-                          child: SizedBox(
-                            height: 56,
-                            child: OutlinedButton(
-                              onPressed: () => context.pop(),
-                              style: OutlinedButton.styleFrom(
-                                side: BorderSide(color: Colors.grey.shade700),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
+                          child: OutlinedButton(
+                            onPressed: () => context.pop(),
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(color: Colors.grey.shade600),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                              child: const Text('Cancel',
-                                  style: TextStyle(color: Colors.white)),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                            ),
+                            child: const Text(
+                              'Cancel',
+                              style: TextStyle(fontSize: 16),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: 12),
                         Expanded(
-                          child: Container(
-                            height: 56,
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [
-                                  Color(0xFF6366F1),
-                                  Color(0xFF8B5CF6)
-                                ], // Indigo to Violet
-                                begin: Alignment.centerLeft,
-                                end: Alignment.centerRight,
+                          child: ElevatedButton(
+                            onPressed: _saveMember,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: theme.colorScheme.primary,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFF6366F1)
-                                      .withValues(alpha: 0.3),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 6),
-                                ),
-                              ],
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              elevation: 0,
                             ),
-                            child: ElevatedButton(
-                              onPressed: _saveMember,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.transparent,
-                                shadowColor: Colors.transparent,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: Text(
-                                widget.member != null ? 'Update' : 'Add',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
+                            child: Text(
+                              widget.member != null ? 'Update' : 'Add',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
