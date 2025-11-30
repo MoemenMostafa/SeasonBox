@@ -16,8 +16,10 @@ import 'package:seasonbox/widgets/skeleton_container.dart';
 
 class ItemsScreen extends StatefulWidget {
   final String? initialMemberId;
+  final String? initialStorageLocationId;
 
-  const ItemsScreen({super.key, this.initialMemberId});
+  const ItemsScreen(
+      {super.key, this.initialMemberId, this.initialStorageLocationId});
 
   @override
   State<ItemsScreen> createState() => _ItemsScreenState();
@@ -31,11 +33,13 @@ class _ItemsScreenState extends State<ItemsScreen> {
   String _selectedFilter = 'All Items';
   String? _selectedCategory;
   String? _selectedMemberId;
+  String? _selectedStorageLocationId;
 
   @override
   void initState() {
     super.initState();
     _selectedMemberId = widget.initialMemberId;
+    _selectedStorageLocationId = widget.initialStorageLocationId;
     _loadItems();
   }
 
@@ -82,6 +86,10 @@ class _ItemsScreenState extends State<ItemsScreen> {
       bool matchesMemberFilter =
           _selectedMemberId == null || item.memberId == _selectedMemberId;
 
+      // Storage location filter
+      bool matchesStorageFilter = _selectedStorageLocationId == null ||
+          item.storageLocationId == _selectedStorageLocationId;
+
       // Status/Season filter
       bool matchesStatusFilter = _selectedFilter == 'All Items' ||
           (_selectedFilter == 'In Use' &&
@@ -100,6 +108,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
           item.category.toLowerCase() == _selectedCategory!.toLowerCase();
 
       return matchesMemberFilter &&
+          matchesStorageFilter &&
           matchesStatusFilter &&
           matchesCategoryFilter;
     }).toList();
@@ -110,6 +119,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
       _selectedFilter = 'All Items';
       _selectedCategory = null;
       _selectedMemberId = null;
+      _selectedStorageLocationId = null;
     });
   }
 
@@ -118,11 +128,27 @@ class _ItemsScreenState extends State<ItemsScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
+    // Get storage location name if filtering by storage
+    String subtitle = '${_filteredItems.length} total items';
+    if (_selectedStorageLocationId != null) {
+      final location = _locations.firstWhere(
+        (l) => l.id == _selectedStorageLocationId,
+        orElse: () => StorageLocation(
+          id: '',
+          familyId: '',
+          name: 'Unknown',
+          type: 'Box',
+          description: '',
+        ),
+      );
+      subtitle = '${location.name} • ${_filteredItems.length} items';
+    }
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: SeasonBoxAppBar(
         title: 'Items',
-        subtitle: '${_filteredItems.length} total items',
+        subtitle: subtitle,
         actions: [
           IconButton(
             icon: const Icon(Icons.search, color: Colors.white),

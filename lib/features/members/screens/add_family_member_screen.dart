@@ -334,7 +334,7 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              padding: const EdgeInsets.symmetric(vertical: 20),
                             ),
                             child: const Text(
                               'Cancel',
@@ -352,7 +352,7 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              padding: const EdgeInsets.symmetric(vertical: 20),
                               elevation: 0,
                             ),
                             child: Text(

@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../data/models/storage_location.dart';
+import '../../../data/models/item.dart';
 import '../../../data/repositories/storage_location_repository.dart';
+import '../../../data/repositories/item_repository.dart';
 import '../../../features/auth/data/auth_service.dart';
 import '../../../widgets/season_box_app_bar.dart';
 import '../../../widgets/app_card.dart';
 import '../../../widgets/season_box_add_button.dart';
-import '../../../widgets/capacity_indicator.dart';
 import '../../../widgets/season_box_filter_chip.dart';
 import '../../../widgets/skeleton_container.dart';
 
@@ -20,6 +21,7 @@ class StorageScreen extends StatefulWidget {
 
 class _StorageScreenState extends State<StorageScreen> {
   List<StorageLocation> _locations = [];
+  List<Item> _items = [];
   bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
   String _selectedFilter = 'All';
@@ -43,13 +45,17 @@ class _StorageScreenState extends State<StorageScreen> {
       if (familyId == null) {
         throw Exception('User not authenticated');
       }
-      final locations = await context
-          .read<StorageLocationRepository>()
-          .getLocations(familyId)
-          .timeout(const Duration(seconds: 5));
+
+      // Load both locations and items in parallel
+      final results = await Future.wait([
+        context.read<StorageLocationRepository>().getLocations(familyId),
+        context.read<ItemRepository>().getItems(familyId),
+      ]).timeout(const Duration(seconds: 5));
+
       if (mounted) {
         setState(() {
-          _locations = locations;
+          _locations = results[0] as List<StorageLocation>;
+          _items = results[1] as List<Item>;
           _isLoading = false;
         });
       }
@@ -63,6 +69,10 @@ class _StorageScreenState extends State<StorageScreen> {
         );
       }
     }
+  }
+
+  int _getItemCountForLocation(String locationId) {
+    return _items.where((item) => item.storageLocationId == locationId).length;
   }
 
   IconData _getIconForType(String type) {
@@ -104,8 +114,7 @@ class _StorageScreenState extends State<StorageScreen> {
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: SeasonBoxAppBar(
         title: 'Storage Locations',
-        subtitle:
-            '${_locations.length} locations • ${_locations.length * 15} items',
+        subtitle: '${_locations.length} locations • ${_items.length} items',
         actions: [
           IconButton(
             onPressed: () {},
@@ -449,6 +458,11 @@ class _StorageScreenState extends State<StorageScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: AppCard(
+        onTap: () {
+          context
+              .push('/add-storage-location', extra: location)
+              .then((_) => _loadLocations());
+        },
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
@@ -501,16 +515,41 @@ class _StorageScreenState extends State<StorageScreen> {
             const SizedBox(height: 12),
             Row(
               children: [
-                const CapacityIndicator(
-                  percentage: 95,
+                Row(
+                  children: [
+                    Icon(
+                      Icons.inventory_2_outlined,
+                      size: 16,
+                      color: theme.textTheme.bodySmall?.color
+                          ?.withValues(alpha: 0.7),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${_getItemCountForLocation(location.id)} items',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.textTheme.bodySmall?.color
+                            ?.withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ],
                 ),
                 const Spacer(),
-                Text(
-                  'View Items',
-                  style: TextStyle(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                GestureDetector(
+                  onTap: () {
+                    context.push(
+                      '/items',
+                      extra: <String, dynamic>{
+                        'initialStorageLocationId': location.id,
+                      },
+                    );
+                  },
+                  child: Text(
+                    'View Items',
+                    style: TextStyle(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
                 ),
               ],

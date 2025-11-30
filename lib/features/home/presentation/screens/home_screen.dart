@@ -261,14 +261,12 @@ class _HomeScreenState extends State<HomeScreen> {
           // Calculate age from birthdate
           final age = DateTime.now().difference(member.birthdate).inDays ~/ 365;
 
-          // Get size (use first available category or 'N/A')
-          final size = member.currentSizeByCategory.isNotEmpty
-              ? member.currentSizeByCategory.values.first.toString()
-              : 'N/A';
+          // Get clothing size
+          final size = member.clothingSize?.toString() ?? 'N/A';
 
-          // Calculate item count for this member (placeholder for now)
+          // Calculate item count for this member
           final itemCount =
-              _items.where((item) => item.title.contains(member.name)).length;
+              _items.where((item) => item.memberId == member.id).length;
 
           return Padding(
             padding:
