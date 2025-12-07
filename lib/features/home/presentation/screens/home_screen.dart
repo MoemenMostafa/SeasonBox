@@ -494,18 +494,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildSeasonalReminder(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
+    return AppCard(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.orange.withValues(alpha: 0.1)
-            : Colors.orange.shade50,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-            color: isDark
-                ? Colors.orange.withValues(alpha: 0.3)
-                : Colors.orange.shade100),
-      ),
+      onTap: () {}, // Make it clickable if needed, or null
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

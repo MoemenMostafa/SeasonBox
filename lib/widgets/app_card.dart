@@ -15,20 +15,11 @@ class AppCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.1)
-              : Colors.grey.withValues(alpha: 0.1),
-          width: 1,
-        ),
-      ),
-      elevation: 0,
+      // Use properties from Theme.of(context).cardTheme by default
+      elevation: theme.cardTheme.elevation,
       color: theme.cardTheme.color ?? theme.cardColor,
       child: InkWell(
         onTap: onTap,

@@ -33,7 +33,9 @@ class AppTheme {
     ),
     cardTheme: CardThemeData(
       color: Colors.white,
-      elevation: 0,
+      elevation: 4,
+      shadowColor: Colors.black
+          .withValues(alpha: 0.3), // Slightly softer but higher elevation
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20), // More rounded
       ),
