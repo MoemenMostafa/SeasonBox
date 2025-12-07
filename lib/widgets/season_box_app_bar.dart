@@ -22,8 +22,8 @@ class SeasonBoxAppBar extends StatelessWidget implements PreferredSizeWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              colorScheme.primary, // Use primary for the lighter purple
-              colorScheme.tertiary, // Use tertiary for the darker purple
+              colorScheme.primary, // Purple
+              colorScheme.secondary, // Teal/Turquoise
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
