@@ -271,7 +271,7 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
                               style: TextStyle(fontSize: 14)),
                           const SizedBox(height: 8),
                           DropdownButtonFormField<String>(
-                            value: _parentLocationId,
+                            initialValue: _parentLocationId,
                             decoration: const InputDecoration(
                               hintText: 'Select parent location',
                             ),

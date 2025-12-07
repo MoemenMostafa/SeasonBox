@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:seasonbox/features/auth/data/auth_service.dart';
 import 'package:seasonbox/data/services/user_service.dart';
 import 'package:seasonbox/app/theme/theme.dart';
+import 'package:seasonbox/features/auth/presentation/widgets/animated_background_icon.dart';
+import 'package:seasonbox/data/services/biometric_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -168,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen>
                     height: 56,
                     child: ElevatedButton(
                       onPressed: () {
-                        // TODO: Implement Email Login
+                        context.push('/email-login');
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
@@ -235,6 +237,83 @@ class _LoginScreenState extends State<LoginScreen>
                       ),
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  Consumer<BiometricService>(
+                    builder: (context, biometricService, child) {
+                      return FutureBuilder<bool>(
+                        future: biometricService.isBiometricLoginEnabled(),
+                        builder: (context, snapshot) {
+                          if (snapshot.data == true) {
+                            return SizedBox(
+                              width: double.infinity,
+                              height: 56,
+                              child: ElevatedButton(
+                                onPressed: () async {
+                                  final authenticated =
+                                      await biometricService.authenticate();
+                                  if (authenticated) {
+                                    final creds = await biometricService
+                                        .getStoredCredentials();
+                                    if (creds != null && context.mounted) {
+                                      try {
+                                        final authService =
+                                            Provider.of<AuthService>(context,
+                                                listen: false);
+                                        await authService
+                                            .signInWithEmailAndPassword(
+                                          creds['email']!,
+                                          creds['password']!,
+                                        );
+                                        if (context.mounted) {
+                                          context.go('/home');
+                                        }
+                                      } catch (e) {
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                                content: Text(
+                                                    'Login failed: ${e.toString()}')),
+                                          );
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                      Colors.white.withValues(alpha: 0.2),
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    side: BorderSide(
+                                        color: Colors.white
+                                            .withValues(alpha: 0.5)),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.fingerprint),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      'Login with Biometrics',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      );
+                    },
+                  ),
                   const SizedBox(height: 24),
                   // Footer
                   Padding(
@@ -268,66 +347,6 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class AnimatedBackgroundIcon extends StatefulWidget {
-  final IconData icon;
-  final double size;
-  final int duration;
-
-  const AnimatedBackgroundIcon({
-    super.key,
-    required this.icon,
-    required this.size,
-    required this.duration,
-  });
-
-  @override
-  State<AnimatedBackgroundIcon> createState() => _AnimatedBackgroundIconState();
-}
-
-class _AnimatedBackgroundIconState extends State<AnimatedBackgroundIcon>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: Duration(seconds: widget.duration),
-      vsync: this,
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        final offset = Tween<Offset>(
-                begin: const Offset(0, -0.1), end: const Offset(0, 0.1))
-            .animate(CurvedAnimation(
-          parent: _controller,
-          curve: Curves.easeInOut,
-        ));
-        return SlideTransition(
-          position: offset,
-          child: child,
-        );
-      },
-      child: Icon(
-        widget.icon,
-        size: widget.size,
-        color: Colors.white.withValues(alpha: 0.08),
       ),
     );
   }

@@ -13,7 +13,7 @@ class AppTheme {
       brightness: Brightness.light,
       secondary: secondaryColor,
     ),
-    textTheme: GoogleFonts.latoTextTheme(),
+    textTheme: GoogleFonts.latoTextTheme(ThemeData.light().textTheme),
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
       backgroundColor: primaryColor,
       foregroundColor: Colors.white,
@@ -67,7 +67,7 @@ class AppTheme {
         borderSide: const BorderSide(color: Color(0xFF6366F1), width: 2),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      hintStyle: TextStyle(color: Colors.grey.shade400),
+      hintStyle: TextStyle(color: Colors.grey.shade400, inherit: true),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
@@ -75,7 +75,8 @@ class AppTheme {
         foregroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         padding: const EdgeInsets.symmetric(vertical: 16),
-        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        textStyle: const TextStyle(
+            fontSize: 16, fontWeight: FontWeight.bold, inherit: true),
       ),
     ),
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
@@ -93,8 +94,8 @@ class AppTheme {
       backgroundColor: const Color(0xFF334155), // Slate 700 (Unselected)
       selectedColor: const Color(0xFF6366F1), // Indigo (Selected)
       disabledColor: Colors.grey.shade800,
-      labelStyle: const TextStyle(color: Colors.white),
-      secondaryLabelStyle: const TextStyle(color: Colors.white),
+      labelStyle: const TextStyle(color: Colors.white, inherit: true),
+      secondaryLabelStyle: const TextStyle(color: Colors.white, inherit: true),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),

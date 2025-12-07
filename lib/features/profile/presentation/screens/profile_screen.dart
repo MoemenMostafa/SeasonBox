@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'package:seasonbox/widgets/season_box_app_bar.dart';
 import 'package:seasonbox/widgets/app_footer.dart';
+import 'package:provider/provider.dart';
+import 'package:seasonbox/app/providers/theme_provider.dart';
+import 'package:seasonbox/data/services/biometric_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -185,6 +188,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionTitle('App Settings'),
+        Consumer<ThemeProvider>(
+          builder: (context, themeProvider, child) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            return _buildToggleTile(
+              context,
+              icon: Icons.dark_mode,
+              iconColor: Colors.indigo,
+              iconBgColor: Colors.indigo.shade50,
+              title: 'Dark Mode',
+              subtitle: 'Toggle dark theme',
+              value: isDark,
+              onChanged: (val) {
+                themeProvider.toggleTheme(val);
+              },
+            );
+          },
+        ),
+        const SizedBox(height: 12),
         _buildToggleTile(
           context,
           icon: Icons.notifications,
@@ -229,7 +250,98 @@ class _ProfileScreenState extends State<ProfileScreen> {
             });
           },
         ),
+        const SizedBox(height: 12),
+        FutureBuilder<bool>(
+          future: BiometricService().isBiometricLoginEnabled(),
+          builder: (context, snapshot) {
+            final isEnabled = snapshot.data ?? false;
+            final biometricService = BiometricService();
+            return _buildToggleTile(
+              context,
+              icon: Icons.fingerprint,
+              iconColor: Colors.teal,
+              iconBgColor: Colors.teal.shade50,
+              title: 'Biometric Login',
+              subtitle: 'Enable Face ID / Touch ID',
+              value: isEnabled,
+              onChanged: (val) async {
+                if (val) {
+                  final authenticated = await biometricService.authenticate();
+                  if (authenticated) {
+                    if (context.mounted) {
+                      _showPasswordDialog(context, biometricService);
+                    }
+                  }
+                } else {
+                  await biometricService.disableBiometricLogin();
+                  setState(() {});
+                }
+              },
+            );
+          },
+        ),
       ],
+    );
+  }
+
+  void _showPasswordDialog(
+      BuildContext context, BiometricService biometricService) {
+    final passwordController = TextEditingController();
+    final emailController =
+        TextEditingController(); // We need email too if not stored
+    // Ideally we should get email from current user, but for now let's ask for both or assume user knows.
+    // Actually, we can get email from FirebaseAuth if logged in.
+    // Let's assume we are logged in.
+    // But wait, AuthService is needed.
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Enable Biometric Login'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+                'Please enter your email and password to securely store them.'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: emailController,
+              decoration: const InputDecoration(labelText: 'Email'),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: passwordController,
+              decoration: const InputDecoration(labelText: 'Password'),
+              obscureText: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              if (emailController.text.isNotEmpty &&
+                  passwordController.text.isNotEmpty) {
+                await biometricService.enableBiometricLogin(
+                  emailController.text.trim(),
+                  passwordController.text,
+                );
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  setState(() {});
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Biometric login enabled')),
+                  );
+                }
+              }
+            },
+            child: const Text('Enable'),
+          ),
+        ],
+      ),
     );
   }
 

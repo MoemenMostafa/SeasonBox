@@ -1,12 +1,14 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:seasonbox/data/services/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:seasonbox/firebase_options.dart';
 import 'package:seasonbox/features/auth/data/auth_service.dart';
+import 'package:seasonbox/data/services/user_service.dart';
+import 'package:seasonbox/data/services/biometric_service.dart';
 import 'package:seasonbox/app/routes/router.dart';
 import 'package:seasonbox/app/theme/theme.dart';
+import 'package:seasonbox/app/providers/theme_provider.dart';
 import 'package:seasonbox/data/services/firestore_service.dart';
 import 'package:seasonbox/data/repositories/family_repository.dart';
 import 'package:seasonbox/data/repositories/family_member_repository.dart';
@@ -26,8 +28,10 @@ class SeasonBox extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
         Provider<AuthService>(create: (_) => AuthService()),
         Provider<FirestoreService>(create: (_) => FirestoreService()),
+        Provider<BiometricService>(create: (_) => BiometricService()),
         ProxyProvider<FirestoreService, FamilyRepository>(
           update: (_, firestoreService, __) =>
               FamilyRepository(firestoreService),
@@ -48,11 +52,16 @@ class SeasonBox extends StatelessWidget {
               UserService(firestoreService, familyRepository),
         ),
       ],
-      child: MaterialApp.router(
-        title: 'SeasonBox',
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        routerConfig: AppRouter.router,
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp.router(
+            title: 'SeasonBox',
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeProvider.themeMode,
+            routerConfig: AppRouter.router,
+          );
+        },
       ),
     );
   }

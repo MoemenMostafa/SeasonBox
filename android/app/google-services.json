@@ -7,48 +7,28 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:839774020308:android:19343197700232d3b6d141",
-        "android_client_info": {
-          "package_name": "com.example.seasonbox"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "839774020308-njatk3ugsi9q8ssq7oibs7ops0su7p38.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyD9qccu0ew4wWuBX1LeDFlZFYFRPGwTENM"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "839774020308-njatk3ugsi9q8ssq7oibs7ops0su7p38.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "839774020308-6h5j1fnh8ifbck2ln7skaskde1rpn2ev.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "io.mos.seasonbox"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
         "mobilesdk_app_id": "1:839774020308:android:2d7c824c989a150bb6d141",
         "android_client_info": {
           "package_name": "io.mos.seasonbox"
         }
       },
       "oauth_client": [
+        {
+          "client_id": "839774020308-0u9s10ui6u43v1n49ke55s7t404ojv6q.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "io.mos.seasonbox",
+            "certificate_hash": "564aa8270d88f7d8db14c07f8ea2c58304f16a37"
+          }
+        },
+        {
+          "client_id": "839774020308-a7re5aov93avqsk5sh1q560bah527l66.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "io.mos.seasonbox",
+            "certificate_hash": "512dd966dbcfc9bbb3cc2e80d926f07a83f639ef"
+          }
+        },
         {
           "client_id": "839774020308-egnr7sl3d0nosa9tlmt5ac7o1jr61rgs.apps.googleusercontent.com",
           "client_type": 1,

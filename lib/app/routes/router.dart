@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:seasonbox/features/auth/presentation/screens/login_screen.dart';
-import 'package:seasonbox/features/auth/presentation/screens/splash_screen.dart';
+import 'package:seasonbox/features/auth/presentation/screens/email_login_screen.dart';
 import 'package:seasonbox/app/routes/dashboard_screen.dart';
 import 'package:seasonbox/features/members/screens/add_family_member_screen.dart';
 import 'package:seasonbox/features/storage/screens/add_storage_location_screen.dart';
@@ -14,9 +15,13 @@ import 'package:seasonbox/data/models/storage_location.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
+    initialLocation:
+        FirebaseAuth.instance.currentUser != null ? '/home' : '/login',
     routes: [
-      GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+      GoRoute(
+          path: '/email-login',
+          builder: (context, state) => const EmailLoginScreen()),
       GoRoute(
           path: '/home', builder: (context, state) => const DashboardScreen()),
       GoRoute(
