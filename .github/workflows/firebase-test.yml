@@ -184,6 +184,97 @@ jobs:
             fi
           fi
 
+      - name: Validate Firebase service account permissions
+        if: github.event_name == 'push'
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
+        run: |
+          echo "🔍 Validating Firebase service account..."
+          
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
+            echo "❌ FIREBASE_SERVICE_ACCOUNT_KEY secret not set"
+            echo ""
+            echo "📋 To fix this:"
+            echo "1. Go to Firebase Console → Project Settings → Service Accounts"
+            echo "2. Click 'Generate New Private Key'"
+            echo "3. Download the JSON file"
+            echo "4. Convert to base64: base64 -i service-account.json | pbcopy"
+            echo "5. Add to GitHub Secrets as FIREBASE_SERVICE_ACCOUNT_KEY"
+            exit 1
+          fi
+          
+          echo "✅ Service account secret is set"
+          
+          # Decode and validate JSON structure
+          echo "$FIREBASE_SERVICE_ACCOUNT" | base64 --decode > /tmp/service-account.json
+          
+          if jq empty /tmp/service-account.json 2>/dev/null; then
+            echo "✅ Service account JSON is valid"
+          else
+            echo "❌ Service account JSON is invalid"
+            rm -f /tmp/service-account.json
+            exit 1
+          fi
+          
+          # Check required fields
+          PROJECT_ID=$(jq -r '.project_id' /tmp/service-account.json)
+          CLIENT_EMAIL=$(jq -r '.client_email' /tmp/service-account.json)
+          PRIVATE_KEY=$(jq -r '.private_key' /tmp/service-account.json)
+          
+          if [ "$PROJECT_ID" != "null" ] && [ -n "$PROJECT_ID" ]; then
+            echo "✅ Service account project ID: $PROJECT_ID"
+          else
+            echo "❌ Service account missing project_id"
+            rm -f /tmp/service-account.json
+            exit 1
+          fi
+          
+          if [ "$CLIENT_EMAIL" != "null" ] && [ -n "$CLIENT_EMAIL" ]; then
+            echo "✅ Service account email: $CLIENT_EMAIL"
+            
+            # Check if it's a Firebase service account
+            if [[ $CLIENT_EMAIL == *"@"*".iam.gserviceaccount.com" ]]; then
+              echo "✅ Valid Firebase service account format"
+            else
+              echo "⚠️  Service account email format unusual"
+            fi
+          else
+            echo "❌ Service account missing client_email"
+            rm -f /tmp/service-account.json
+            exit 1
+          fi
+          
+          if [ "$PRIVATE_KEY" != "null" ] && [ -n "$PRIVATE_KEY" ]; then
+            echo "✅ Service account has private key"
+          else
+            echo "❌ Service account missing private_key"
+            rm -f /tmp/service-account.json
+            exit 1
+          fi
+          
+          # Clean up
+          rm -f /tmp/service-account.json
+          
+          echo ""
+          echo "⚠️  IMPORTANT: Service account permissions check"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "To avoid HTTP 403 errors, ensure your service account has:"
+          echo "  1. 'Firebase App Distribution Admin' role"
+          echo "  2. 'Service Account User' role (if needed)"
+          echo ""
+          echo "To grant permissions:"
+          echo "  1. Go to Firebase Console → Project Settings → Service Accounts"
+          echo "  2. Copy the service account email: $CLIENT_EMAIL"
+          echo "  3. Go to Google Cloud Console → IAM & Admin → IAM"
+          echo "  4. Find the service account and click 'Edit'"
+          echo "  5. Add role: 'Firebase App Distribution Admin'"
+          echo "  6. Save changes"
+          echo ""
+          echo "Or use gcloud CLI:"
+          echo "  gcloud projects add-iam-policy-binding $PROJECT_ID \\"
+          echo "    --member='serviceAccount:$CLIENT_EMAIL' \\"
+          echo "    --role='roles/firebaseappdistro.admin'"
+
       - name: Summary
         if: always()
         run: |

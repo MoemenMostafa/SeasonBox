@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:seasonbox/firebase_options.dart';
 
 /// Firebase connection and configuration tests
@@ -58,28 +57,27 @@ void main() {
 
       // If storage bucket is set, it should have valid format
       if (options.storageBucket != null && options.storageBucket!.isNotEmpty) {
-        expect(options.storageBucket, contains('.appspot.com'));
+        // Accept both old (.appspot.com) and new (.firebasestorage.app) formats
+        final isValid = options.storageBucket!.contains('.appspot.com') ||
+            options.storageBucket!.contains('.firebasestorage.app');
+        expect(isValid, isTrue,
+            reason: 'Storage bucket should use Firebase storage domain');
       }
     });
   });
 
   group('Firebase Initialization Tests', () {
-    setUpAll(() async {
-      // Initialize Firebase for testing
-      TestWidgetsFlutterBinding.ensureInitialized();
-    });
+    test('Firebase options are valid for initialization', () {
+      // Verify that we have all required options for initialization
+      final options = DefaultFirebaseOptions.currentPlatform;
 
-    test('Firebase can initialize with current platform options', () async {
-      // This test verifies that Firebase can be initialized
-      // In a real app, this would connect to Firebase
-      // For CI, we just verify the configuration is valid
+      expect(options.apiKey, isNotEmpty);
+      expect(options.appId, isNotEmpty);
+      expect(options.projectId, isNotEmpty);
+      expect(options.messagingSenderId, isNotEmpty);
 
-      expect(
-        () => Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
-        ),
-        returnsNormally,
-      );
+      // These are the minimum required fields for Firebase initialization
+      // Actual initialization happens in the app, not in unit tests
     });
   });
 
