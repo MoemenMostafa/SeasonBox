@@ -12,7 +12,11 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    # Use larger runner for faster builds (4 cores instead of 2)
+    # Standard: ubuntu-latest (2 cores, ~18 min)
+    # Faster: ubuntu-latest-4-cores (4 cores, ~9-10 min)
+    # Fastest: ubuntu-latest-8-cores (8 cores, ~6-7 min) - requires GitHub Team/Enterprise
+    runs-on: ubuntu-latest-4-cores
     
     steps:
       - name: Checkout code
@@ -34,6 +38,16 @@ jobs:
 
       - name: Get dependencies
         run: flutter pub get
+
+      - name: Enable Gradle caching
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
       - name: Run tests
         run: flutter test
@@ -69,7 +83,16 @@ jobs:
           EOF
 
       - name: Build APK
-        run: flutter build apk --release
+        run: |
+          # Enable Gradle daemon and parallel builds for faster compilation
+          mkdir -p ~/.gradle
+          echo "org.gradle.daemon=true" >> ~/.gradle/gradle.properties
+          echo "org.gradle.parallel=true" >> ~/.gradle/gradle.properties
+          echo "org.gradle.caching=true" >> ~/.gradle/gradle.properties
+          echo "org.gradle.configureondemand=true" >> ~/.gradle/gradle.properties
+          
+          # Build with optimizations
+          flutter build apk --release --no-tree-shake-icons
 
       - name: Build App Bundle
         run: flutter build appbundle --release

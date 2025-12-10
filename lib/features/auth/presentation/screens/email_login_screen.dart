@@ -44,7 +44,11 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Login failed: ${e.toString()}')),
+            const SnackBar(
+              content: Text('Invalid email or password. Please try again.'),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 4),
+            ),
           );
         }
       } finally {

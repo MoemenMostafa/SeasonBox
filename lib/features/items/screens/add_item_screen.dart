@@ -257,71 +257,34 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
   // --- QR Scanner Logic ---
   Future<void> _scanQRCode() async {
-    // Check for camera capability/permission via helper or just try launching
-    // MobileScanner handles permissions internally usually
-    await showDialog(
-      context: context,
-      builder: (context) => Dialog.fullscreen(
-        child: Stack(
-          children: [
-            MobileScanner(
-              onDetect: (capture) {
-                final List<Barcode> barcodes = capture.barcodes;
-                for (final barcode in barcodes) {
-                  if (barcode.rawValue != null) {
-                    final String code = barcode.rawValue!;
-                    // Assuming code matches a storage location ID or Name
-                    // In a real app, verify ID exists in _locations
-                    final location = _locations.firstWhere(
-                      (l) => l.id == code || l.name == code,
-                      orElse: () => StorageLocation(
-                          id: '',
-                          familyId: '',
-                          name: '',
-                          type: '',
-                          description: ''),
-                    );
+    // Navigate to unified QR Scanner Screen and wait for result
+    final result = await context
+        .push<String>('/qr-scanner', extra: {'returnResult': true});
 
-                    if (location.id.isNotEmpty) {
-                      setState(() {
-                        _storageLocationId = location.id;
-                      });
-                      Navigator.pop(context); // Close scanner
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                            content: Text('Location found: ${location.name}')),
-                      );
-                    } else {
-                      // Optional: Handle unknown code
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Unknown location code: $code')),
-                      );
-                      // Add delay to avoid spamming
-                    }
-                    break; // Process first valid code
-                  }
-                }
-              },
-            ),
-            Positioned(
-              top: 40,
-              right: 20,
-              child: IconButton(
-                icon: const Icon(Icons.close, color: Colors.white, size: 30),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-            const Center(
-              child: Text('Scan Location QR Code',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold)),
-            ),
-          ],
-        ),
-      ),
-    );
+    if (result != null && mounted) {
+      final code = result;
+      // Assuming code matches a storage location ID or Name
+      // In a real app, verify ID exists in _locations
+      final location = _locations.firstWhere(
+        (l) => l.id == code || l.name == code,
+        orElse: () => StorageLocation(
+            id: '', familyId: '', name: '', type: '', description: ''),
+      );
+
+      if (location.id.isNotEmpty) {
+        setState(() {
+          _storageLocationId = location.id;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Location found: ${location.name}')),
+        );
+      } else {
+        // Optional: Handle unknown code
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Unknown location code: $code')),
+        );
+      }
+    }
   }
 
   Future<void> _saveItem() async {

@@ -3,6 +3,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -53,10 +54,14 @@ class AuthService {
   Future<User?> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return null; // The user canceled the sign-in
+      if (googleUser == null) {
+        // The user canceled the sign-in
+        return null;
+      }
 
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
+
       final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
@@ -65,9 +70,15 @@ class AuthService {
       final UserCredential userCredential =
           await _auth.signInWithCredential(credential);
       return userCredential.user;
+    } on FirebaseAuthException catch (e) {
+      // Throw Firebase auth errors with details
+      throw Exception('Firebase Auth Error: ${e.code} - ${e.message}');
+    } on PlatformException catch (e) {
+      // Handle platform-specific errors (e.g., Google Sign-In issues)
+      throw Exception('Platform Error: ${e.code} - ${e.message}');
     } catch (e) {
-      // Handle specific errors if needed
-      return null;
+      // Handle any other errors
+      throw Exception('Google Sign-In failed: ${e.toString()}');
     }
   }
 

@@ -18,6 +18,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
+  bool _isGoogleSignInLoading = false;
 
   @override
   void initState() {
@@ -194,21 +195,58 @@ class _LoginScreenState extends State<LoginScreen>
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: () async {
-                        final user = await authService.signInWithGoogle();
-                        if (user != null && context.mounted) {
-                          try {
-                            await context
-                                .read<UserService>()
-                                .createUserAndLinkFamily(user);
-                          } catch (e) {
-                            debugPrint('Error creating user/family: $e');
-                          }
-                          if (context.mounted) {
-                            context.go('/home');
-                          }
-                        }
-                      },
+                      onPressed: _isGoogleSignInLoading
+                          ? null
+                          : () async {
+                              setState(() {
+                                _isGoogleSignInLoading = true;
+                              });
+
+                              try {
+                                final user =
+                                    await authService.signInWithGoogle();
+                                if (user != null && context.mounted) {
+                                  try {
+                                    await context
+                                        .read<UserService>()
+                                        .createUserAndLinkFamily(user);
+                                  } catch (e) {
+                                    debugPrint(
+                                        'Error creating user/family: $e');
+                                  }
+                                  if (context.mounted) {
+                                    context.go('/home');
+                                  }
+                                } else if (context.mounted) {
+                                  // User cancelled or sign-in failed
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                          'Google Sign-In was cancelled or failed. Please try again.'),
+                                      backgroundColor: Colors.orange,
+                                      duration: Duration(seconds: 3),
+                                    ),
+                                  );
+                                }
+                              } catch (e) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                          'Sign-in error: ${e.toString()}'),
+                                      backgroundColor: Colors.red,
+                                      duration: const Duration(seconds: 4),
+                                    ),
+                                  );
+                                }
+                              } finally {
+                                if (mounted) {
+                                  setState(() {
+                                    _isGoogleSignInLoading = false;
+                                  });
+                                }
+                              }
+                            },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.black,
@@ -217,24 +255,34 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                         elevation: 0,
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset(
-                            'assets/images/google_logo.png',
-                            height: 24,
-                            width: 24,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Continue with Google',
-                            style: GoogleFonts.inter(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                      child: _isGoogleSignInLoading
+                          ? const SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.black),
+                              ),
+                            )
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Image.asset(
+                                  'assets/images/google_logo.png',
+                                  height: 24,
+                                  width: 24,
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  'Continue with Google',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
-                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -271,9 +319,12 @@ class _LoginScreenState extends State<LoginScreen>
                                         if (context.mounted) {
                                           ScaffoldMessenger.of(context)
                                               .showSnackBar(
-                                            SnackBar(
-                                                content: Text(
-                                                    'Login failed: ${e.toString()}')),
+                                            const SnackBar(
+                                              content: Text(
+                                                  'Invalid email or password. Please try again.'),
+                                              backgroundColor: Colors.red,
+                                              duration: Duration(seconds: 4),
+                                            ),
                                           );
                                         }
                                       }

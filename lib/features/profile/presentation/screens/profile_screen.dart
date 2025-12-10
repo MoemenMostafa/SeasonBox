@@ -5,6 +5,8 @@ import 'package:seasonbox/widgets/app_footer.dart';
 import 'package:provider/provider.dart';
 import 'package:seasonbox/app/providers/theme_provider.dart';
 import 'package:seasonbox/data/services/biometric_service.dart';
+import 'package:seasonbox/features/auth/data/auth_service.dart';
+import 'package:go_router/go_router.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -52,8 +54,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _buildSupport(context),
               const SizedBox(height: 32),
               AppFooter(
-                onSignOut: () {
-                  // Handle sign out
+                onSignOut: () async {
+                  // Show confirmation dialog
+                  final shouldLogout = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Logout'),
+                      content: const Text('Are you sure you want to logout?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.red,
+                          ),
+                          child: const Text('Logout'),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (shouldLogout == true && context.mounted) {
+                    try {
+                      // Disable biometric login if enabled
+                      final biometricService = BiometricService();
+                      final isBiometricEnabled =
+                          await biometricService.isBiometricLoginEnabled();
+                      if (isBiometricEnabled) {
+                        await biometricService.disableBiometricLogin();
+                      }
+
+                      // Sign out from Firebase
+                      final authService =
+                          Provider.of<AuthService>(context, listen: false);
+                      await authService.signOut();
+
+                      // Navigate to login screen
+                      if (context.mounted) {
+                        context.go('/login');
+                      }
+                    } catch (e) {
+                      // Show error message if logout fails
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Logout failed: $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
+                  }
                 },
               ),
               const SizedBox(height: 32),

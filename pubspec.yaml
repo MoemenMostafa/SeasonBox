@@ -2,7 +2,7 @@
 name: seasonbox
 description: "A new Flutter project."
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.1+2
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -58,9 +58,9 @@ flutter_launcher_icons:
 
 flutter_native_splash:
   color: "#5800E4"
-  image: "assets/images/app_icon.png"
+  image: "assets/images/splash_icon.png"
   android_12:
-    image: "assets/images/app_icon.png"
+    image: "assets/images/splash_icon.png"
     color: "#5800E4"
   android: true
   ios: true

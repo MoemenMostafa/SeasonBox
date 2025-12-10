@@ -36,6 +36,9 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final familyId =
           await context.read<AuthService>().getCurrentUserFamilyId();
+
+      if (!mounted) return;
+
       if (familyId == null) {
         throw Exception('User not authenticated');
       }
@@ -241,37 +244,33 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildFamilyMembersList(BuildContext context) {
-    return SizedBox(
-      height: 120,
-      child: ListView.builder(
-        itemCount: _members.length,
-        itemBuilder: (context, index) {
-          final member = _members[index];
-          // Calculate age from birthdate
-          final age = DateTime.now().difference(member.birthdate).inDays ~/ 365;
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _members.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final member = _members[index];
+        // Calculate age from birthdate
+        final age = DateTime.now().difference(member.birthdate).inDays ~/ 365;
 
-          // Get clothing size
-          final size = member.clothingSize?.toString() ?? 'N/A';
+        // Get clothing size
+        final size = member.clothingSize?.toString() ?? 'N/A';
 
-          // Calculate item count for this member
-          final itemCount =
-              _items.where((item) => item.memberId == member.id).length;
+        // Calculate item count for this member
+        final itemCount =
+            _items.where((item) => item.memberId == member.id).length;
 
-          return Padding(
-            padding:
-                EdgeInsets.only(right: index == _members.length - 1 ? 0 : 12),
-            child: _buildMemberCard(
-              context,
-              member.name,
-              'Age $age • Size $size',
-              '$itemCount items',
-              'Active',
-              Colors.purple,
-              () => context.push('/members'),
-            ),
-          );
-        },
-      ),
+        return _buildMemberCard(
+          context,
+          member.name,
+          'Age $age • Size $size',
+          '$itemCount items',
+          'Active',
+          Colors.purple,
+          () => context.push('/members'),
+        );
+      },
     );
   }
 

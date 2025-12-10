@@ -614,6 +614,7 @@ class _StorageScreenState extends State<StorageScreen> {
                   Icons.qr_code_scanner,
                   Colors.purple,
                   theme,
+                  onTap: () => context.push('/qr-scanner'),
                 ),
               ),
               const SizedBox(width: 16),
@@ -633,8 +634,10 @@ class _StorageScreenState extends State<StorageScreen> {
   }
 
   Widget _buildActionCard(
-      String title, IconData icon, Color color, ThemeData theme) {
+      String title, IconData icon, Color color, ThemeData theme,
+      {VoidCallback? onTap}) {
     return AppCard(
+      onTap: onTap,
       padding: const EdgeInsets.all(24),
       child: Column(
         children: [
