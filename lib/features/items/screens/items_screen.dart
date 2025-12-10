@@ -13,6 +13,7 @@ import 'package:seasonbox/widgets/app_card.dart';
 import 'package:seasonbox/widgets/season_box_add_button.dart';
 import 'package:seasonbox/widgets/season_box_filter_chip.dart';
 import 'package:seasonbox/widgets/skeleton_container.dart';
+import 'package:seasonbox/widgets/image_gallery_viewer.dart';
 
 class ItemsScreen extends StatefulWidget {
   final String? initialMemberId;
@@ -349,25 +350,54 @@ class _ItemsScreenState extends State<ItemsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Image
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(12),
-                  image: item.photos.isNotEmpty
-                      ? DecorationImage(
-                          image: NetworkImage(item.photos.first),
-                          fit: BoxFit.cover,
-                        )
+              GestureDetector(
+                onTap: () {
+                  // Extract all image URLs from the item
+                  final imageUrls = <String>[];
+
+                  for (final photo in item.photos) {
+                    final url = photo['full'] ?? photo['thumb'] ?? '';
+                    if (url.isNotEmpty) {
+                      imageUrls.add(url);
+                    }
+                  }
+
+                  // Open gallery viewer
+                  if (imageUrls.isNotEmpty) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => ImageGalleryViewer(
+                          imageUrls: imageUrls,
+                          initialIndex: 0,
+                        ),
+                      ),
+                    );
+                  }
+                },
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(12),
+                    image: item.photos.isNotEmpty
+                        ? DecorationImage(
+                            image: NetworkImage(
+                              item.photos.first['thumb'] ??
+                                  item.photos.first['full'] ??
+                                  '',
+                            ),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                  ),
+                  child: item.photos.isEmpty
+                      ? Icon(Icons.image,
+                          color: isDark
+                              ? Colors.grey.shade600
+                              : Colors.grey.shade400)
                       : null,
                 ),
-                child: item.photos.isEmpty
-                    ? Icon(Icons.image,
-                        color: isDark
-                            ? Colors.grey.shade600
-                            : Colors.grey.shade400)
-                    : null,
               ),
               const SizedBox(width: 16),
               // Details

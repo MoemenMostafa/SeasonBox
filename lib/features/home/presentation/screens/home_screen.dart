@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:seasonbox/widgets/season_box_app_bar.dart';
 import 'package:seasonbox/widgets/app_card.dart';
+import 'package:seasonbox/widgets/season_box_search_field.dart';
 import 'package:seasonbox/data/models/family_member.dart';
 import 'package:seasonbox/data/models/item.dart';
 import 'package:seasonbox/data/models/storage_location.dart';
@@ -10,6 +11,7 @@ import 'package:seasonbox/data/repositories/family_member_repository.dart';
 import 'package:seasonbox/data/repositories/item_repository.dart';
 import 'package:seasonbox/data/repositories/storage_location_repository.dart';
 import 'package:seasonbox/features/auth/data/auth_service.dart';
+import 'package:seasonbox/widgets/image_gallery_viewer.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -233,21 +235,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildSearchBar(BuildContext context) {
-    return TextField(
-      decoration: InputDecoration(
-        hintText: 'Search items, locations...',
-        prefixIcon: const Icon(Icons.search),
-        suffixIcon: const Icon(Icons.filter_list),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: BorderSide.none,
-        ),
-        filled: true,
-        fillColor: Theme.of(context).brightness == Brightness.dark
-            ? Colors.grey.shade800
-            : Colors.grey.shade100,
-        contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
-      ),
+    return const SeasonBoxSearchField(
+      hintText: 'Search items, locations...',
     );
   }
 
@@ -432,7 +421,9 @@ class _HomeScreenState extends State<HomeScreen> {
               'Size ${item.size} • ${item.gender}',
               'Storage', // Placeholder
               item.photos.isNotEmpty
-                  ? item.photos.first
+                  ? item.photos.first['thumb'] ??
+                      item.photos.first['full'] ??
+                      ''
                   : 'https://placehold.co/200x200/png?text=${item.category}',
               () => context.push('/items'),
             ),
@@ -452,18 +443,53 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            child: Image.network(
-              imageUrl,
-              height: 120,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 120,
-                  color: Colors.grey.shade200,
-                  child: const Icon(Icons.image, size: 48, color: Colors.grey),
+            child: GestureDetector(
+              onTap: () {
+                // Extract all image URLs from the item
+                final imageUrls = <String>[];
+                final item = _items.firstWhere(
+                  (i) => i.title == title,
+                  orElse: () => _items.first,
                 );
+
+                for (final photo in item.photos) {
+                  final url = photo['full'] ?? photo['thumb'] ?? '';
+                  if (url.isNotEmpty) {
+                    imageUrls.add(url);
+                  }
+                }
+
+                // If no valid photos, use the placeholder
+                if (imageUrls.isEmpty && imageUrl.isNotEmpty) {
+                  imageUrls.add(imageUrl);
+                }
+
+                // Open gallery viewer
+                if (imageUrls.isNotEmpty) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => ImageGalleryViewer(
+                        imageUrls: imageUrls,
+                        initialIndex: 0,
+                      ),
+                    ),
+                  );
+                }
               },
+              child: Image.network(
+                imageUrl,
+                height: 120,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 120,
+                    color: Colors.grey.shade200,
+                    child:
+                        const Icon(Icons.image, size: 48, color: Colors.grey),
+                  );
+                },
+              ),
             ),
           ),
           Padding(

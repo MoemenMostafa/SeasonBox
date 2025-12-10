@@ -1,5 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:seasonbox/data/models/family_member.dart';
@@ -8,10 +11,12 @@ import 'package:seasonbox/data/models/storage_location.dart';
 import 'package:seasonbox/data/repositories/family_member_repository.dart';
 import 'package:seasonbox/data/repositories/item_repository.dart';
 import 'package:seasonbox/data/repositories/storage_location_repository.dart';
+import 'package:seasonbox/data/services/storage_service.dart';
 import 'package:seasonbox/features/auth/data/auth_service.dart';
 import 'package:seasonbox/widgets/app_card.dart';
 import 'package:seasonbox/widgets/season_box_app_bar.dart';
 import 'package:seasonbox/widgets/skeleton_container.dart';
+import 'package:seasonbox/widgets/image_gallery_viewer.dart';
 
 class AddItemScreen extends StatefulWidget {
   final Item? item; // Optional item for editing
@@ -37,6 +42,10 @@ class _AddItemScreenState extends State<AddItemScreen> {
   String? _storageLocationId;
   final Set<String> _selectedSeasons = {'Winter'}; // Default selection
 
+  final ImagePicker _picker = ImagePicker();
+  final List<XFile> _selectedImages = [];
+  List<Map<String, String>> _existingPhotos = []; // For edit mode
+
   List<FamilyMember> _members = [];
   List<StorageLocation> _locations = [];
   bool _isLoadingData = true;
@@ -54,7 +63,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
   bool _isCustomSize = false;
   final TextEditingController _customSizeController = TextEditingController();
 
-  // Size Constants
+  // ... (Size Constants Remain Unchanged)
   static const List<String> _clothesSizes = [
     'NB', '3M', '6M', '9M', '12M', '18M', '24M', // Baby
     '2T', '3T', '4T', '5T', // Toddler
@@ -93,12 +102,11 @@ class _AddItemScreenState extends State<AddItemScreen> {
     // Field population is deferred to _onTransitionComplete to prevent UI freeze
   }
 
+  // ... (Lifecycle methods remain unchanged)
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Clever solution: Listen to the route transition animation
-    // and start loading data only after the transition is fully completed.
-    // This guarantees zero jank during the slide-in animation.
     if (_isLoadingData) {
       final route = ModalRoute.of(context);
       if (route is PageRoute) {
@@ -115,8 +123,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
   void _onTransitionComplete() {
     if (mounted) {
-      // Populate fields BEFORE setState to avoid triggering form rebuild
-      // This ensures the skeleton stays visible during field population
       if (widget.item != null) {
         _titleController.text = widget.item!.title;
         _descriptionController.text = widget.item!.notes;
@@ -128,15 +134,14 @@ class _AddItemScreenState extends State<AddItemScreen> {
         _storageLocationId = widget.item!.storageLocationId;
         _selectedSeasons.clear();
         _selectedSeasons.addAll(widget.item!.seasonTags);
+        // Load existing photos for edit mode
+        _existingPhotos = List<Map<String, String>>.from(widget.item!.photos);
       }
 
-      // NOW switch to form - single setState at the end
       setState(() {
         _isTransitionComplete = true;
       });
 
-      // Defer data loading to the next frame to ensure the Form renders first
-      // and the UI remains responsive.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           _loadData();
@@ -148,23 +153,19 @@ class _AddItemScreenState extends State<AddItemScreen> {
   void _onRouteAnimationStatusChanged(AnimationStatus status) {
     if (status == AnimationStatus.completed) {
       _onTransitionComplete();
-      // Remove listener to prevent memory leaks
       final route = ModalRoute.of(context);
       route?.animation?.removeStatusListener(_onRouteAnimationStatusChanged);
     }
   }
 
   Future<void> _loadData() async {
-    // Prevent double loading
+    // ... (Existing loadData logic)
     if (!_isLoadingData && _members.isNotEmpty) return;
 
     try {
-      // Get family ID from authenticated user
       final familyId =
           await context.read<AuthService>().getCurrentUserFamilyId();
-      if (familyId == null) {
-        throw Exception('User not authenticated');
-      }
+      if (familyId == null) throw Exception('User not authenticated');
 
       final members = await context
           .read<FamilyMemberRepository>()
@@ -184,8 +185,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
           _isLoadingData = false;
         });
 
-        // Initialize custom size if editing an item
-        // This is deferred to after data load to prevent UI freeze
         if (widget.item != null) {
           final availableSizes = _getSizesForCategory(_selectedCategory);
           _isCustomSize = !availableSizes.contains(_selectedSize);
@@ -196,12 +195,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _isLoadingData = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading data: $e')),
-        );
+        setState(() => _isLoadingData = false);
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error loading data: $e')));
       }
     }
   }
@@ -215,36 +211,166 @@ class _AddItemScreenState extends State<AddItemScreen> {
     super.dispose();
   }
 
+  // --- Image Picker Logic ---
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? image = await _picker.pickImage(source: source);
+      if (image != null) {
+        setState(() {
+          _selectedImages.add(image);
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error picking image: $e')),
+      );
+    }
+  }
+
+  void _showImagePickerModal() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera),
+              title: const Text('Take Photo'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Choose from Gallery'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // --- QR Scanner Logic ---
+  Future<void> _scanQRCode() async {
+    // Check for camera capability/permission via helper or just try launching
+    // MobileScanner handles permissions internally usually
+    await showDialog(
+      context: context,
+      builder: (context) => Dialog.fullscreen(
+        child: Stack(
+          children: [
+            MobileScanner(
+              onDetect: (capture) {
+                final List<Barcode> barcodes = capture.barcodes;
+                for (final barcode in barcodes) {
+                  if (barcode.rawValue != null) {
+                    final String code = barcode.rawValue!;
+                    // Assuming code matches a storage location ID or Name
+                    // In a real app, verify ID exists in _locations
+                    final location = _locations.firstWhere(
+                      (l) => l.id == code || l.name == code,
+                      orElse: () => StorageLocation(
+                          id: '',
+                          familyId: '',
+                          name: '',
+                          type: '',
+                          description: ''),
+                    );
+
+                    if (location.id.isNotEmpty) {
+                      setState(() {
+                        _storageLocationId = location.id;
+                      });
+                      Navigator.pop(context); // Close scanner
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Location found: ${location.name}')),
+                      );
+                    } else {
+                      // Optional: Handle unknown code
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Unknown location code: $code')),
+                      );
+                      // Add delay to avoid spamming
+                    }
+                    break; // Process first valid code
+                  }
+                }
+              },
+            ),
+            Positioned(
+              top: 40,
+              right: 20,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+            const Center(
+              child: Text('Scan Location QR Code',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _saveItem() async {
     if (!_formKey.currentState!.validate()) return;
-
+    // ... (Validation logic)
     if (_storageLocationId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a storage location')),
-      );
+          const SnackBar(content: Text('Please select a storage location')));
       return;
     }
-
     if (!_isCustomSize && _selectedSize.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a size')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Please select a size')));
       return;
     }
 
-    setState(() {
-      _isSaving = true;
-    });
+    setState(() => _isSaving = true);
 
     try {
       final familyId =
           await context.read<AuthService>().getCurrentUserFamilyId();
-      if (familyId == null) {
-        throw Exception('User not authenticated');
+      if (familyId == null) throw Exception('User not authenticated');
+
+      final authService = context.read<AuthService>();
+      final userId = authService.currentUser?.uid;
+      if (userId == null) throw Exception('No user logged in');
+
+      final storageService = context.read<StorageService>();
+
+      // Generate item ID first (needed for storage path)
+      final itemId = widget.item?.id ?? const Uuid().v4();
+
+      // Upload newly selected images with thumbnails
+      final List<Map<String, String>> newPhotoMaps = [];
+      for (final XFile imageFile in _selectedImages) {
+        final file = File(imageFile.path);
+        final photoUrls = await storageService.uploadImageWithThumbnail(
+          file: file,
+          userId: userId,
+          itemId: itemId,
+        );
+        newPhotoMaps.add(photoUrls);
       }
 
+      // Combine existing photos with new ones
+      final allPhotos = [..._existingPhotos, ...newPhotoMaps];
+
       final item = Item(
-        id: widget.item?.id ?? const Uuid().v4(), // Use existing ID if editing
+        id: itemId,
         familyId: familyId,
         title: _titleController.text.trim(),
         category: _selectedCategory,
@@ -255,17 +381,14 @@ class _AddItemScreenState extends State<AddItemScreen> {
         memberId: _assignedChildId,
         quantity: _quantity,
         notes: _descriptionController.text.trim(),
-        addedAt: widget.item?.addedAt ??
-            DateTime.now(), // Preserve original date if editing
+        addedAt: widget.item?.addedAt ?? DateTime.now(),
         status: 'Stored',
-        photos: [], // Deferred to Sprint 3
+        photos: allPhotos,
       );
 
       if (widget.item != null) {
-        // Update existing item
         await context.read<ItemRepository>().updateItem(item);
       } else {
-        // Add new item
         await context.read<ItemRepository>().addItem(item);
       }
 
@@ -280,15 +403,12 @@ class _AddItemScreenState extends State<AddItemScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving item: $e')),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error saving item: $e')));
       }
     } finally {
       if (mounted) {
-        setState(() {
-          _isSaving = false;
-        });
+        setState(() => _isSaving = false);
       }
     }
   }
@@ -322,51 +442,155 @@ class _AddItemScreenState extends State<AddItemScreen> {
                           height: 100,
                           child: ListView.builder(
                             scrollDirection: Axis.horizontal,
-                            itemCount: 1,
+                            itemCount: 1 +
+                                _existingPhotos.length +
+                                _selectedImages.length,
                             itemBuilder: (context, index) {
-                              // Add Photo Button
-                              return Container(
-                                width: 100,
-                                margin: const EdgeInsets.only(right: 12),
-                                decoration: BoxDecoration(
-                                  color: theme.cardColor,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: theme.colorScheme.primary,
-                                    width: 1.5,
-                                    style: BorderStyle
-                                        .solid, // Dotted border is hard in standard Flutter without package, using solid with color for now or custom painter.
-                                    // Reference shows dotted. Let's stick to solid for simplicity or use a dashed border package if available.
-                                    // Given constraints, I'll use a DashedBorder if I can, but standard Border is solid.
-                                    // I'll simulate a "dashed" look by using a specific color or just stick to the solid primary color which looks good.
-                                    // Actually, let's use a standard solid border but with the right color.
+                              if (index == 0) {
+                                // Add Photo Button
+                                return Container(
+                                  width: 100,
+                                  margin: const EdgeInsets.only(right: 12),
+                                  decoration: BoxDecoration(
+                                    color: theme.cardColor,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                        color: theme.colorScheme.primary,
+                                        width: 1.5),
                                   ),
-                                ),
-                                child: InkWell(
+                                  child: InkWell(
+                                    onTap: _showImagePickerModal,
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.camera_alt,
+                                            color: theme.colorScheme.primary,
+                                            size: 32),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'Add Photo',
+                                          style: TextStyle(
+                                              color: theme.colorScheme.primary,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              } else if (index <= _existingPhotos.length) {
+                                // Display Existing Photo (from Firestore)
+                                final photoIndex = index - 1;
+                                final photoMap = _existingPhotos[photoIndex];
+                                return GestureDetector(
                                   onTap: () {
-                                    // TODO: Implement photo picker
+                                    // Extract all image URLs
+                                    final imageUrls = <String>[];
+                                    for (final photo in _existingPhotos) {
+                                      final url =
+                                          photo['full'] ?? photo['thumb'] ?? '';
+                                      if (url.isNotEmpty) {
+                                        imageUrls.add(url);
+                                      }
+                                    }
+
+                                    // Open gallery viewer
+                                    if (imageUrls.isNotEmpty) {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              ImageGalleryViewer(
+                                            imageUrls: imageUrls,
+                                            initialIndex: photoIndex,
+                                          ),
+                                        ),
+                                      );
+                                    }
                                   },
-                                  borderRadius: BorderRadius.circular(16),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
+                                  child: Container(
+                                    width: 100,
+                                    margin: const EdgeInsets.only(right: 12),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(16),
+                                      image: DecorationImage(
+                                        image: NetworkImage(photoMap['thumb'] ??
+                                            photoMap['full'] ??
+                                            ''),
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                    child: Stack(
+                                      children: [
+                                        Positioned(
+                                          top: 4,
+                                          right: 4,
+                                          child: InkWell(
+                                            onTap: () {
+                                              setState(() {
+                                                _existingPhotos
+                                                    .removeAt(photoIndex);
+                                              });
+                                            },
+                                            child: Container(
+                                              padding: const EdgeInsets.all(4),
+                                              decoration: const BoxDecoration(
+                                                color: Colors.black54,
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: const Icon(Icons.close,
+                                                  color: Colors.white,
+                                                  size: 16),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                // Display Newly Selected Image
+                                final imageIndex =
+                                    index - 1 - _existingPhotos.length;
+                                final image = _selectedImages[imageIndex];
+                                return Container(
+                                  width: 100,
+                                  margin: const EdgeInsets.only(right: 12),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(16),
+                                    image: DecorationImage(
+                                      image: FileImage(File(image.path)),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                  child: Stack(
                                     children: [
-                                      Icon(Icons.camera_alt,
-                                          color: theme.colorScheme.primary,
-                                          size: 32),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Add Photo',
-                                        style: TextStyle(
-                                          color: theme.colorScheme.primary,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
+                                      Positioned(
+                                        top: 4,
+                                        right: 4,
+                                        child: InkWell(
+                                          onTap: () {
+                                            setState(() {
+                                              _selectedImages
+                                                  .removeAt(imageIndex);
+                                            });
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.all(4),
+                                            decoration: const BoxDecoration(
+                                              color: Colors.black54,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(Icons.close,
+                                                color: Colors.white, size: 16),
+                                          ),
                                         ),
                                       ),
                                     ],
                                   ),
-                                ),
-                              );
-                              // Placeholder for existing photos (if any)
+                                );
+                              }
                             },
                           ),
                         ),
@@ -413,7 +637,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                 onChanged: (v) {
                                   setState(() {
                                     _selectedCategory = v!;
-                                    // Reset size selection when category changes
                                     _isCustomSize = false;
                                     _selectedSize = '';
                                     _customSizeController.clear();
@@ -430,7 +653,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        // Size Section
+                        // Size Section (Collapsed for brevity - assumes logic is preserved in rebuild)
                         const Text('Size',
                             style: TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold)),
@@ -511,17 +734,14 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                   Container(
                                     width: 60,
                                     alignment: Alignment.center,
-                                    child: Text(
-                                      '$_quantity',
-                                      style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold),
-                                    ),
+                                    child: Text('$_quantity',
+                                        style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold)),
                                   ),
                                   IconButton.filled(
-                                    onPressed: () {
-                                      setState(() => _quantity++);
-                                    },
+                                    onPressed: () =>
+                                        setState(() => _quantity++),
                                     icon: const Icon(Icons.add),
                                   ),
                                 ],
@@ -531,7 +751,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        // Season & Member Section
+                        // Seasons & Member (Similar to before)
                         const Text('Season & Member',
                             style: TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold)),
@@ -586,8 +806,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                   ? const SkeletonContainer.rectangular(
                                       height: 48,
                                       borderRadius:
-                                          BorderRadius.all(Radius.circular(4)),
-                                    )
+                                          BorderRadius.all(Radius.circular(4)))
                                   : DropdownButtonFormField<String>(
                                       key: ValueKey(_assignedChildId),
                                       initialValue: _assignedChildId,
@@ -603,16 +822,15 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                         ..._members.map((m) => DropdownMenuItem(
                                             value: m.id, child: Text(m.name))),
                                       ],
-                                      onChanged: (v) {
-                                        setState(() => _assignedChildId = v);
-                                      },
+                                      onChanged: (v) =>
+                                          setState(() => _assignedChildId = v),
                                     ),
                             ],
                           ),
                         ),
                         const SizedBox(height: 24),
 
-                        // Storage Location Section
+                        // Storage Location with QR
                         const Text('Storage Location',
                             style: TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold)),
@@ -628,8 +846,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                   ? const SkeletonContainer.rectangular(
                                       height: 48,
                                       borderRadius:
-                                          BorderRadius.all(Radius.circular(4)),
-                                    )
+                                          BorderRadius.all(Radius.circular(4)))
                                   : DropdownButtonFormField<String>(
                                       initialValue: _storageLocationId,
                                       decoration: const InputDecoration(
@@ -652,22 +869,19 @@ class _AddItemScreenState extends State<AddItemScreen> {
                               SizedBox(
                                 width: double.infinity,
                                 child: OutlinedButton.icon(
-                                  onPressed: () {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content:
-                                              Text('QR Scanning coming soon')),
-                                    );
-                                  },
+                                  onPressed: _scanQRCode,
                                   icon: const Icon(Icons.qr_code_scanner),
                                   label: const Text('Scan QR Code'),
                                   style: OutlinedButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 12),
                                     backgroundColor:
-                                        Colors.cyan.withValues(alpha: 0.1),
+                                        theme.brightness == Brightness.dark
+                                            ? Colors.cyan.withValues(alpha: 0.1)
+                                            : Colors.cyan.shade50,
                                     foregroundColor: Colors.cyan,
-                                    side: BorderSide.none,
+                                    side: BorderSide
+                                        .none, // Or theme.colorScheme.outline
                                   ),
                                 ),
                               ),
@@ -676,7 +890,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        // Notes Section
+                        // Notes (Notes logic)
                         const Text('Notes (Optional)',
                             style: TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold)),
@@ -694,28 +908,24 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         ),
                         const SizedBox(height: 32),
 
-                        // Action Buttons
-                        // Action Buttons
+                        // Action Buttons (Save/Cancel)
+                        // ... (Preserved Save button logic)
                         Container(
                           width: double.infinity,
                           height: 56,
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [
-                                Color(0xFF6366F1),
-                                Color(0xFF8B5CF6)
-                              ], // Indigo to Violet
+                              colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
                               begin: Alignment.centerLeft,
                               end: Alignment.centerRight,
                             ),
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF6366F1)
-                                    .withValues(alpha: 0.3),
-                                blurRadius: 12,
-                                offset: const Offset(0, 6),
-                              ),
+                                  color: const Color(0xFF6366F1)
+                                      .withValues(alpha: 0.3),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 6)),
                             ],
                           ),
                           child: ElevatedButton(
@@ -724,17 +934,16 @@ class _AddItemScreenState extends State<AddItemScreen> {
                               backgroundColor: Colors.transparent,
                               shadowColor: Colors.transparent,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+                                  borderRadius: BorderRadius.circular(12)),
                             ),
                             child: Text(
-                              widget.item != null ? 'Update Item' : 'Save Item',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
+                                widget.item != null
+                                    ? 'Update Item'
+                                    : 'Save Item',
+                                style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white)),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -746,11 +955,12 @@ class _AddItemScreenState extends State<AddItemScreen> {
                             style: OutlinedButton.styleFrom(
                               side: BorderSide(color: Colors.grey.shade700),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+                                  borderRadius: BorderRadius.circular(12)),
                             ),
                             child: const Text('Cancel',
-                                style: TextStyle(color: Colors.white)),
+                                style: TextStyle(
+                                    color: Colors
+                                        .white)), // Assuming dark theme button text needs white or dynamic
                           ),
                         ),
                         const SizedBox(height: 24),
@@ -761,44 +971,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
     );
   }
 
-  Widget _buildGenderSelector(ThemeData theme) {
-    return Row(
-      children: ['Boy', 'Girl', 'Unisex'].map((gender) {
-        final isSelected = _selectedGender == gender;
-        return Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: GestureDetector(
-              onTap: () => setState(() => _selectedGender = gender),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? theme.colorScheme.primary
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isSelected
-                        ? theme.colorScheme.primary
-                        : Colors.grey.shade700,
-                  ),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  gender,
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.grey.shade400,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
+  // _buildLoadingSkeleton and _buildGenderSelector remain same or similar
   Widget _buildLoadingSkeleton() {
     return const SingleChildScrollView(
       padding: EdgeInsets.all(16),
@@ -870,6 +1043,42 @@ class _AddItemScreenState extends State<AddItemScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildGenderSelector(ThemeData theme) {
+    return Row(
+      children: ['Boy', 'Girl', 'Unisex'].map((gender) {
+        final isSelected = _selectedGender == gender;
+        return Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: GestureDetector(
+              onTap: () => setState(() => _selectedGender = gender),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? theme.colorScheme.primary
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                      color: isSelected
+                          ? theme.colorScheme.primary
+                          : Colors.grey.shade700),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  gender,
+                  style: TextStyle(
+                      color: isSelected ? Colors.white : Colors.grey.shade400,
+                      fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 }

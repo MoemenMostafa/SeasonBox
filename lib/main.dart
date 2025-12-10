@@ -14,6 +14,7 @@ import 'package:seasonbox/data/repositories/family_repository.dart';
 import 'package:seasonbox/data/repositories/family_member_repository.dart';
 import 'package:seasonbox/data/repositories/item_repository.dart';
 import 'package:seasonbox/data/repositories/storage_location_repository.dart';
+import 'package:seasonbox/data/services/storage_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,6 +33,7 @@ class SeasonBox extends StatelessWidget {
         Provider<AuthService>(create: (_) => AuthService()),
         Provider<FirestoreService>(create: (_) => FirestoreService()),
         Provider<BiometricService>(create: (_) => BiometricService()),
+        Provider<StorageService>(create: (_) => StorageService()),
         ProxyProvider<FirestoreService, FamilyRepository>(
           update: (_, firestoreService, __) =>
               FamilyRepository(firestoreService),

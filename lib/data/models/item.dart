@@ -2,7 +2,8 @@ class Item {
   final String id;
   final String familyId;
   final String title;
-  final List<String> photos;
+  final List<Map<String, String>>
+      photos; // Changed to support {full: url, thumb: url}
   final String category;
   final String gender;
   final String size;
@@ -60,11 +61,26 @@ class Item {
   }
 
   factory Item.fromMap(Map<String, dynamic> map) {
+    // Handle backward compatibility: photos can be List<String> or List<Map>
+    List<Map<String, String>> photosList = [];
+    if (map['photos'] != null) {
+      final photosData = map['photos'] as List;
+      for (var photo in photosData) {
+        if (photo is String) {
+          // Old format: just URL strings
+          photosList.add({'full': photo, 'thumb': photo});
+        } else if (photo is Map) {
+          // New format: {full: url, thumb: url}
+          photosList.add(Map<String, String>.from(photo));
+        }
+      }
+    }
+
     return Item(
       id: map['id'] ?? '',
       familyId: map['familyId'] ?? '',
       title: map['title'] ?? '',
-      photos: List<String>.from(map['photos'] ?? []),
+      photos: photosList,
       category: map['category'] ?? '',
       gender: map['gender'] ?? '',
       size: map['size'] ?? '',
