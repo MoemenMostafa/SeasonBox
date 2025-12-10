@@ -12,11 +12,8 @@ on:
 
 jobs:
   build-and-deploy:
-    # Use larger runner for faster builds (4 cores instead of 2)
-    # Standard: ubuntu-latest (2 cores, ~18 min)
-    # Faster: ubuntu-latest-4-cores (4 cores, ~9-10 min)
-    # Fastest: ubuntu-latest-8-cores (8 cores, ~6-7 min) - requires GitHub Team/Enterprise
-    runs-on: ubuntu-latest-4-cores
+    # https://docs.github.com/en/actions/reference/runners/github-hosted-runners
+    runs-on: macos-latest
     
     steps:
       - name: Checkout code
