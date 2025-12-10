@@ -1,0 +1,8 @@
+# Example key.properties file
+# DO NOT commit this file to version control!
+# This file should be in android/key.properties
+
+storePassword=your_keystore_password_here
+keyPassword=your_key_password_here
+keyAlias=release
+storeFile=release-keystore.jks
