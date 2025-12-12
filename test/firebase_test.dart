@@ -12,7 +12,7 @@ void main() {
       expect(DefaultFirebaseOptions.currentPlatform, isNotNull);
 
       // Verify Android options exist
-      final androidOptions = DefaultFirebaseOptions.android;
+      const androidOptions = DefaultFirebaseOptions.android;
       expect(androidOptions.apiKey, isNotEmpty);
       expect(androidOptions.appId, isNotEmpty);
       expect(androidOptions.messagingSenderId, isNotEmpty);
@@ -20,7 +20,7 @@ void main() {
     });
 
     test('Firebase options have valid API key format', () {
-      final options = DefaultFirebaseOptions.android;
+      const options = DefaultFirebaseOptions.android;
 
       // API key should not be empty or placeholder
       expect(options.apiKey, isNot(equals('YOUR_API_KEY')));
@@ -29,14 +29,14 @@ void main() {
     });
 
     test('Firebase options have valid App ID format', () {
-      final options = DefaultFirebaseOptions.android;
+      const options = DefaultFirebaseOptions.android;
 
       // App ID should follow format: 1:xxx:android:xxx
       expect(options.appId, matches(RegExp(r'^1:\d+:android:[a-f0-9]+$')));
     });
 
     test('Firebase options have valid project ID', () {
-      final options = DefaultFirebaseOptions.android;
+      const options = DefaultFirebaseOptions.android;
 
       // Project ID should not be empty or placeholder
       expect(options.projectId, isNot(equals('your-project-id')));
@@ -45,7 +45,7 @@ void main() {
     });
 
     test('Firebase messaging sender ID is numeric', () {
-      final options = DefaultFirebaseOptions.android;
+      const options = DefaultFirebaseOptions.android;
 
       // Messaging sender ID should be numeric
       expect(int.tryParse(options.messagingSenderId), isNotNull);
@@ -53,7 +53,7 @@ void main() {
     });
 
     test('Storage bucket is configured (if used)', () {
-      final options = DefaultFirebaseOptions.android;
+      const options = DefaultFirebaseOptions.android;
 
       // If storage bucket is set, it should have valid format
       if (options.storageBucket != null && options.storageBucket!.isNotEmpty) {
@@ -83,7 +83,7 @@ void main() {
 
   group('Firebase Services Configuration', () {
     test('Auth domain is properly configured', () {
-      final options = DefaultFirebaseOptions.android;
+      const options = DefaultFirebaseOptions.android;
 
       // If auth domain is set, verify format
       if (options.authDomain != null && options.authDomain!.isNotEmpty) {
@@ -92,7 +92,7 @@ void main() {
     });
 
     test('Database URL is properly configured (if used)', () {
-      final options = DefaultFirebaseOptions.android;
+      const options = DefaultFirebaseOptions.android;
 
       // If database URL is set, verify format
       if (options.databaseURL != null && options.databaseURL!.isNotEmpty) {
