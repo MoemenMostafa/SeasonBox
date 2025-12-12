@@ -38,6 +38,14 @@
           }
         },
         {
+          "client_id": "839774020308-m7hbqbk6mcnh67gvh2fl3oboohisluon.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "io.mos.seasonbox",
+            "certificate_hash": "e84d69dbae71a0097cb87d96f8943f85bde028ed"
+          }
+        },
+        {
           "client_id": "839774020308-njatk3ugsi9q8ssq7oibs7ops0su7p38.apps.googleusercontent.com",
           "client_type": 3
         }
