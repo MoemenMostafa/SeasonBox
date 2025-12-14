@@ -12,6 +12,7 @@ import 'package:seasonbox/data/repositories/item_repository.dart';
 import 'package:seasonbox/data/repositories/storage_location_repository.dart';
 import 'package:seasonbox/features/auth/data/auth_service.dart';
 import 'package:seasonbox/widgets/image_gallery_viewer.dart';
+import 'package:seasonbox/l10n/app_localizations.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -85,9 +86,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const SeasonBoxAppBar(
-        title: 'SeasonBox',
-        subtitle: 'Johnson Family',
+      appBar: SeasonBoxAppBar(
+        title: AppLocalizations.of(context)!.appTitle,
+        subtitle: AppLocalizations.of(context)!.home_appBar_subtitle,
       ),
       body: SafeArea(
         child: _isLoading
@@ -107,9 +108,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 24),
 
                       // Quick Actions
-                      const Text(
-                        'Quick Actions',
-                        style: TextStyle(
+                      Text(
+                        AppLocalizations.of(context)!.home_section_quickActions,
+                        style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 16),
@@ -118,7 +119,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       // Family Members
                       if (_members.isNotEmpty) ...[
-                        _buildSectionHeader(context, 'Family Members',
+                        _buildSectionHeader(
+                            context,
+                            AppLocalizations.of(context)!
+                                .home_section_familyMembers,
                             () => context.push('/members')),
                         const SizedBox(height: 16),
                         _buildFamilyMembersList(context),
@@ -127,7 +131,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       // Recent Items
                       if (_items.isNotEmpty) ...[
-                        _buildSectionHeader(context, 'Recent Items',
+                        _buildSectionHeader(
+                            context,
+                            AppLocalizations.of(context)!
+                                .home_section_recentItems,
                             () => context.push('/items')),
                         const SizedBox(height: 16),
                         _buildRecentItemsList(context),
@@ -135,9 +142,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
 
                       // Seasonal Reminders
-                      const Text(
-                        'Seasonal Reminders',
-                        style: TextStyle(
+                      Text(
+                        AppLocalizations.of(context)!
+                            .home_section_seasonalReminders,
+                        style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 16),
@@ -146,9 +154,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       // Storage Locations
                       if (_locations.isNotEmpty) ...[
-                        _buildSectionHeader(context, 'Storage Locations',
+                        _buildSectionHeader(
+                            context,
+                            AppLocalizations.of(context)!
+                                .home_section_storageLocations,
                             () => context.push('/storage'),
-                            actionText: 'Manage'),
+                            actionText: AppLocalizations.of(context)!
+                                .home_action_manage),
                         const SizedBox(height: 16),
                         _buildStorageLocations(context),
                       ],
@@ -168,7 +180,7 @@ class _HomeScreenState extends State<HomeScreen> {
             context,
             icon: Icons.checkroom,
             count: '${_items.length}',
-            label: 'Total Items',
+            label: AppLocalizations.of(context)!.home_stats_totalItems,
             color: Colors.purple.shade100,
             iconColor: Colors.purple,
             onTap: () => context.push('/items'),
@@ -180,7 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
             context,
             icon: Icons.people,
             count: '${_members.length}',
-            label: 'Members',
+            label: AppLocalizations.of(context)!.home_stats_members,
             color: Colors.teal.shade100,
             iconColor: Colors.teal,
             onTap: () => context.push('/members'),
@@ -238,8 +250,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildSearchBar(BuildContext context) {
-    return const SeasonBoxSearchField(
-      hintText: 'Search items, locations...',
+    return SeasonBoxSearchField(
+      hintText: AppLocalizations.of(context)!.home_search_hint,
     );
   }
 
@@ -264,8 +276,8 @@ class _HomeScreenState extends State<HomeScreen> {
         return _buildMemberCard(
           context,
           member.name,
-          'Age $age • Size $size',
-          '$itemCount items',
+          '${AppLocalizations.of(context)!.home_member_age(age)} • ${AppLocalizations.of(context)!.home_member_size(size)}',
+          AppLocalizations.of(context)!.home_member_items(itemCount),
           'Active',
           Colors.purple,
           () => context.push('/members'),
@@ -281,7 +293,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: _buildActionCard(
             context,
             icon: Icons.camera_alt,
-            label: 'Add Item',
+            label: AppLocalizations.of(context)!.home_action_addItem,
             color: Colors.purple.shade50,
             iconColor: Colors.purple,
             onTap: () => context.push('/add-item').then((_) => _loadData()),
@@ -292,7 +304,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: _buildActionCard(
             context,
             icon: Icons.qr_code_scanner,
-            label: 'Scan QR',
+            label: AppLocalizations.of(context)!.home_action_scanQR,
             color: Colors.teal.shade50,
             iconColor: Colors.teal,
             onTap: () {}, // TODO: QR Scanner
@@ -338,7 +350,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildSectionHeader(
       BuildContext context, String title, VoidCallback onTap,
-      {String actionText = 'View All'}) {
+      {String? actionText}) {
+    final effectiveActionText =
+        actionText ?? AppLocalizations.of(context)!.home_action_viewAll;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -348,7 +362,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         TextButton(
           onPressed: onTap,
-          child: Text(actionText),
+          child: Text(effectiveActionText),
         ),
       ],
     );
@@ -417,8 +431,8 @@ class _HomeScreenState extends State<HomeScreen> {
             child: _buildItemCard(
               context,
               item.title,
-              'Size ${item.size} • ${item.gender}',
-              'Storage', // Placeholder
+              '${AppLocalizations.of(context)!.home_member_size(item.size)} • ${item.gender}',
+              AppLocalizations.of(context)!.home_item_storage, // Placeholder
               item.photos.isNotEmpty
                   ? item.photos.first['thumb'] ??
                       item.photos.first['full'] ??
@@ -541,7 +555,7 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Fall Season Approaching',
+                  AppLocalizations.of(context)!.home_reminder_fallTitle,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -550,13 +564,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Time to check fall clothes for your children. Consider size changes from last year.',
+                  AppLocalizations.of(context)!.home_reminder_fallMessage,
                   style: TextStyle(
                       color: isDark ? Colors.orange.shade100 : Colors.brown),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Review Items',
+                  AppLocalizations.of(context)!.home_reminder_reviewItems,
                   style: TextStyle(
                     color: isDark ? Colors.orange : Colors.orange.shade800,
                     fontWeight: FontWeight.bold,
@@ -586,7 +600,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: _buildStorageCard(
             context,
             location.name,
-            '${location.type} • $itemCount items',
+            '${location.type} • ${AppLocalizations.of(context)!.home_member_items(itemCount)}',
             _getIconForType(location.type),
             _getColorForType(location.type),
             () => context.push('/storage'),

@@ -10,6 +10,7 @@ import '../../../widgets/season_box_app_bar.dart';
 import '../../../widgets/season_box_add_button.dart';
 import '../../../widgets/app_card.dart';
 import '../../../widgets/skeleton_container.dart';
+import 'package:seasonbox/l10n/app_localizations.dart';
 
 class FamilyMembersScreen extends StatefulWidget {
   const FamilyMembersScreen({super.key});
@@ -66,7 +67,9 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
           _isLoading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading data: $e')),
+          SnackBar(
+              content: Text(AppLocalizations.of(context)!
+                  .members_error_loading(e.toString()))),
         );
       }
     }
@@ -128,7 +131,7 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            '$age years',
+                            AppLocalizations.of(context)!.members_ageYears(age),
                             style: const TextStyle(
                                 color: Colors.pink,
                                 fontWeight: FontWeight.bold,
@@ -138,7 +141,8 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                       ],
                     ),
                     Text(
-                      'Born: ${member.birthdate.toLocal().toString().split(' ')[0]}',
+                      AppLocalizations.of(context)!.members_born(
+                          member.birthdate.toLocal().toString().split(' ')[0]),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.textTheme.bodySmall?.color
                             ?.withValues(alpha: 0.7),
@@ -164,16 +168,20 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Current Size',
+                      Text(
+                          AppLocalizations.of(context)!
+                              .members_label_currentSize,
                           style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.textTheme.bodySmall?.color
                                   ?.withValues(alpha: 0.7))),
                       const SizedBox(height: 4),
                       Text(
-                          'Clothes: ${member.clothingSize?.toStringAsFixed(0) ?? '-'}',
+                          AppLocalizations.of(context)!.members_clothes(
+                              member.clothingSize?.toStringAsFixed(0) ?? '-'),
                           style: const TextStyle(fontWeight: FontWeight.bold)),
                       Text(
-                          'Shoes: ${member.shoeSize?.toStringAsFixed(0) ?? '-'}',
+                          AppLocalizations.of(context)!.members_shoes(
+                              member.shoeSize?.toStringAsFixed(0) ?? '-'),
                           style: const TextStyle(fontWeight: FontWeight.bold)),
                     ],
                   ),
@@ -192,7 +200,7 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Items',
+                      Text(AppLocalizations.of(context)!.members_label_items,
                           style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.textTheme.bodySmall?.color
                                   ?.withValues(alpha: 0.7))),
@@ -202,7 +210,11 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                               fontWeight: FontWeight.bold,
                               fontSize: 20,
                               color: theme.colorScheme.primary)),
-                      Text(itemCount > 0 ? '✓ Has items' : 'No items yet',
+                      Text(
+                          itemCount > 0
+                              ? AppLocalizations.of(context)!.members_hasItems
+                              : AppLocalizations.of(context)!
+                                  .members_noItemsYet,
                           style: TextStyle(
                               color: itemCount > 0 ? Colors.green : Colors.grey,
                               fontSize: 10)),
@@ -227,7 +239,8 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                         borderRadius: BorderRadius.circular(8)),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
-                  child: const Text('View Items'),
+                  child: Text(
+                      AppLocalizations.of(context)!.members_button_viewItems),
                 ),
               ),
               const SizedBox(width: 8),
@@ -241,7 +254,8 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                 child: IconButton(
                   onPressed: () {}, // TODO: Edit member
                   icon: Icon(Icons.show_chart, color: theme.iconTheme.color),
-                  tooltip: 'Growth Chart',
+                  tooltip:
+                      AppLocalizations.of(context)!.members_tooltipGrowthChart,
                 ),
               ),
               const SizedBox(width: 8),
@@ -259,7 +273,7 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                         .then((_) => _loadMembers());
                   },
                   icon: Icon(Icons.edit, color: theme.iconTheme.color),
-                  tooltip: 'Edit',
+                  tooltip: AppLocalizations.of(context)!.members_tooltipEdit,
                 ),
               ),
             ],
@@ -276,8 +290,8 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: SeasonBoxAppBar(
-        title: 'Family Members',
-        subtitle: 'Manage family members',
+        title: AppLocalizations.of(context)!.members_title,
+        subtitle: AppLocalizations.of(context)!.members_subtitle,
         actions: [
           IconButton(
             icon: const Icon(Icons.more_vert, color: Colors.white),
@@ -288,8 +302,8 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
       body: _isLoading
           ? _buildLoadingSkeleton(theme)
           : _members.isEmpty
-              ? const Center(
-                  child: Text('No members added yet'),
+              ? Center(
+                  child: Text(AppLocalizations.of(context)!.members_empty),
                 )
               : ListView(
                   padding: const EdgeInsets.all(16),
@@ -299,17 +313,27 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                       children: [
                         Expanded(
                           child: _buildSummaryCard(
-                              '${_members.length}', 'Members', theme),
+                              '${_members.length}',
+                              AppLocalizations.of(context)!
+                                  .members_summaryMembers,
+                              theme),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: _buildSummaryCard(
-                              '${_items.length}', 'Total Items', theme,
+                              '${_items.length}',
+                              AppLocalizations.of(context)!
+                                  .members_summaryTotalItems,
+                              theme,
                               color: Colors.teal),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: _buildSummaryCard('0', 'Need Check', theme,
+                          child: _buildSummaryCard(
+                              '0',
+                              AppLocalizations.of(context)!
+                                  .members_summaryNeedCheck,
+                              theme,
                               color: Colors.orange),
                         ),
                       ],
@@ -321,7 +345,7 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Family Members',
+                          AppLocalizations.of(context)!.members_title,
                           style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),

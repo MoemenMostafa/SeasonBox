@@ -9,6 +9,7 @@ import 'package:seasonbox/data/repositories/storage_location_repository.dart';
 import 'package:seasonbox/data/repositories/family_member_repository.dart';
 import 'package:seasonbox/features/auth/data/auth_service.dart';
 import 'package:seasonbox/widgets/season_box_app_bar.dart';
+import 'package:seasonbox/l10n/app_localizations.dart';
 import 'package:seasonbox/widgets/app_card.dart';
 import 'package:seasonbox/widgets/season_box_add_button.dart';
 import 'package:seasonbox/widgets/season_box_filter_chip.dart';
@@ -75,7 +76,9 @@ class _ItemsScreenState extends State<ItemsScreen> {
           _isLoading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading items: $e')),
+          SnackBar(
+              content: Text(AppLocalizations.of(context)!
+                  .home_error_loadingData(e.toString()))),
         );
       }
     }
@@ -148,7 +151,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: SeasonBoxAppBar(
-        title: 'Items',
+        title: AppLocalizations.of(context)!.items_title,
         subtitle: subtitle,
         actions: [
           IconButton(
@@ -170,31 +173,36 @@ class _ItemsScreenState extends State<ItemsScreen> {
                     child: Row(
                       children: [
                         SeasonBoxFilterChip(
-                          label: 'All Items',
+                          label: AppLocalizations.of(context)!
+                              .items_filterAllItems,
                           isSelected: _selectedFilter == 'All Items',
                           onTap: () =>
                               setState(() => _selectedFilter = 'All Items'),
                         ),
                         SeasonBoxFilterChip(
-                          label: 'In Use',
+                          label:
+                              AppLocalizations.of(context)!.items_filterInUse,
                           isSelected: _selectedFilter == 'In Use',
                           onTap: () =>
                               setState(() => _selectedFilter = 'In Use'),
                         ),
                         SeasonBoxFilterChip(
-                          label: 'Stored',
+                          label:
+                              AppLocalizations.of(context)!.items_filterStored,
                           isSelected: _selectedFilter == 'Stored',
                           onTap: () =>
                               setState(() => _selectedFilter = 'Stored'),
                         ),
                         SeasonBoxFilterChip(
-                          label: 'Winter',
+                          label:
+                              AppLocalizations.of(context)!.items_filterWinter,
                           isSelected: _selectedFilter == 'Winter',
                           onTap: () =>
                               setState(() => _selectedFilter = 'Winter'),
                         ),
                         SeasonBoxFilterChip(
-                          label: 'Summer',
+                          label:
+                              AppLocalizations.of(context)!.items_filterSummer,
                           isSelected: _selectedFilter == 'Summer',
                           onTap: () =>
                               setState(() => _selectedFilter = 'Summer'),
@@ -212,14 +220,15 @@ class _ItemsScreenState extends State<ItemsScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Quick Filters',
+                              AppLocalizations.of(context)!.items_quickFilters,
                               style: theme.textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             TextButton(
                               onPressed: _clearAllFilters,
-                              child: const Text('Clear All'),
+                              child: Text(
+                                  AppLocalizations.of(context)!.items_clearAll),
                             ),
                           ],
                         ),
@@ -227,13 +236,24 @@ class _ItemsScreenState extends State<ItemsScreen> {
                         Row(
                           children: [
                             _buildQuickFilterCard(
-                                'Clothes', Icons.checkroom, theme, 'Clothes'),
+                                AppLocalizations.of(context)!
+                                    .items_filterClothes,
+                                Icons.checkroom,
+                                theme,
+                                'Clothes'),
                             const SizedBox(width: 12),
                             _buildQuickFilterCard(
-                                'Shoes', Icons.do_not_step, theme, 'Shoes'),
+                                AppLocalizations.of(context)!.items_filterShoes,
+                                Icons.do_not_step,
+                                theme,
+                                'Shoes'),
                             const SizedBox(width: 12),
-                            _buildQuickFilterCard('Accessories', Icons.style,
-                                theme, 'Accessories'),
+                            _buildQuickFilterCard(
+                                AppLocalizations.of(context)!
+                                    .items_filterAccessories,
+                                Icons.style,
+                                theme,
+                                'Accessories'),
                           ],
                         ),
                       ],
@@ -423,7 +443,8 @@ class _ItemsScreenState extends State<ItemsScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Size ${item.size} • ${item.gender}',
+                      AppLocalizations.of(context)!
+                          .items_sizeLabel(item.size, item.gender),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: isDark
                             ? Colors.grey.shade400
@@ -434,7 +455,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
                     Text(
                       item.seasonTags.isNotEmpty
                           ? item.seasonTags.join(', ')
-                          : 'No season tags',
+                          : AppLocalizations.of(context)!.items_noSeasonTags,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: isDark
                             ? Colors.grey.shade500
@@ -487,7 +508,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
                 )
               else
                 Text(
-                  'Quantity: ${item.quantity}',
+                  AppLocalizations.of(context)!.items_quantity(item.quantity),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
                   ),
@@ -524,20 +545,20 @@ class _ItemsScreenState extends State<ItemsScreen> {
             ? Colors.green.withValues(alpha: 0.2)
             : Colors.green.shade100;
         textColor = isDark ? Colors.green.shade300 : Colors.green.shade800;
-        label = 'In Use';
+        label = AppLocalizations.of(context)!.items_statusInUse;
         break;
       case 'stored':
         color =
             isDark ? Colors.blue.withValues(alpha: 0.2) : Colors.blue.shade100;
         textColor = isDark ? Colors.blue.shade300 : Colors.blue.shade800;
-        label = 'Stored';
+        label = AppLocalizations.of(context)!.items_statusStored;
         break;
       case 'outgrown':
         color = isDark
             ? Colors.orange.withValues(alpha: 0.2)
             : Colors.orange.shade100;
         textColor = isDark ? Colors.orange.shade300 : Colors.orange.shade800;
-        label = 'Outgrown';
+        label = AppLocalizations.of(context)!.items_statusOutgrown;
         break;
       default:
         color =

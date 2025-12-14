@@ -7,6 +7,7 @@ import 'package:seasonbox/features/auth/data/auth_service.dart';
 import 'package:uuid/uuid.dart';
 import 'package:seasonbox/widgets/app_card.dart';
 import 'package:seasonbox/widgets/season_box_app_bar.dart';
+import 'package:seasonbox/l10n/app_localizations.dart';
 
 class AddFamilyMemberScreen extends StatefulWidget {
   final FamilyMember? member;
@@ -95,14 +96,16 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text(widget.member != null
-                  ? 'Family member updated successfully'
-                  : 'Family member added successfully')),
+                  ? AppLocalizations.of(context)!.addMember_success_updated
+                  : AppLocalizations.of(context)!.addMember_success_added)),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving member: $e')),
+          SnackBar(
+              content: Text(AppLocalizations.of(context)!
+                  .addMember_error_saving(e.toString()))),
         );
       }
     } finally {
@@ -118,18 +121,19 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Member'),
-        content: const Text(
-            'Are you sure you want to delete this family member? This action cannot be undone.'),
+        title:
+            Text(AppLocalizations.of(context)!.addMember_dialog_delete_title),
+        content:
+            Text(AppLocalizations.of(context)!.addMember_dialog_delete_message),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.common_cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(AppLocalizations.of(context)!.common_delete),
           ),
         ],
       ),
@@ -156,13 +160,17 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
       if (mounted) {
         context.pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Family member deleted successfully')),
+          SnackBar(
+              content: Text(
+                  AppLocalizations.of(context)!.addMember_success_deleted)),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error deleting member: $e')),
+          SnackBar(
+              content: Text(AppLocalizations.of(context)!
+                  .addMember_error_deleting(e.toString()))),
         );
       }
     } finally {
@@ -195,8 +203,9 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: SeasonBoxAppBar(
-        title:
-            widget.member != null ? 'Edit Family Member' : 'Add Family Member',
+        title: widget.member != null
+            ? AppLocalizations.of(context)!.addMember_title_edit
+            : AppLocalizations.of(context)!.addMember_title_add,
         actions: widget.member != null
             ? [
                 IconButton(
@@ -216,43 +225,55 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Basic Information Section
-                    const Text('Basic Information',
-                        style: TextStyle(
+                    Text(
+                        AppLocalizations.of(context)!
+                            .addMember_section_basicInfo,
+                        style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     AppCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Member\'s Name',
-                              style: TextStyle(fontSize: 14)),
+                          Text(
+                              AppLocalizations.of(context)!
+                                  .addMember_field_name,
+                              style: const TextStyle(fontSize: 14)),
                           const SizedBox(height: 8),
                           TextFormField(
                             controller: _nameController,
-                            decoration: const InputDecoration(
-                              hintText: 'Enter full name',
+                            decoration: InputDecoration(
+                              hintText: AppLocalizations.of(context)!
+                                  .addMember_field_nameHint,
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter a name';
+                                return AppLocalizations.of(context)!
+                                    .addMember_validation_nameRequired;
                               }
                               return null;
                             },
                           ),
                           const SizedBox(height: 16),
-                          const Text('Gender', style: TextStyle(fontSize: 14)),
+                          Text(
+                              AppLocalizations.of(context)!
+                                  .addMember_field_gender,
+                              style: const TextStyle(fontSize: 14)),
                           const SizedBox(height: 8),
                           _buildGenderSelector(theme),
                           const SizedBox(height: 16),
-                          const Text('Birth Date',
-                              style: TextStyle(fontSize: 14)),
+                          Text(
+                              AppLocalizations.of(context)!
+                                  .addMember_field_birthdate,
+                              style: const TextStyle(fontSize: 14)),
                           const SizedBox(height: 8),
                           InkWell(
                             onTap: () => _selectDate(context),
                             child: InputDecorator(
-                              decoration: const InputDecoration(
-                                hintText: 'mm/dd/yyyy',
-                                suffixIcon: Icon(Icons.calendar_today),
+                              decoration: InputDecoration(
+                                hintText: AppLocalizations.of(context)!
+                                    .addMember_field_birthdateHint,
+                                suffixIcon: const Icon(Icons.calendar_today),
                               ),
                               child: Text(
                                 "${_birthdate.toLocal()}".split(' ')[0],
@@ -265,21 +286,24 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                     const SizedBox(height: 24),
 
                     // Current Sizes Section
-                    const Text('Current Sizes',
-                        style: TextStyle(
+                    Text(AppLocalizations.of(context)!.addMember_section_sizes,
+                        style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     AppCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Clothing Size',
-                              style: TextStyle(fontSize: 14)),
+                          Text(
+                              AppLocalizations.of(context)!
+                                  .addMember_field_clothingSize,
+                              style: const TextStyle(fontSize: 14)),
                           const SizedBox(height: 8),
                           TextFormField(
                             controller: _clothingSizeController,
-                            decoration: const InputDecoration(
-                              hintText: 'e.g. 110 (cm) or 5 (age)',
+                            decoration: InputDecoration(
+                              hintText: AppLocalizations.of(context)!
+                                  .addMember_field_clothingSizeHint,
                             ),
                             keyboardType: TextInputType.number,
                             onChanged: (value) {
@@ -287,13 +311,16 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                             },
                           ),
                           const SizedBox(height: 16),
-                          const Text('Shoe Size',
-                              style: TextStyle(fontSize: 14)),
+                          Text(
+                              AppLocalizations.of(context)!
+                                  .addMember_field_shoeSize,
+                              style: const TextStyle(fontSize: 14)),
                           const SizedBox(height: 8),
                           TextFormField(
                             controller: _shoeSizeController,
-                            decoration: const InputDecoration(
-                              hintText: 'e.g. 28',
+                            decoration: InputDecoration(
+                              hintText: AppLocalizations.of(context)!
+                                  .addMember_field_shoeSizeHint,
                             ),
                             keyboardType: TextInputType.number,
                             onChanged: (value) {
@@ -306,16 +333,16 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                     const SizedBox(height: 24),
 
                     // Additional Notes Section
-                    const Text('Additional Notes',
-                        style: TextStyle(
+                    Text(AppLocalizations.of(context)!.addMember_section_notes,
+                        style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     AppCard(
                       child: TextFormField(
                         controller: _notesController,
-                        decoration: const InputDecoration(
-                          hintText:
-                              'Any special notes about this child\'s preferences, etc.',
+                        decoration: InputDecoration(
+                          hintText: AppLocalizations.of(context)!
+                              .addMember_field_notesHint,
                           alignLabelWithHint: true,
                         ),
                         maxLines: 4,
@@ -336,9 +363,9 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                               ),
                               padding: const EdgeInsets.symmetric(vertical: 20),
                             ),
-                            child: const Text(
-                              'Cancel',
-                              style: TextStyle(fontSize: 16),
+                            child: Text(
+                              AppLocalizations.of(context)!.common_cancel,
+                              style: const TextStyle(fontSize: 16),
                             ),
                           ),
                         ),
@@ -356,7 +383,11 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                               elevation: 0,
                             ),
                             child: Text(
-                              widget.member != null ? 'Update' : 'Add',
+                              widget.member != null
+                                  ? AppLocalizations.of(context)!
+                                      .addMember_button_update
+                                  : AppLocalizations.of(context)!
+                                      .addMember_button_add,
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -379,9 +410,10 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Text(
-                            'Delete Member',
-                            style: TextStyle(
+                          child: Text(
+                            AppLocalizations.of(context)!
+                                .addMember_button_deleteMember,
+                            style: const TextStyle(
                               color: Colors.red,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,

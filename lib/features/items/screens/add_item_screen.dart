@@ -16,6 +16,7 @@ import 'package:seasonbox/widgets/app_card.dart';
 import 'package:seasonbox/widgets/season_box_app_bar.dart';
 import 'package:seasonbox/widgets/skeleton_container.dart';
 import 'package:seasonbox/widgets/image_gallery_viewer.dart';
+import 'package:seasonbox/l10n/app_localizations.dart';
 
 class AddItemScreen extends StatefulWidget {
   final Item? item; // Optional item for editing
@@ -95,6 +96,55 @@ class _AddItemScreenState extends State<AddItemScreen> {
     {'label': 'Fall', 'icon': Icons.cloud, 'color': Colors.purple},
   ];
 
+  // Localization helper methods
+  String _getCategoryName(BuildContext context, String category) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (category) {
+      case 'Clothes':
+        return l10n.addItem_category_clothes;
+      case 'Shoes':
+        return l10n.addItem_category_shoes;
+      case 'Accessories':
+        return l10n.addItem_category_accessories;
+      case 'Toys':
+        return l10n.addItem_category_toys;
+      case 'Gear':
+        return l10n.addItem_category_gear;
+      default:
+        return category;
+    }
+  }
+
+  String _getGenderName(BuildContext context, String gender) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (gender) {
+      case 'Unisex':
+        return l10n.addItem_gender_unisex;
+      case 'Boy':
+        return l10n.addItem_gender_boy;
+      case 'Girl':
+        return l10n.addItem_gender_girl;
+      default:
+        return gender;
+    }
+  }
+
+  String _getSeasonName(BuildContext context, String season) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (season) {
+      case 'Winter':
+        return l10n.addItem_season_winter;
+      case 'Spring':
+        return l10n.addItem_season_spring;
+      case 'Summer':
+        return l10n.addItem_season_summer;
+      case 'Fall':
+        return l10n.addItem_season_fall;
+      default:
+        return season;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -162,18 +212,20 @@ class _AddItemScreenState extends State<AddItemScreen> {
     if (!_isLoadingData && _members.isNotEmpty) return;
 
     try {
-      final familyId =
-          await context.read<AuthService>().getCurrentUserFamilyId();
+      // Get all services/repositories before async operations
+      final authService = context.read<AuthService>();
+      final memberRepository = context.read<FamilyMemberRepository>();
+      final locationRepository = context.read<StorageLocationRepository>();
+
+      final familyId = await authService.getCurrentUserFamilyId();
       if (familyId == null) throw Exception('User not authenticated');
 
-      final members = await context
-          .read<FamilyMemberRepository>()
+      final members = await memberRepository
           .getFamilyMembers(familyId)
           .timeout(const Duration(seconds: 5));
       if (!mounted) return;
 
-      final locations = await context
-          .read<StorageLocationRepository>()
+      final locations = await locationRepository
           .getLocations(familyId)
           .timeout(const Duration(seconds: 5));
 
@@ -195,8 +247,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoadingData = false);
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error loading data: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(AppLocalizations.of(context)!
+                .addItem_error_loadingData(e.toString()))));
       }
     }
   }
@@ -220,9 +273,13 @@ class _AddItemScreenState extends State<AddItemScreen> {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error picking image: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(AppLocalizations.of(context)!
+                  .addItem_error_pickingImage(e.toString()))),
+        );
+      }
     }
   }
 
@@ -234,7 +291,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_camera),
-              title: const Text('Take Photo'),
+              title:
+                  Text(AppLocalizations.of(context)!.addItem_button_takePhoto),
               onTap: () {
                 Navigator.pop(context);
                 _pickImage(ImageSource.camera);
@@ -242,7 +300,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('Choose from Gallery'),
+              title: Text(
+                  AppLocalizations.of(context)!.addItem_button_chooseGallery),
               onTap: () {
                 Navigator.pop(context);
                 _pickImage(ImageSource.gallery);
@@ -275,12 +334,16 @@ class _AddItemScreenState extends State<AddItemScreen> {
           _storageLocationId = location.id;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Location found: ${location.name}')),
+          SnackBar(
+              content: Text(AppLocalizations.of(context)!
+                  .addItem_location_found(location.name))),
         );
       } else {
         // Optional: Handle unknown code
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Unknown location code: $code')),
+          SnackBar(
+              content: Text(AppLocalizations.of(context)!
+                  .addItem_location_unknown(code))),
         );
       }
     }
@@ -290,28 +353,31 @@ class _AddItemScreenState extends State<AddItemScreen> {
     if (!_formKey.currentState!.validate()) return;
     // ... (Validation logic)
     if (_storageLocationId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select a storage location')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+              AppLocalizations.of(context)!.addItem_validation_selectStorage)));
       return;
     }
     if (!_isCustomSize && _selectedSize.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Please select a size')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+              AppLocalizations.of(context)!.addItem_validation_selectSize)));
       return;
     }
 
     setState(() => _isSaving = true);
 
     try {
-      final familyId =
-          await context.read<AuthService>().getCurrentUserFamilyId();
+      // Get all services/repositories before async operations
+      final authService = context.read<AuthService>();
+      final storageService = context.read<StorageService>();
+      final itemRepository = context.read<ItemRepository>();
+
+      final familyId = await authService.getCurrentUserFamilyId();
       if (familyId == null) throw Exception('User not authenticated');
 
-      final authService = context.read<AuthService>();
       final userId = authService.currentUser?.uid;
       if (userId == null) throw Exception('No user logged in');
-
-      final storageService = context.read<StorageService>();
 
       // Generate item ID first (needed for storage path)
       final itemId = widget.item?.id ?? const Uuid().v4();
@@ -349,9 +415,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
       );
 
       if (widget.item != null) {
-        await context.read<ItemRepository>().updateItem(item);
+        await itemRepository.updateItem(item);
       } else {
-        await context.read<ItemRepository>().addItem(item);
+        await itemRepository.addItem(item);
       }
 
       if (mounted) {
@@ -365,8 +431,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error saving item: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(AppLocalizations.of(context)!
+                .addItem_error_saving(e.toString()))));
       }
     } finally {
       if (mounted) {
@@ -396,7 +463,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         // Photos Section
-                        const Text('Photos',
+                        Text(
+                            AppLocalizations.of(context)!
+                                .addItem_section_photos,
                             style: TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
@@ -559,7 +628,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         const SizedBox(height: 24),
 
                         // Item Details Section
-                        const Text('Item Details',
+                        Text(
+                            AppLocalizations.of(context)!
+                                .addItem_section_itemDetails,
                             style: TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
@@ -567,22 +638,29 @@ class _AddItemScreenState extends State<AddItemScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Item Name',
+                              Text(
+                                  AppLocalizations.of(context)!
+                                      .addItem_field_itemName,
                                   style: TextStyle(fontSize: 14)),
                               const SizedBox(height: 8),
                               TextFormField(
                                 controller: _titleController,
-                                decoration: const InputDecoration(
-                                  hintText: 'e.g., Winter Jacket',
-                                  border: OutlineInputBorder(),
-                                  contentPadding: EdgeInsets.symmetric(
+                                decoration: InputDecoration(
+                                  hintText: AppLocalizations.of(context)!
+                                      .addItem_field_itemNameHint,
+                                  border: const OutlineInputBorder(),
+                                  contentPadding: const EdgeInsets.symmetric(
                                       horizontal: 12, vertical: 12),
                                 ),
-                                validator: (value) =>
-                                    value?.isEmpty == true ? 'Required' : null,
+                                validator: (value) => value?.isEmpty == true
+                                    ? AppLocalizations.of(context)!
+                                        .addItem_validation_required
+                                    : null,
                               ),
                               const SizedBox(height: 16),
-                              const Text('Category',
+                              Text(
+                                  AppLocalizations.of(context)!
+                                      .addItem_field_category,
                                   style: TextStyle(fontSize: 14)),
                               const SizedBox(height: 8),
                               DropdownButtonFormField<String>(
@@ -594,7 +672,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                 ),
                                 items: _categories
                                     .map((c) => DropdownMenuItem(
-                                        value: c, child: Text(c)))
+                                        value: c,
+                                        child:
+                                            Text(_getCategoryName(context, c))))
                                     .toList(),
                                 onChanged: (v) {
                                   setState(() {
@@ -606,7 +686,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                 },
                               ),
                               const SizedBox(height: 16),
-                              const Text('Gender',
+                              Text(
+                                  AppLocalizations.of(context)!
+                                      .addItem_field_gender,
                                   style: TextStyle(fontSize: 14)),
                               const SizedBox(height: 8),
                               _buildGenderSelector(theme),
@@ -624,7 +706,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Size',
+                              Text(
+                                  AppLocalizations.of(context)!
+                                      .addItem_field_size,
                                   style: TextStyle(fontSize: 14)),
                               const SizedBox(height: 8),
                               Wrap(
@@ -648,7 +732,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                     );
                                   }),
                                   ChoiceChip(
-                                    label: const Text('Other'),
+                                    label: Text(AppLocalizations.of(context)!
+                                        .addItem_size_other),
                                     selected: _isCustomSize,
                                     onSelected: (selected) {
                                       if (selected) {
@@ -665,10 +750,11 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                 const SizedBox(height: 16),
                                 TextFormField(
                                   controller: _customSizeController,
-                                  decoration: const InputDecoration(
+                                  decoration: InputDecoration(
                                     labelText: 'Enter Custom Size',
-                                    hintText: 'e.g., 32W, 10.5, etc.',
-                                    border: OutlineInputBorder(),
+                                    hintText: AppLocalizations.of(context)!
+                                        .addItem_field_customSizeHint,
+                                    border: const OutlineInputBorder(),
                                   ),
                                   validator: (value) {
                                     if (_isCustomSize &&
@@ -680,7 +766,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                 ),
                               ],
                               const SizedBox(height: 16),
-                              const Text('Quantity',
+                              Text(
+                                  AppLocalizations.of(context)!
+                                      .addItem_field_quantity,
                                   style: TextStyle(fontSize: 14)),
                               const SizedBox(height: 8),
                               Row(
@@ -713,8 +801,10 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        // Seasons & Member (Similar to before)
-                        const Text('Season & Member',
+                        // Seasons & Member
+                        Text(
+                            AppLocalizations.of(context)!
+                                .addItem_section_seasonMember,
                             style: TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
@@ -722,7 +812,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Season(s)',
+                              Text(
+                                  AppLocalizations.of(context)!
+                                      .addItem_field_seasons,
                                   style: TextStyle(fontSize: 14)),
                               const SizedBox(height: 8),
                               Wrap(
@@ -744,7 +836,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                                 ? Colors.white
                                                 : color),
                                         const SizedBox(width: 4),
-                                        Text(label),
+                                        Text(_getSeasonName(context, label)),
                                       ],
                                     ),
                                     selected: isSelected,
@@ -761,7 +853,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                 }).toList(),
                               ),
                               const SizedBox(height: 16),
-                              const Text('Assigned To',
+                              Text(
+                                  AppLocalizations.of(context)!
+                                      .addItem_field_assignedTo,
                                   style: TextStyle(fontSize: 14)),
                               const SizedBox(height: 8),
                               _isLoadingData
@@ -772,15 +866,19 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                   : DropdownButtonFormField<String>(
                                       key: ValueKey(_assignedChildId),
                                       initialValue: _assignedChildId,
-                                      decoration: const InputDecoration(
+                                      decoration: InputDecoration(
                                         hintText: 'Select member',
-                                        border: OutlineInputBorder(),
-                                        contentPadding: EdgeInsets.symmetric(
-                                            horizontal: 12, vertical: 12),
+                                        border: const OutlineInputBorder(),
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                                horizontal: 12, vertical: 12),
                                       ),
                                       items: [
-                                        const DropdownMenuItem(
-                                            value: null, child: Text('None')),
+                                        DropdownMenuItem(
+                                            value: null,
+                                            child: Text(
+                                                AppLocalizations.of(context)!
+                                                    .addItem_field_none)),
                                         ..._members.map((m) => DropdownMenuItem(
                                             value: m.id, child: Text(m.name))),
                                       ],
@@ -793,7 +891,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         const SizedBox(height: 24),
 
                         // Storage Location with QR
-                        const Text('Storage Location',
+                        Text(
+                            AppLocalizations.of(context)!
+                                .addItem_section_storageLocation,
                             style: TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
@@ -801,7 +901,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Location',
+                              Text(
+                                  AppLocalizations.of(context)!
+                                      .addItem_field_size,
                                   style: TextStyle(fontSize: 14)),
                               const SizedBox(height: 8),
                               _isLoadingData
@@ -811,11 +913,12 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                           BorderRadius.all(Radius.circular(4)))
                                   : DropdownButtonFormField<String>(
                                       initialValue: _storageLocationId,
-                                      decoration: const InputDecoration(
+                                      decoration: InputDecoration(
                                         hintText: 'Select location',
-                                        border: OutlineInputBorder(),
-                                        contentPadding: EdgeInsets.symmetric(
-                                            horizontal: 12, vertical: 12),
+                                        border: const OutlineInputBorder(),
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                                horizontal: 12, vertical: 12),
                                       ),
                                       items: _locations
                                           .map((l) => DropdownMenuItem(
@@ -833,7 +936,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                 child: OutlinedButton.icon(
                                   onPressed: _scanQRCode,
                                   icon: const Icon(Icons.qr_code_scanner),
-                                  label: const Text('Scan QR Code'),
+                                  label: Text(AppLocalizations.of(context)!
+                                      .home_action_scanQR),
                                   style: OutlinedButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 12),
@@ -919,7 +1023,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12)),
                             ),
-                            child: const Text('Cancel',
+                            child: Text(
+                                AppLocalizations.of(context)!.common_cancel,
                                 style: TextStyle(
                                     color: Colors
                                         .white)), // Assuming dark theme button text needs white or dynamic
@@ -1031,7 +1136,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                 ),
                 alignment: Alignment.center,
                 child: Text(
-                  gender,
+                  _getGenderName(context, gender),
                   style: TextStyle(
                       color: isSelected ? Colors.white : Colors.grey.shade400,
                       fontWeight: FontWeight.bold),

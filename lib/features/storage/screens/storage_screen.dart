@@ -11,6 +11,7 @@ import '../../../widgets/app_card.dart';
 import '../../../widgets/season_box_add_button.dart';
 import '../../../widgets/season_box_filter_chip.dart';
 import '../../../widgets/skeleton_container.dart';
+import 'package:seasonbox/l10n/app_localizations.dart';
 
 class StorageScreen extends StatefulWidget {
   const StorageScreen({super.key});
@@ -47,12 +48,12 @@ class _StorageScreenState extends State<StorageScreen> {
       }
 
       // Load both locations and items in parallel
-      final results = await Future.wait([
-        context.read<StorageLocationRepository>().getLocations(familyId),
-        context.read<ItemRepository>().getItems(familyId),
-      ]).timeout(const Duration(seconds: 5));
-
       if (mounted) {
+        final results = await Future.wait([
+          context.read<StorageLocationRepository>().getLocations(familyId),
+          context.read<ItemRepository>().getItems(familyId),
+        ]).timeout(const Duration(seconds: 5));
+
         setState(() {
           _locations = results[0] as List<StorageLocation>;
           _items = results[1] as List<Item>;
@@ -65,7 +66,9 @@ class _StorageScreenState extends State<StorageScreen> {
           _isLoading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading storage locations: $e')),
+          SnackBar(
+              content: Text(AppLocalizations.of(context)!
+                  .storage_error_loading(e.toString()))),
         );
       }
     }
@@ -113,8 +116,9 @@ class _StorageScreenState extends State<StorageScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: SeasonBoxAppBar(
-        title: 'Storage Locations',
-        subtitle: '${_locations.length} locations • ${_items.length} items',
+        title: AppLocalizations.of(context)!.storage_title,
+        subtitle: AppLocalizations.of(context)!
+            .storage_subtitle(_locations.length, _items.length),
         actions: [
           IconButton(
             onPressed: () {},
@@ -209,18 +213,30 @@ class _StorageScreenState extends State<StorageScreen> {
       child: Row(
         children: [
           Expanded(
-            child: _buildStatItem(boxCount.toString(), 'Boxes',
-                Icons.inventory_2, Colors.blue, theme),
+            child: _buildStatItem(
+                boxCount.toString(),
+                AppLocalizations.of(context)!.storage_sectionBoxes,
+                Icons.inventory_2,
+                Colors.blue,
+                theme),
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: _buildStatItem(closetCount.toString(), 'Closets',
-                Icons.door_sliding, Colors.green, theme),
+            child: _buildStatItem(
+                closetCount.toString(),
+                AppLocalizations.of(context)!.storage_sectionClosets,
+                Icons.door_sliding,
+                Colors.green,
+                theme),
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: _buildStatItem(areaCount.toString(), 'Areas', Icons.garage,
-                Colors.purple, theme),
+            child: _buildStatItem(
+                areaCount.toString(),
+                AppLocalizations.of(context)!.storage_sectionAreas,
+                Icons.garage,
+                Colors.purple,
+                theme),
           ),
         ],
       ),
@@ -236,7 +252,7 @@ class _StorageScreenState extends State<StorageScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: color, size: 24),
@@ -251,7 +267,7 @@ class _StorageScreenState extends State<StorageScreen> {
           Text(
             label,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+              color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
             ),
           ),
         ],
@@ -268,13 +284,12 @@ class _StorageScreenState extends State<StorageScreen> {
             controller: _searchController,
             style: theme.textTheme.bodyMedium,
             decoration: InputDecoration(
-              hintText: 'Search locations...',
+              hintText: AppLocalizations.of(context)!.storage_searchHint,
               hintStyle: TextStyle(color: theme.hintColor),
               prefixIcon: Icon(Icons.search, color: theme.iconTheme.color),
               suffixIcon: Icon(Icons.tune, color: theme.iconTheme.color),
               filled: true,
-              fillColor:
-                  isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
+              fillColor: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
@@ -293,14 +308,14 @@ class _StorageScreenState extends State<StorageScreen> {
           child: Row(
             children: [
               SeasonBoxFilterChip(
-                label: 'All',
+                label: AppLocalizations.of(context)!.storage_filterAll,
                 isSelected: _selectedFilter == 'All',
                 onTap: () => setState(() => _selectedFilter = 'All'),
                 count: _locations.length,
               ),
               const SizedBox(width: 8),
               SeasonBoxFilterChip(
-                label: 'Basement',
+                label: AppLocalizations.of(context)!.storage_filterBasement,
                 isSelected: _selectedFilter == 'Basement',
                 onTap: () => setState(() => _selectedFilter = 'Basement'),
                 count:
@@ -308,14 +323,14 @@ class _StorageScreenState extends State<StorageScreen> {
               ),
               const SizedBox(width: 8),
               SeasonBoxFilterChip(
-                label: 'Closets',
+                label: AppLocalizations.of(context)!.storage_filterClosets,
                 isSelected: _selectedFilter == 'Closets',
                 onTap: () => setState(() => _selectedFilter = 'Closets'),
                 count: _locations.where((l) => l.type == 'Closet').length,
               ),
               const SizedBox(width: 8),
               SeasonBoxFilterChip(
-                label: 'Attic',
+                label: AppLocalizations.of(context)!.storage_filterAttic,
                 isSelected: _selectedFilter == 'Attic',
                 onTap: () => setState(() => _selectedFilter = 'Attic'),
                 count: _locations.where((l) => l.name.contains('Attic')).length,
@@ -397,25 +412,29 @@ class _StorageScreenState extends State<StorageScreen> {
         .toList();
 
     if (boxLocations.isNotEmpty) {
-      sections.add(_buildSectionHeader('Boxes', theme));
+      sections.add(_buildSectionHeader(
+          AppLocalizations.of(context)!.storage_sectionBoxes, theme));
       sections.addAll(boxLocations
           .map((l) => _buildLocationCard(l, theme, groupedLocations)));
     }
 
     if (closetLocations.isNotEmpty) {
-      sections.add(_buildSectionHeader('Closets', theme));
+      sections.add(_buildSectionHeader(
+          AppLocalizations.of(context)!.storage_sectionClosets, theme));
       sections.addAll(closetLocations
           .map((l) => _buildLocationCard(l, theme, groupedLocations)));
     }
 
     if (areaLocations.isNotEmpty) {
-      sections.add(_buildSectionHeader('Areas', theme));
+      sections.add(_buildSectionHeader(
+          AppLocalizations.of(context)!.storage_sectionAreas, theme));
       sections.addAll(areaLocations
           .map((l) => _buildLocationCard(l, theme, groupedLocations)));
     }
 
     if (otherLocations.isNotEmpty) {
-      sections.add(_buildSectionHeader('Other Storage', theme));
+      sections.add(_buildSectionHeader(
+          AppLocalizations.of(context)!.storage_sectionOther, theme));
       sections.addAll(otherLocations
           .map((l) => _buildLocationCard(l, theme, groupedLocations)));
     }
@@ -438,7 +457,7 @@ class _StorageScreenState extends State<StorageScreen> {
             ),
           ),
           Text(
-            'Expand All',
+            AppLocalizations.of(context)!.storage_expandAll,
             style: TextStyle(
               color: theme.colorScheme.primary,
               fontWeight: FontWeight.w600,
@@ -472,7 +491,7 @@ class _StorageScreenState extends State<StorageScreen> {
                   width: 50,
                   height: 50,
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
+                    color: color.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(icon, color: color),
@@ -489,10 +508,10 @@ class _StorageScreenState extends State<StorageScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${location.type} • ${location.description.isNotEmpty ? location.description : "No description"}',
+                        '${location.type} \u2022 ${location.description.isNotEmpty ? location.description : AppLocalizations.of(context)!.storage_noDescription}',
                         style: TextStyle(
                           color: theme.textTheme.bodySmall?.color
-                              ?.withValues(alpha: 0.7),
+                              ?.withOpacity(0.7),
                           fontSize: 13,
                         ),
                       ),
@@ -525,7 +544,8 @@ class _StorageScreenState extends State<StorageScreen> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      '${_getItemCountForLocation(location.id)} items',
+                      AppLocalizations.of(context)!.storage_itemsCount(
+                          _getItemCountForLocation(location.id)),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.textTheme.bodySmall?.color
                             ?.withValues(alpha: 0.7),
@@ -544,7 +564,7 @@ class _StorageScreenState extends State<StorageScreen> {
                     );
                   },
                   child: Text(
-                    'View Items',
+                    AppLocalizations.of(context)!.storage_viewItems,
                     style: TextStyle(
                       color: theme.colorScheme.primary,
                       fontWeight: FontWeight.bold,
@@ -600,7 +620,7 @@ class _StorageScreenState extends State<StorageScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Quick Actions',
+            AppLocalizations.of(context)!.storage_quickActions,
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -610,7 +630,7 @@ class _StorageScreenState extends State<StorageScreen> {
             children: [
               Expanded(
                 child: _buildActionCard(
-                  'Scan QR Code',
+                  AppLocalizations.of(context)!.storage_scanQrCode,
                   Icons.qr_code_scanner,
                   Colors.purple,
                   theme,
@@ -620,7 +640,7 @@ class _StorageScreenState extends State<StorageScreen> {
               const SizedBox(width: 16),
               Expanded(
                 child: _buildActionCard(
-                  'Print Labels',
+                  AppLocalizations.of(context)!.storage_printLabels,
                   Icons.print,
                   Colors.teal,
                   theme,

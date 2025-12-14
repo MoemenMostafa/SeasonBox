@@ -4,6 +4,7 @@ import 'package:seasonbox/features/profile/presentation/screens/profile_screen.d
 import 'package:seasonbox/features/items/screens/items_screen.dart';
 import 'package:seasonbox/features/members/screens/family_members_screen.dart';
 import 'package:seasonbox/features/storage/screens/storage_screen.dart';
+import 'package:seasonbox/l10n/app_localizations.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -34,26 +35,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       body: _pages.elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
+        items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
+            icon: const Icon(Icons.home),
+            label: AppLocalizations.of(context)!.nav_home,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.checkroom),
-            label: 'Items',
+            icon: const Icon(Icons.checkroom),
+            label: AppLocalizations.of(context)!.nav_items,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.people),
-            label: 'Members',
+            icon: const Icon(Icons.people),
+            label: AppLocalizations.of(context)!.nav_members,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.inventory_2),
-            label: 'Storage',
+            icon: const Icon(Icons.inventory_2),
+            label: AppLocalizations.of(context)!.nav_storage,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
+            icon: const Icon(Icons.person),
+            label: AppLocalizations.of(context)!.nav_profile,
           ),
         ],
         currentIndex: _selectedIndex,

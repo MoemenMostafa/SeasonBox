@@ -1,5 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:seasonbox/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'package:seasonbox/firebase_options.dart';
@@ -62,6 +64,20 @@ class SeasonBox extends StatelessWidget {
             darkTheme: AppTheme.darkTheme,
             themeMode: themeProvider.themeMode,
             routerConfig: AppRouter.router,
+            locale: themeProvider.locale,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('en'), // English
+              Locale('es'), // Spanish
+              Locale('fr'), // French
+              Locale('it'), // Italian
+              Locale('de'), // German
+            ],
           );
         },
       ),

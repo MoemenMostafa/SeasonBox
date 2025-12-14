@@ -1,0 +1,468 @@
+{
+  "@@locale": "en",
+  
+  "appTitle": "SeasonBox",
+  "@appTitle": {
+    "description": "The name of the application"
+  },
+
+  "login_tagline": "Organize seasonal items for your family with ease",
+  "@login_tagline": {
+    "description": "Main tagline on login screen"
+  },
+  "login_featureCard_photoInventoryTitle": "Photo Inventory",
+  "login_featureCard_photoInventorySubtitle": "Capture and organize with photos",
+  "login_featureCard_familySharingTitle": "Family Sharing",
+  "login_featureCard_familySharingSubtitle": "Sync across all family members",
+  "login_featureCard_smartRemindersTitle": "Smart Reminders",
+  "login_featureCard_smartRemindersSubtitle": "Never miss seasonal changes",
+  "login_button_email": "Login with your Email",
+  "login_button_google": "Continue with Google",
+  "login_button_biometric": "Login with Biometrics",
+  "login_footer_terms": "By continuing, you agree to our ",
+  "login_footer_termsOfService": "Terms of Service",
+  "login_footer_and": " and ",
+  "login_footer_privacyPolicy": "Privacy Policy",
+  "login_error_googleCancelled": "Google Sign-In was cancelled or failed. Please try again.",
+  "login_error_signIn": "Sign-in error: {error}",
+  "@login_error_signIn": {
+    "description": "Error message when sign-in fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "login_error_invalidCredentials": "Invalid email or password. Please try again.",
+
+  "emailLogin_title": "Welcome Back",
+  "emailLogin_subtitle": "Sign in to continue",
+  "emailLogin_field_email": "Email",
+  "emailLogin_field_password": "Password",
+  "emailLogin_validation_emailRequired": "Please enter your email",
+  "emailLogin_validation_passwordRequired": "Please enter your password",
+  "emailLogin_button_forgotPassword": "Forgot Password?",
+  "emailLogin_button_login": "Login",
+  "emailLogin_error_emailFirst": "Please enter your email first",
+  "emailLogin_success_passwordReset": "Password reset email sent",
+  "emailLogin_error_generic": "Error: {error}",
+  "@emailLogin_error_generic": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "home_appBar_subtitle": "Johnson Family",
+  "home_stats_totalItems": "Total Items",
+  "home_stats_members": "Members",
+  "home_search_hint": "Search items, locations...",
+  "home_section_quickActions": "Quick Actions",
+  "home_section_familyMembers": "Family Members",
+  "home_section_recentItems": "Recent Items",
+  "home_section_seasonalReminders": "Seasonal Reminders",
+  "home_section_storageLocations": "Storage Locations",
+  "home_action_addItem": "Add Item",
+  "home_action_scanQR": "Scan QR",
+  "home_action_viewAll": "View All",
+  "home_action_manage": "Manage",
+  "home_member_age": "Age {age}",
+  "@home_member_age": {
+    "placeholders": {
+      "age": {
+        "type": "int"
+      }
+    }
+  },
+  "home_member_size": "Size {size}",
+  "@home_member_size": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "home_member_items": "{count} items",
+  "@home_member_items": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "home_member_status_active": "Active",
+  "home_item_storage": "Storage",
+  "home_reminder_fallTitle": "Fall Season Approaching",
+  "home_reminder_fallMessage": "Time to check fall clothes for your children. Consider size changes from last year.",
+  "home_reminder_reviewItems": "Review Items",
+  "home_error_loadingData": "Error loading data: {error}",
+  "@home_error_loadingData": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "addItem_title_add": "Add New Item",
+  "addItem_title_edit": "Edit Item",
+  "addItem_section_photos": "Photos",
+  "addItem_section_itemDetails": "Item Details",
+  "addItem_section_size": "Size",
+  "addItem_section_seasonMember": "Season & Member",
+  "addItem_section_storageLocation": "Storage Location",
+  "addItem_button_addPhoto": "Add Photo",
+  "addItem_button_takePhoto": "Take Photo",
+  "addItem_button_chooseGallery": "Choose from Gallery",
+  "addItem_button_saveItem": "Save Item",
+  "addItem_field_itemName": "Item Name",
+  "addItem_field_itemNameHint": "e.g., Winter Jacket",
+  "addItem_field_category": "Category",
+  "addItem_field_gender": "Gender",
+  "addItem_field_size": "Size",
+  "addItem_field_customSize": "Enter Custom Size",
+  "addItem_field_customSizeHint": "e.g., 32W, 10.5, etc.",
+  "addItem_field_quantity": "Quantity",
+  "addItem_field_seasons": "Season(s)",
+  "addItem_field_assignedTo": "Assigned To",
+  "addItem_field_assignedToHint": "Select member",
+  "addItem_field_none": "None",
+  "addItem_category_clothes": "Clothes",
+  "addItem_category_shoes": "Shoes",
+  "addItem_category_accessories": "Accessories",
+  "addItem_category_toys": "Toys",
+  "addItem_category_gear": "Gear",
+  "addItem_gender_unisex": "Unisex",
+  "addItem_gender_boy": "Boy",
+  "addItem_gender_girl": "Girl",
+  "addItem_season_winter": "Winter",
+  "addItem_season_spring": "Spring",
+  "addItem_season_summer": "Summer",
+  "addItem_season_fall": "Fall",
+  "addItem_size_other": "Other",
+  "addItem_validation_required": "Required",
+  "addItem_validation_selectStorage": "Please select a storage location",
+  "addItem_validation_selectSize": "Please select a size",
+  "addItem_validation_enterSize": "Please enter a size",
+  "addItem_success_added": "Item added successfully",
+  "addItem_success_updated": "Item updated successfully",
+  "addItem_error_saving": "Error saving item: {error}",
+  "@addItem_error_saving": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "addItem_error_pickingImage": "Error picking image: {error}",
+  "@addItem_error_pickingImage": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "addItem_error_loadingData": "Error loading data: {error}",
+  "@addItem_error_loadingData": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "addItem_location_found": "Location found: {name}",
+  "@addItem_location_found": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "addItem_location_unknown": "Unknown location code: {code}",
+  "@addItem_location_unknown": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+
+  "profile_title": "Profile",
+  "profile_button_editProfile": "Edit Profile",
+  "profile_role_familyAdmin": "Family Admin",
+  "profile_section_familyManagement": "Family Management",
+  "profile_section_appSettings": "App Settings",
+  "profile_section_dataPrivacy": "Data & Privacy",
+  "profile_section_support": "Support",
+  "profile_section_language": "Language",
+  "profile_family_name": "Johnson Family",
+  "profile_family_members": "{count} members • You are admin",
+  "@profile_family_members": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "profile_family_inviteMembers": "Invite Members",
+  "profile_family_inviteSubtitle": "Share family access",
+  "profile_setting_darkMode": "Dark Mode",
+  "profile_setting_darkModeSubtitle": "Toggle dark theme",
+  "profile_setting_notifications": "Notifications",
+  "profile_setting_notificationsSubtitle": "Reminders & alerts",
+  "profile_setting_seasonalReminders": "Seasonal Reminders",
+  "profile_setting_seasonalRemindersSubtitle": "Auto season alerts",
+  "profile_setting_autoSync": "Auto Sync",
+  "profile_setting_autoSyncSubtitle": "Cloud synchronization",
+  "profile_setting_biometricLogin": "Biometric Login",
+  "profile_setting_biometricLoginSubtitle": "Enable Face ID / Touch ID",
+  "profile_setting_language": "Language",
+  "profile_setting_languageSubtitle": "Change app language",
+  "profile_data_exportData": "Export Data",
+  "profile_data_exportDataSubtitle": "Download your information",
+  "profile_data_backupData": "Backup Data",
+  "profile_data_backupDataSubtitle": "Create backup copy",
+  "profile_data_privacyPolicy": "Privacy Policy",
+  "profile_data_privacyPolicySubtitle": "How we protect your data",
+  "profile_support_helpCenter": "Help Center",
+  "profile_support_helpCenterSubtitle": "FAQs and tutorials",
+  "profile_support_contactSupport": "Contact Support",
+  "profile_support_contactSupportSubtitle": "Get help from our team",
+  "profile_support_rateApp": "Rate App",
+  "profile_support_rateAppSubtitle": "Share your feedback",
+  "profile_dialog_logout_title": "Logout",
+  "profile_dialog_logout_message": "Are you sure you want to logout?",
+  "profile_dialog_logout_cancel": "Cancel",
+  "profile_dialog_logout_confirm": "Logout",
+  "profile_dialog_biometric_title": "Enable Biometric Login",
+  "profile_dialog_biometric_message": "Please enter your email and password to securely store them.",
+  "profile_dialog_biometric_email": "Email",
+  "profile_dialog_biometric_password": "Password",
+  "profile_dialog_biometric_cancel": "Cancel",
+  "profile_dialog_biometric_enable": "Enable",
+  "profile_success_biometricEnabled": "Biometric login enabled",
+  "profile_error_logoutFailed": "Logout failed: {error}",
+  "@profile_error_logoutFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "language_english": "English",
+  "language_spanish": "Spanish",
+  "language_french": "French",
+  "language_italian": "Italian",
+  "language_german": "German",
+
+  "common_loading": "Loading...",
+  "common_save": "Save",
+  "common_cancel": "Cancel",
+  "common_delete": "Delete",
+  "common_edit": "Edit",
+  "common_add": "Add",
+  "common_search": "Search",
+  "common_filter": "Filter",
+  "common_error": "Error",
+  "common_success": "Success",
+
+  "addMember_title_add": "Add Family Member",
+  "addMember_title_edit": "Edit Family Member",
+  "addMember_success_added": "Family member added successfully",
+  "addMember_success_updated": "Family member updated successfully",
+  "addMember_success_deleted": "Family member deleted successfully",
+  "addMember_error_saving": "Error saving member: {error}",
+  "@addMember_error_saving": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "addMember_error_deleting": "Error deleting member: {error}",
+  "@addMember_error_deleting": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "addMember_dialog_delete_title": "Delete Member",
+  "addMember_dialog_delete_message": "Are you sure you want to delete this family member? This action cannot be undone.",
+  "addMember_section_basicInfo": "Basic Information",
+  "addMember_field_name": "Member's Name",
+  "addMember_field_nameHint": "Enter full name",
+  "addMember_field_gender": "Gender",
+  "addMember_field_birthdate": "Birth Date",
+  "addMember_field_birthdateHint": "mm/dd/yyyy",
+  "addMember_section_sizes": "Current Sizes",
+  "addMember_field_clothingSize": "Clothing Size",
+  "addMember_field_clothingSizeHint": "e.g. 110 (cm) or 5 (age)",
+  "addMember_field_shoeSize": "Shoe Size",
+  "addMember_field_shoeSizeHint": "e.g. 28",
+  "addMember_section_notes": "Additional Notes",
+  "addMember_field_notesHint": "Any special notes about this child's preferences, etc.",
+  "addMember_button_update": "Update",
+  "addMember_button_add": "Add",
+  "addMember_button_deleteMember": "Delete Member",
+  "addMember_validation_nameRequired": "Please enter a name",
+
+  "members_title": "Family Members",
+  "members_label_currentSize": "Current Size",
+  "members_label_items": "Items",
+  "members_button_viewItems": "View Items",
+  "members_empty": "No members added yet",
+  "members_error_loading": "Error loading data: {error}",
+  "@members_error_loading": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+
+  "addStorage_title_add": "Add Storage Location",
+  "addStorage_title_edit": "Edit Storage Location",
+  "addStorage_success_added": "Storage location added successfully",
+  "addStorage_success_updated": "Storage location updated successfully",
+  "addStorage_success_deleted": "Storage location deleted successfully",
+  "addStorage_error_saving": "Error saving location: {error}",
+  "@addStorage_error_saving": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "addStorage_error_deleting": "Error deleting location: {error}",
+  "@addStorage_error_deleting": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "addStorage_dialog_delete_title": "Delete Storage Location",
+  "addStorage_dialog_delete_message": "Are you sure you want to delete this storage location?",
+  "addStorage_section_type": "Storage Type",
+  "addStorage_section_basicInfo": "Basic Information",
+  "addStorage_field_name": "Storage Name",
+  "addStorage_field_nameHint": "Enter storage name",
+  "addStorage_field_parent": "Parent Location (Optional)",
+  "addStorage_field_parentNone": "None (top level)",
+  "addStorage_section_description": "Description",
+  "addStorage_field_descriptionHint": "Optional description",
+  "addStorage_button_update": "Update",
+  "addStorage_button_add": "Add",
+  "addStorage_button_deleteLocation": "Delete Storage Location",
+
+  "storage_title": "Storage",
+  "storage_error_loading": "Error loading storage locations: {error}",
+  "@storage_error_loading": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+
+  "nav_home": "Home",
+  "nav_items": "Items",
+  "nav_members": "Members",
+  "nav_storage": "Storage",
+  "nav_profile": "Profile",
+
+  "storage_subtitle": "{count} locations • {itemCount} items",
+  "@storage_subtitle": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "itemCount": {"type": "int"}
+    }
+  },
+  "storage_searchHint": "Search locations...",
+  "storage_filterAll": "All",
+  "storage_filterBasement": "Basement",
+  "storage_filterClosets": "Closets",
+  "storage_filterAttic": "Attic",
+  "storage_sectionBoxes": "Boxes",
+  "storage_sectionClosets": "Closets",
+  "storage_sectionAreas": "Areas",
+  "storage_sectionOther": "Other Storage",
+  "storage_expandAll": "Expand All",
+  "storage_noDescription": "No description",
+  "storage_itemsCount": "{count} items",
+  "@storage_itemsCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "storage_viewItems": "View Items",
+  "storage_quickActions": "Quick Actions",
+  "storage_scanQrCode": "Scan QR Code",
+  "storage_printLabels": "Print Labels",
+  
+  "members_subtitle": "Manage family members",
+  "members_summaryMembers": "Members",
+  "members_summaryTotalItems": "Total Items",
+  "members_summaryNeedCheck": "Need Check",
+  "members_ageYears": "{age} years",
+  "@members_ageYears": {
+    "placeholders": {
+      "age": {"type": "int"}
+    }
+  },
+  "members_born": "Born: {date}",
+  "@members_born": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "members_clothes": "Clothes: {size}",
+  "@members_clothes": {
+    "placeholders": {
+      "size": {"type": "String"}
+    }
+  },
+  "members_shoes": "Shoes: {size}",
+  "@members_shoes": {
+    "placeholders": {
+      "size": {"type": "String"}
+    }
+  },
+  "members_hasItems": "✓ Has items",
+  "members_noItemsYet": "No items yet",
+  "members_tooltipGrowthChart": "Growth Chart",
+  "members_tooltipEdit": "Edit",
+
+  "items_title": "Items",
+  "items_subtitle": "{count} total items",
+  "@items_subtitle": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "items_subtitleWithLocation": "{location} • {count} items",
+  "@items_subtitleWithLocation": {
+    "placeholders": {
+      "location": {"type": "String"},
+      "count": {"type": "int"}
+    }
+  },
+  "items_filterAllItems": "All Items",
+  "items_filterInUse": "In Use",
+  "items_filterStored": "Stored",
+  "items_filterWinter": "Winter",
+  "items_filterSummer": "Summer",
+  "items_quickFilters": "Quick Filters",
+  "items_clearAll": "Clear All",
+  "items_filterClothes": "Clothes",
+  "items_filterShoes": "Shoes",
+  "items_filterAccessories": "Accessories",
+  "items_sizeLabel": "Size {size} • {gender}",
+  "@items_sizeLabel": {
+    "placeholders": {
+      "size": {"type": "String"},
+      "gender": {"type": "String"}
+    }
+  },
+  "items_noSeasonTags": "No season tags",
+  "items_quantity": "Quantity: {count}",
+  "@items_quantity": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "items_statusInUse": "In Use",
+  "items_statusStored": "Stored",
+  "items_statusOutgrown": "Outgrown"
+}

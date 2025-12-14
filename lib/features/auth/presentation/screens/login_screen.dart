@@ -7,6 +7,7 @@ import 'package:seasonbox/data/services/user_service.dart';
 import 'package:seasonbox/app/theme/theme.dart';
 import 'package:seasonbox/features/auth/presentation/widgets/animated_background_icon.dart';
 import 'package:seasonbox/data/services/biometric_service.dart';
+import 'package:seasonbox/l10n/app_localizations.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -125,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen>
                       Column(
                         children: [
                           Text(
-                            'SeasonBox',
+                            AppLocalizations.of(context)!.appTitle,
                             style: GoogleFonts.poppins(
                               fontSize: 36,
                               fontWeight: FontWeight.bold,
@@ -134,7 +135,7 @@ class _LoginScreenState extends State<LoginScreen>
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Organize seasonal items for your\nfamily with ease',
+                            AppLocalizations.of(context)!.login_tagline,
                             textAlign: TextAlign.center,
                             style: GoogleFonts.inter(
                               fontSize: 16,
@@ -147,22 +148,28 @@ class _LoginScreenState extends State<LoginScreen>
                   ),
                   const SizedBox(height: 48),
                   // Feature Cards
-                  const FeatureCard(
+                  FeatureCard(
                     icon: Icons.camera_alt_rounded,
-                    title: 'Photo Inventory',
-                    subtitle: 'Capture and organize with photos',
+                    title: AppLocalizations.of(context)!
+                        .login_featureCard_photoInventoryTitle,
+                    subtitle: AppLocalizations.of(context)!
+                        .login_featureCard_photoInventorySubtitle,
                   ),
                   const SizedBox(height: 16),
-                  const FeatureCard(
+                  FeatureCard(
                     icon: Icons.people_rounded,
-                    title: 'Family Sharing',
-                    subtitle: 'Sync across all family members',
+                    title: AppLocalizations.of(context)!
+                        .login_featureCard_familySharingTitle,
+                    subtitle: AppLocalizations.of(context)!
+                        .login_featureCard_familySharingSubtitle,
                   ),
                   const SizedBox(height: 16),
-                  const FeatureCard(
+                  FeatureCard(
                     icon: Icons.notifications_active_rounded,
-                    title: 'Smart Reminders',
-                    subtitle: 'Never miss seasonal changes',
+                    title: AppLocalizations.of(context)!
+                        .login_featureCard_smartRemindersTitle,
+                    subtitle: AppLocalizations.of(context)!
+                        .login_featureCard_smartRemindersSubtitle,
                   ),
                   const Spacer(),
                   // Buttons
@@ -182,7 +189,7 @@ class _LoginScreenState extends State<LoginScreen>
                         elevation: 0,
                       ),
                       child: Text(
-                        'Login with your Email',
+                        AppLocalizations.of(context)!.login_button_email,
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -220,11 +227,12 @@ class _LoginScreenState extends State<LoginScreen>
                                 } else if (context.mounted) {
                                   // User cancelled or sign-in failed
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
+                                    SnackBar(
                                       content: Text(
-                                          'Google Sign-In was cancelled or failed. Please try again.'),
+                                          AppLocalizations.of(context)!
+                                              .login_error_googleCancelled),
                                       backgroundColor: Colors.orange,
-                                      duration: Duration(seconds: 3),
+                                      duration: const Duration(seconds: 3),
                                     ),
                                   );
                                 }
@@ -232,8 +240,9 @@ class _LoginScreenState extends State<LoginScreen>
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text(
-                                          'Sign-in error: ${e.toString()}'),
+                                      content: Text(AppLocalizations.of(
+                                              context)!
+                                          .login_error_signIn(e.toString())),
                                       backgroundColor: Colors.red,
                                       duration: const Duration(seconds: 4),
                                     ),
@@ -275,7 +284,8 @@ class _LoginScreenState extends State<LoginScreen>
                                 ),
                                 const SizedBox(width: 12),
                                 Text(
-                                  'Continue with Google',
+                                  AppLocalizations.of(context)!
+                                      .login_button_google,
                                   style: GoogleFonts.inter(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -319,11 +329,13 @@ class _LoginScreenState extends State<LoginScreen>
                                         if (context.mounted) {
                                           ScaffoldMessenger.of(context)
                                               .showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                  'Invalid email or password. Please try again.'),
+                                            SnackBar(
+                                              content: Text(AppLocalizations.of(
+                                                      context)!
+                                                  .login_error_invalidCredentials),
                                               backgroundColor: Colors.red,
-                                              duration: Duration(seconds: 4),
+                                              duration:
+                                                  const Duration(seconds: 4),
                                             ),
                                           );
                                         }
@@ -349,7 +361,8 @@ class _LoginScreenState extends State<LoginScreen>
                                     const Icon(Icons.fingerprint),
                                     const SizedBox(width: 12),
                                     Text(
-                                      'Login with Biometrics',
+                                      AppLocalizations.of(context)!
+                                          .login_button_biometric,
                                       style: GoogleFonts.inter(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
@@ -376,18 +389,24 @@ class _LoginScreenState extends State<LoginScreen>
                           fontSize: 12,
                           color: Colors.white70,
                         ),
-                        children: const [
-                          TextSpan(text: 'By continuing, you agree to our '),
+                        children: [
                           TextSpan(
-                            text: 'Terms of Service',
-                            style:
-                                TextStyle(decoration: TextDecoration.underline),
+                              text: AppLocalizations.of(context)!
+                                  .login_footer_terms),
+                          TextSpan(
+                            text: AppLocalizations.of(context)!
+                                .login_footer_termsOfService,
+                            style: const TextStyle(
+                                decoration: TextDecoration.underline),
                           ),
-                          TextSpan(text: ' and '),
                           TextSpan(
-                            text: 'Privacy Policy',
-                            style:
-                                TextStyle(decoration: TextDecoration.underline),
+                              text: AppLocalizations.of(context)!
+                                  .login_footer_and),
+                          TextSpan(
+                            text: AppLocalizations.of(context)!
+                                .login_footer_privacyPolicy,
+                            style: const TextStyle(
+                                decoration: TextDecoration.underline),
                           ),
                         ],
                       ),

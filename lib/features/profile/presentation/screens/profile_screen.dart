@@ -7,6 +7,7 @@ import 'package:seasonbox/app/providers/theme_provider.dart';
 import 'package:seasonbox/data/services/biometric_service.dart';
 import 'package:seasonbox/features/auth/data/auth_service.dart';
 import 'package:go_router/go_router.dart';
+import 'package:seasonbox/l10n/app_localizations.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -20,6 +21,102 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _seasonalRemindersEnabled = true;
   bool _autoSyncEnabled = true;
 
+  String _getLanguageName(Locale locale) {
+    switch (locale.languageCode) {
+      case 'en':
+        return 'English';
+      case 'es':
+        return 'Español';
+      case 'fr':
+        return 'Français';
+      case 'de':
+        return 'Deutsch';
+      case 'it':
+        return 'Italiano';
+      default:
+        return 'English';
+    }
+  }
+
+  void _showLanguageBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Consumer<ThemeProvider>(
+          builder: (context, themeProvider, child) {
+            final currentLocale = themeProvider.locale;
+            return SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      AppLocalizations.of(context)!.profile_setting_language,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  _buildLanguageOption(
+                      context, themeProvider, 'English', 'en', currentLocale),
+                  _buildLanguageOption(
+                      context, themeProvider, 'Español', 'es', currentLocale),
+                  _buildLanguageOption(
+                      context, themeProvider, 'Français', 'fr', currentLocale),
+                  _buildLanguageOption(
+                      context, themeProvider, 'Deutsch', 'de', currentLocale),
+                  _buildLanguageOption(
+                      context, themeProvider, 'Italiano', 'it', currentLocale),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildLanguageOption(BuildContext context, ThemeProvider themeProvider,
+      String name, String code, Locale currentLocale) {
+    final isSelected = currentLocale.languageCode == code;
+    return ListTile(
+      leading: Text(
+        _getFlag(code),
+        style: const TextStyle(fontSize: 24),
+      ),
+      title: Text(name),
+      trailing:
+          isSelected ? const Icon(Icons.check, color: Colors.purple) : null,
+      onTap: () {
+        themeProvider.setLocale(Locale(code));
+        Navigator.pop(context);
+      },
+    );
+  }
+
+  String _getFlag(String code) {
+    switch (code) {
+      case 'en':
+        return '🇺🇸';
+      case 'es':
+        return '🇪🇸';
+      case 'fr':
+        return '🇫🇷';
+      case 'de':
+        return '🇩🇪';
+      case 'it':
+        return '🇮🇹';
+      default:
+        return '🌍';
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -29,7 +126,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: SeasonBoxAppBar(
-        title: 'Profile',
+        title: AppLocalizations.of(context)!.profile_title,
         actions: [
           IconButton(
             icon: const Icon(Icons.settings, color: Colors.white),
@@ -59,19 +156,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   final shouldLogout = await showDialog<bool>(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: const Text('Logout'),
-                      content: const Text('Are you sure you want to logout?'),
+                      title: Text(AppLocalizations.of(context)!
+                          .profile_dialog_logout_title),
+                      content: Text(AppLocalizations.of(context)!
+                          .profile_dialog_logout_message),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(context, false),
-                          child: const Text('Cancel'),
+                          child: Text(AppLocalizations.of(context)!
+                              .profile_dialog_logout_cancel),
                         ),
                         TextButton(
                           onPressed: () => Navigator.pop(context, true),
                           style: TextButton.styleFrom(
                             foregroundColor: Colors.red,
                           ),
-                          child: const Text('Logout'),
+                          child: Text(AppLocalizations.of(context)!
+                              .profile_dialog_logout_confirm),
                         ),
                       ],
                     ),
@@ -79,8 +180,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   if (shouldLogout == true && context.mounted) {
                     try {
-                      // Disable biometric login if enabled
+                      // Get services before async operations
+                      final authService =
+                          Provider.of<AuthService>(context, listen: false);
                       final biometricService = BiometricService();
+
+                      // Disable biometric login if enabled
                       final isBiometricEnabled =
                           await biometricService.isBiometricLoginEnabled();
                       if (isBiometricEnabled) {
@@ -88,8 +193,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       }
 
                       // Sign out from Firebase
-                      final authService =
-                          Provider.of<AuthService>(context, listen: false);
                       await authService.signOut();
 
                       // Navigate to login screen
@@ -101,7 +204,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Logout failed: $e'),
+                            content: Text(AppLocalizations.of(context)!
+                                .profile_error_logoutFailed(e.toString())),
                             backgroundColor: Colors.red,
                           ),
                         );
@@ -162,7 +266,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Family Admin',
+                      AppLocalizations.of(context)!.profile_role_familyAdmin,
                       style: TextStyle(
                         color: Colors.purple.shade700,
                         fontSize: 12,
@@ -188,7 +292,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
-              child: const Text('Edit Profile'),
+              child: Text(
+                  AppLocalizations.of(context)!.profile_button_editProfile),
             ),
           ),
         ],
@@ -213,14 +318,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Family Management'),
+        _buildSectionTitle(
+            AppLocalizations.of(context)!.profile_section_familyManagement),
         _buildListTile(
           context,
           icon: Icons.people,
           iconColor: Colors.blue,
           iconBgColor: Colors.blue.shade50,
-          title: 'Johnson Family',
-          subtitle: '5 members • You are admin',
+          title: AppLocalizations.of(context)!.profile_family_name,
+          subtitle: AppLocalizations.of(context)!.profile_family_members(5),
           onTap: () {},
         ),
         const SizedBox(height: 12),
@@ -229,8 +335,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           icon: Icons.person_add,
           iconColor: Colors.green,
           iconBgColor: Colors.green.shade50,
-          title: 'Invite Members',
-          subtitle: 'Share family access',
+          title: AppLocalizations.of(context)!.profile_family_inviteMembers,
+          subtitle: AppLocalizations.of(context)!.profile_family_inviteSubtitle,
           onTap: () {},
         ),
       ],
@@ -241,21 +347,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('App Settings'),
+        _buildSectionTitle(
+            AppLocalizations.of(context)!.profile_section_appSettings),
         Consumer<ThemeProvider>(
           builder: (context, themeProvider, child) {
-            final isDark = Theme.of(context).brightness == Brightness.dark;
-            return _buildToggleTile(
-              context,
-              icon: Icons.dark_mode,
-              iconColor: Colors.indigo,
-              iconBgColor: Colors.indigo.shade50,
-              title: 'Dark Mode',
-              subtitle: 'Toggle dark theme',
-              value: isDark,
-              onChanged: (val) {
-                themeProvider.toggleTheme(val);
-              },
+            return Column(
+              children: [
+                _buildListTile(
+                  context,
+                  icon: Icons.language,
+                  iconColor: Colors.deepPurple,
+                  iconBgColor: Colors.deepPurple.shade50,
+                  title: AppLocalizations.of(context)!.profile_setting_language,
+                  subtitle: _getLanguageName(themeProvider.locale),
+                  onTap: () => _showLanguageBottomSheet(context),
+                ),
+                const SizedBox(height: 12),
+                _buildToggleTile(
+                  context,
+                  icon: Icons.dark_mode,
+                  iconColor: Colors.indigo,
+                  iconBgColor: Colors.indigo.shade50,
+                  title: AppLocalizations.of(context)!.profile_setting_darkMode,
+                  subtitle: AppLocalizations.of(context)!
+                      .profile_setting_darkModeSubtitle,
+                  value: Theme.of(context).brightness == Brightness.dark,
+                  onChanged: (val) {
+                    themeProvider.toggleTheme(val);
+                  },
+                ),
+              ],
             );
           },
         ),
@@ -265,8 +386,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           icon: Icons.notifications,
           iconColor: Colors.purple,
           iconBgColor: Colors.purple.shade50,
-          title: 'Notifications',
-          subtitle: 'Reminders & alerts',
+          title: AppLocalizations.of(context)!.profile_setting_notifications,
+          subtitle: AppLocalizations.of(context)!
+              .profile_setting_notificationsSubtitle,
           value: _notificationsEnabled,
           onChanged: (val) {
             setState(() {
@@ -280,8 +402,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           icon: Icons.calendar_today,
           iconColor: Colors.orange,
           iconBgColor: Colors.orange.shade50,
-          title: 'Seasonal Reminders',
-          subtitle: 'Auto season alerts',
+          title:
+              AppLocalizations.of(context)!.profile_setting_seasonalReminders,
+          subtitle: AppLocalizations.of(context)!
+              .profile_setting_seasonalRemindersSubtitle,
           value: _seasonalRemindersEnabled,
           onChanged: (val) {
             setState(() {
@@ -295,8 +419,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           icon: Icons.sync,
           iconColor: Colors.red,
           iconBgColor: Colors.red.shade50,
-          title: 'Auto Sync',
-          subtitle: 'Cloud synchronization',
+          title: AppLocalizations.of(context)!.profile_setting_autoSync,
+          subtitle:
+              AppLocalizations.of(context)!.profile_setting_autoSyncSubtitle,
           value: _autoSyncEnabled,
           onChanged: (val) {
             setState(() {
@@ -315,8 +440,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               icon: Icons.fingerprint,
               iconColor: Colors.teal,
               iconBgColor: Colors.teal.shade50,
-              title: 'Biometric Login',
-              subtitle: 'Enable Face ID / Touch ID',
+              title:
+                  AppLocalizations.of(context)!.profile_setting_biometricLogin,
+              subtitle: AppLocalizations.of(context)!
+                  .profile_setting_biometricLoginSubtitle,
               value: isEnabled,
               onChanged: (val) async {
                 if (val) {
@@ -351,21 +478,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Enable Biometric Login'),
+        title:
+            Text(AppLocalizations.of(context)!.profile_dialog_biometric_title),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-                'Please enter your email and password to securely store them.'),
+            Text(
+                AppLocalizations.of(context)!.profile_dialog_biometric_message),
             const SizedBox(height: 16),
             TextField(
               controller: emailController,
-              decoration: const InputDecoration(labelText: 'Email'),
+              decoration: InputDecoration(
+                  labelText:
+                      AppLocalizations.of(context)!.emailLogin_field_email),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: passwordController,
-              decoration: const InputDecoration(labelText: 'Password'),
+              decoration: InputDecoration(
+                  labelText:
+                      AppLocalizations.of(context)!.emailLogin_field_password),
               obscureText: true,
             ),
           ],
@@ -373,7 +505,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(
+                AppLocalizations.of(context)!.profile_dialog_logout_cancel),
           ),
           TextButton(
             onPressed: () async {
@@ -387,12 +520,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Navigator.pop(context);
                   setState(() {});
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Biometric login enabled')),
+                    SnackBar(
+                        content: Text(AppLocalizations.of(context)!
+                            .profile_success_biometricEnabled)),
                   );
                 }
               }
             },
-            child: const Text('Enable'),
+            child: Text(
+                AppLocalizations.of(context)!.profile_dialog_biometric_enable),
           ),
         ],
       ),
@@ -403,14 +539,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Data & Privacy'),
+        _buildSectionTitle(
+            AppLocalizations.of(context)!.profile_section_dataPrivacy),
         _buildListTile(
           context,
           icon: Icons.download,
           iconColor: Colors.blue,
           iconBgColor: Colors.blue.shade50,
-          title: 'Export Data',
-          subtitle: 'Download your information',
+          title: AppLocalizations.of(context)!.profile_data_exportData,
+          subtitle:
+              AppLocalizations.of(context)!.profile_data_exportDataSubtitle,
           onTap: () {},
         ),
         const SizedBox(height: 12),
@@ -419,8 +557,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           icon: Icons.upload,
           iconColor: Colors.green,
           iconBgColor: Colors.green.shade50,
-          title: 'Backup Data',
-          subtitle: 'Create backup copy',
+          title: AppLocalizations.of(context)!.profile_data_backupData,
+          subtitle:
+              AppLocalizations.of(context)!.profile_data_backupDataSubtitle,
           onTap: () {},
         ),
         const SizedBox(height: 12),
@@ -429,8 +568,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           icon: Icons.security,
           iconColor: Colors.grey.shade700,
           iconBgColor: Colors.grey.shade200,
-          title: 'Privacy Policy',
-          subtitle: 'How we protect your data',
+          title: AppLocalizations.of(context)!.profile_data_privacyPolicy,
+          subtitle:
+              AppLocalizations.of(context)!.profile_data_privacyPolicySubtitle,
           onTap: () {},
         ),
       ],
@@ -441,14 +581,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Support'),
+        _buildSectionTitle(
+            AppLocalizations.of(context)!.profile_section_support),
         _buildListTile(
           context,
           icon: Icons.help,
           iconColor: Colors.amber.shade700,
           iconBgColor: Colors.amber.shade100,
-          title: 'Help Center',
-          subtitle: 'FAQs and tutorials',
+          title: AppLocalizations.of(context)!.profile_support_helpCenter,
+          subtitle:
+              AppLocalizations.of(context)!.profile_support_helpCenterSubtitle,
           onTap: () {},
         ),
         const SizedBox(height: 12),
@@ -457,8 +599,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           icon: Icons.email,
           iconColor: Colors.purple,
           iconBgColor: Colors.purple.shade50,
-          title: 'Contact Support',
-          subtitle: 'Get help from our team',
+          title: AppLocalizations.of(context)!.profile_support_contactSupport,
+          subtitle: AppLocalizations.of(context)!
+              .profile_support_contactSupportSubtitle,
           onTap: () {},
         ),
         const SizedBox(height: 12),
@@ -467,8 +610,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           icon: Icons.star,
           iconColor: Colors.green,
           iconBgColor: Colors.green.shade50,
-          title: 'Rate App',
-          subtitle: 'Share your feedback',
+          title: AppLocalizations.of(context)!.profile_support_rateApp,
+          subtitle:
+              AppLocalizations.of(context)!.profile_support_rateAppSubtitle,
           onTap: () {},
         ),
       ],

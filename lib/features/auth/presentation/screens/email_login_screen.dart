@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:seasonbox/app/theme/theme.dart';
 import 'package:seasonbox/features/auth/data/auth_service.dart';
+import 'package:seasonbox/l10n/app_localizations.dart';
 import 'package:seasonbox/features/auth/presentation/widgets/animated_background_icon.dart';
 
 class EmailLoginScreen extends StatefulWidget {
@@ -44,10 +45,11 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Invalid email or password. Please try again.'),
+            SnackBar(
+              content: Text(
+                  AppLocalizations.of(context)!.login_error_invalidCredentials),
               backgroundColor: Colors.red,
-              duration: Duration(seconds: 4),
+              duration: const Duration(seconds: 4),
             ),
           );
         }
@@ -57,6 +59,44 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
             _isLoading = false;
           });
         }
+      }
+    }
+  }
+
+  Future<void> _resetPassword() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text(AppLocalizations.of(context)!.emailLogin_error_emailFirst),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    try {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      await authService.sendPasswordResetEmail(email);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                AppLocalizations.of(context)!.emailLogin_success_passwordReset),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!
+                .emailLogin_error_generic(e.toString())),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
@@ -132,40 +172,46 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'Welcome Back',
+                      AppLocalizations.of(context)!.emailLogin_title,
                       style: GoogleFonts.poppins(
                         fontSize: 32,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
+                    const SizedBox(height: 8),
                     Text(
-                      'Sign in to continue',
+                      AppLocalizations.of(context)!.emailLogin_subtitle,
                       style: GoogleFonts.inter(
                         fontSize: 16,
-                        color: Colors.white.withValues(alpha: 0.8),
+                        color: Colors.white70,
                       ),
                     ),
                     const SizedBox(height: 48),
                     TextFormField(
                       controller: _emailController,
-                      style: const TextStyle(color: Colors.white),
                       decoration: InputDecoration(
-                        hintText: 'Email',
-                        hintStyle: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.6)),
-                        filled: true,
-                        fillColor: Colors.white.withValues(alpha: 0.15),
+                        labelText: AppLocalizations.of(context)!
+                            .emailLogin_field_email,
+                        hintText: AppLocalizations.of(context)!
+                            .emailLogin_field_email,
+                        prefixIcon: const Icon(Icons.email_outlined,
+                            color: Colors.white70),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
                           borderSide: BorderSide.none,
                         ),
-                        prefixIcon:
-                            const Icon(Icons.email, color: Colors.white70),
+                        filled: true,
+                        fillColor: Colors.white.withValues(alpha: 0.1),
+                        labelStyle: const TextStyle(color: Colors.white70),
+                        hintStyle: const TextStyle(color: Colors.white38),
                       ),
+                      style: const TextStyle(color: Colors.white),
+                      keyboardType: TextInputType.emailAddress,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your email';
+                          return AppLocalizations.of(context)!
+                              .emailLogin_validation_emailRequired;
                         }
                         return null;
                       },
@@ -174,23 +220,27 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                     TextFormField(
                       controller: _passwordController,
                       obscureText: true,
-                      style: const TextStyle(color: Colors.white),
                       decoration: InputDecoration(
-                        hintText: 'Password',
-                        hintStyle: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.6)),
-                        filled: true,
-                        fillColor: Colors.white.withValues(alpha: 0.15),
+                        labelText: AppLocalizations.of(context)!
+                            .emailLogin_field_password,
+                        hintText: AppLocalizations.of(context)!
+                            .emailLogin_field_password,
+                        prefixIcon: const Icon(Icons.lock_outline,
+                            color: Colors.white70),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
                           borderSide: BorderSide.none,
                         ),
-                        prefixIcon:
-                            const Icon(Icons.lock, color: Colors.white70),
+                        filled: true,
+                        fillColor: Colors.white.withValues(alpha: 0.1),
+                        labelStyle: const TextStyle(color: Colors.white70),
+                        hintStyle: const TextStyle(color: Colors.white38),
                       ),
+                      style: const TextStyle(color: Colors.white),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your password';
+                          return AppLocalizations.of(context)!
+                              .emailLogin_validation_passwordRequired;
                         }
                         return null;
                       },
@@ -198,46 +248,15 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () async {
-                          if (_emailController.text.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content:
-                                      Text('Please enter your email first')),
-                            );
-                            return;
-                          }
-                          try {
-                            final authService = Provider.of<AuthService>(
-                                context,
-                                listen: false);
-                            await authService.sendPasswordResetEmail(
-                                _emailController.text.trim());
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Password reset email sent')),
-                              );
-                            }
-                          } catch (e) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content: Text('Error: ${e.toString()}')),
-                              );
-                            }
-                          }
-                        },
+                        onPressed: _resetPassword,
                         child: Text(
-                          'Forgot Password?',
-                          style: GoogleFonts.inter(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          AppLocalizations.of(context)!
+                              .emailLogin_button_forgotPassword,
+                          style: const TextStyle(color: Colors.white70),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 32),
                     SizedBox(
                       width: double.infinity,
                       height: 56,
@@ -252,9 +271,18 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                           elevation: 0,
                         ),
                         child: _isLoading
-                            ? const CircularProgressIndicator()
+                            ? const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.black),
+                                ),
+                              )
                             : Text(
-                                'Login',
+                                AppLocalizations.of(context)!
+                                    .emailLogin_button_login,
                                 style: GoogleFonts.inter(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,

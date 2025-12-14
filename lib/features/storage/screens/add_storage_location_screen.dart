@@ -7,6 +7,7 @@ import 'package:seasonbox/data/repositories/storage_location_repository.dart';
 import 'package:seasonbox/features/auth/data/auth_service.dart';
 import 'package:seasonbox/widgets/app_card.dart';
 import 'package:seasonbox/widgets/season_box_app_bar.dart';
+import 'package:seasonbox/l10n/app_localizations.dart';
 
 class AddStorageLocationScreen extends StatefulWidget {
   final StorageLocation? location;
@@ -206,8 +207,8 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: SeasonBoxAppBar(
         title: widget.location != null
-            ? 'Edit Storage Location'
-            : 'Add Storage Location',
+            ? AppLocalizations.of(context)!.addStorage_title_edit
+            : AppLocalizations.of(context)!.addStorage_title_add,
         actions: widget.location != null
             ? [
                 IconButton(
@@ -227,8 +228,8 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Storage Type Section
-                    const Text('Storage Type',
-                        style: TextStyle(
+                    Text(AppLocalizations.of(context)!.addStorage_section_type,
+                        style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     AppCard(
@@ -243,21 +244,26 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
                     const SizedBox(height: 24),
 
                     // Basic Information Section
-                    const Text('Basic Information',
-                        style: TextStyle(
+                    Text(
+                        AppLocalizations.of(context)!
+                            .addStorage_section_basicInfo,
+                        style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     AppCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Storage Name',
-                              style: TextStyle(fontSize: 14)),
+                          Text(
+                              AppLocalizations.of(context)!
+                                  .addStorage_field_name,
+                              style: const TextStyle(fontSize: 14)),
                           const SizedBox(height: 8),
                           TextFormField(
                             controller: _nameController,
-                            decoration: const InputDecoration(
-                              hintText: 'e.g., Box A4, Emma\'s Closet',
+                            decoration: InputDecoration(
+                              hintText: AppLocalizations.of(context)!
+                                  .addStorage_field_nameHint,
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -267,8 +273,10 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
                             },
                           ),
                           const SizedBox(height: 16),
-                          const Text('Parent Location (Optional)',
-                              style: TextStyle(fontSize: 14)),
+                          Text(
+                              AppLocalizations.of(context)!
+                                  .addStorage_field_parent,
+                              style: const TextStyle(fontSize: 14)),
                           const SizedBox(height: 8),
                           DropdownButtonFormField<String>(
                             initialValue: _parentLocationId,
@@ -276,8 +284,10 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
                               hintText: 'Select parent location',
                             ),
                             items: [
-                              const DropdownMenuItem(
-                                  value: null, child: Text('None (top level)')),
+                              DropdownMenuItem(
+                                  value: null,
+                                  child: Text(AppLocalizations.of(context)!
+                                      .addStorage_field_parentNone)),
                               ..._potentialParents.map((l) => DropdownMenuItem(
                                   value: l.id, child: Text(l.name))),
                             ],
@@ -290,15 +300,18 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
                     const SizedBox(height: 24),
 
                     // Description Section
-                    const Text('Description',
-                        style: TextStyle(
+                    Text(
+                        AppLocalizations.of(context)!
+                            .addStorage_section_description,
+                        style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     AppCard(
                       child: TextFormField(
                         controller: _descriptionController,
-                        decoration: const InputDecoration(
-                          hintText: 'Additional details about this location...',
+                        decoration: InputDecoration(
+                          hintText: AppLocalizations.of(context)!
+                              .addStorage_field_descriptionHint,
                           alignLabelWithHint: true,
                         ),
                         maxLines: 4,
@@ -319,9 +332,9 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
                               ),
                               padding: const EdgeInsets.symmetric(vertical: 20),
                             ),
-                            child: const Text(
-                              'Cancel',
-                              style: TextStyle(fontSize: 16),
+                            child: Text(
+                              AppLocalizations.of(context)!.common_cancel,
+                              style: const TextStyle(fontSize: 16),
                             ),
                           ),
                         ),
@@ -339,7 +352,11 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
                               elevation: 0,
                             ),
                             child: Text(
-                              widget.location != null ? 'Update' : 'Add',
+                              widget.location != null
+                                  ? AppLocalizations.of(context)!
+                                      .addStorage_button_update
+                                  : AppLocalizations.of(context)!
+                                      .addStorage_button_add,
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -362,9 +379,10 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Text(
-                            'Delete Location',
-                            style: TextStyle(
+                          child: Text(
+                            AppLocalizations.of(context)!
+                                .addStorage_button_deleteLocation,
+                            style: const TextStyle(
                               color: Colors.red,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
