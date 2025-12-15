@@ -281,8 +281,8 @@ abstract class AppLocalizations {
   /// No description provided for @home_appBar_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Johnson Family'**
-  String get home_appBar_subtitle;
+  /// **'{familyName} Family'**
+  String home_appBar_subtitle(String familyName);
 
   /// No description provided for @home_stats_totalItems.
   ///
@@ -743,8 +743,8 @@ abstract class AppLocalizations {
   /// No description provided for @profile_family_name.
   ///
   /// In en, this message translates to:
-  /// **'Johnson Family'**
-  String get profile_family_name;
+  /// **'{familyName} Family'**
+  String profile_family_name(String familyName);
 
   /// No description provided for @profile_family_members.
   ///
@@ -1069,6 +1069,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Success'**
   String get common_success;
+
+  /// No description provided for @common_comingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming Soon'**
+  String get common_comingSoon;
 
   /// No description provided for @addMember_title_add.
   ///
@@ -1711,6 +1717,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Outgrown'**
   String get items_statusOutgrown;
+
+  /// No description provided for @editProfile_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Profile'**
+  String get editProfile_title;
+
+  /// No description provided for @editProfile_changePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Photo'**
+  String get editProfile_changePhoto;
+
+  /// No description provided for @editProfile_section_personalInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal Information'**
+  String get editProfile_section_personalInfo;
+
+  /// No description provided for @editProfile_field_fullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get editProfile_field_fullName;
+
+  /// No description provided for @editProfile_field_email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email Address'**
+  String get editProfile_field_email;
+
+  /// No description provided for @editProfile_hint_emailCannotChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Email cannot be changed'**
+  String get editProfile_hint_emailCannotChanged;
+
+  /// No description provided for @editProfile_field_phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Number'**
+  String get editProfile_field_phone;
+
+  /// No description provided for @editProfile_field_role.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get editProfile_field_role;
+
+  /// No description provided for @editProfile_section_preferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get editProfile_section_preferences;
+
+  /// No description provided for @editProfile_pref_emailNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Email Notifications'**
+  String get editProfile_pref_emailNotifications;
+
+  /// No description provided for @editProfile_pref_emailNotificationsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive updates via email'**
+  String get editProfile_pref_emailNotificationsSubtitle;
+
+  /// No description provided for @editProfile_pref_pushNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Push Notifications'**
+  String get editProfile_pref_pushNotifications;
+
+  /// No description provided for @editProfile_pref_pushNotificationsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Get alerts on your device'**
+  String get editProfile_pref_pushNotificationsSubtitle;
+
+  /// No description provided for @editProfile_pref_weeklyDigest.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly Digest'**
+  String get editProfile_pref_weeklyDigest;
+
+  /// No description provided for @editProfile_pref_weeklyDigestSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary of family activity'**
+  String get editProfile_pref_weeklyDigestSubtitle;
+
+  /// No description provided for @editProfile_section_unitsDisplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Units & Display'**
+  String get editProfile_section_unitsDisplay;
+
+  /// No description provided for @editProfile_field_measurementSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurement System'**
+  String get editProfile_field_measurementSystem;
+
+  /// No description provided for @editProfile_option_imperial.
+  ///
+  /// In en, this message translates to:
+  /// **'Imperial (US)'**
+  String get editProfile_option_imperial;
+
+  /// No description provided for @editProfile_option_metric.
+  ///
+  /// In en, this message translates to:
+  /// **'Metric'**
+  String get editProfile_option_metric;
+
+  /// No description provided for @editProfile_button_saveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Changes'**
+  String get editProfile_button_saveChanges;
 }
 
 class _AppLocalizationsDelegate

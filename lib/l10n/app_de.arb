@@ -33,7 +33,14 @@
   "emailLogin_success_passwordReset": "Passwort-Zurücksetzungs-E-Mail gesendet",
   "emailLogin_error_generic": "Fehler: {error}",
 
-  "home_appBar_subtitle": "Familie Johnson",
+  "home_appBar_subtitle": "Familie {familyName}",
+  "@home_appBar_subtitle": {
+    "placeholders": {
+      "familyName": {
+        "type": "String"
+      }
+    }
+  },
   "home_stats_totalItems": "Gesamtartikel",
   "home_stats_members": "Mitglieder",
   "home_search_hint": "Artikel, Standorte suchen...",
@@ -112,7 +119,7 @@
   "profile_section_dataPrivacy": "Daten & Datenschutz",
   "profile_section_support": "Support",
   "profile_section_language": "Sprache",
-  "profile_family_name": "Familie Johnson",
+  "profile_family_name": "Familie {familyName}",
   "profile_family_members": "{count} Mitglieder • Sie sind Administrator",
   "profile_family_inviteMembers": "Mitglieder einladen",
   "profile_family_inviteSubtitle": "Familienzugang teilen",
@@ -169,6 +176,7 @@
   "common_filter": "Filtern",
   "common_error": "Fehler",
   "common_success": "Erfolg",
+  "common_comingSoon": "Demnächst verfügbar",
 
   "addMember_title_add": "Familienmitglied Hinzufügen",
   "addMember_title_edit": "Familienmitglied Bearbeiten",
@@ -283,5 +291,26 @@
   "items_quantity": "Menge: {count}",
   "items_statusInUse": "In Gebrauch",
   "items_statusStored": "Gelagert",
-  "items_statusOutgrown": "Herausgewachsen"
+  "items_statusOutgrown": "Herausgewachsen",
+
+  "editProfile_title": "Profil bearbeiten",
+  "editProfile_changePhoto": "Foto ändern",
+  "editProfile_section_personalInfo": "Persönliche Informationen",
+  "editProfile_field_fullName": "Vollständiger Name",
+  "editProfile_field_email": "E-Mail-Adresse",
+  "editProfile_hint_emailCannotChanged": "E-Mail kann nicht geändert werden",
+  "editProfile_field_phone": "Telefonnummer",
+  "editProfile_field_role": "Rolle",
+  "editProfile_section_preferences": "Einstellungen",
+  "editProfile_pref_emailNotifications": "E-Mail-Benachrichtigungen",
+  "editProfile_pref_emailNotificationsSubtitle": "Updates per E-Mail erhalten",
+  "editProfile_pref_pushNotifications": "Push-Benachrichtigungen",
+  "editProfile_pref_pushNotificationsSubtitle": "Benachrichtigungen auf dem Gerät erhalten",
+  "editProfile_pref_weeklyDigest": "Wöchentliche Zusammenfassung",
+  "editProfile_pref_weeklyDigestSubtitle": "Zusammenfassung der Familienaktivität",
+  "editProfile_section_unitsDisplay": "Einheiten & Anzeige",
+  "editProfile_field_measurementSystem": "Maßsystem",
+  "editProfile_option_imperial": "Imperial (US)",
+  "editProfile_option_metric": "Metrisch",
+  "editProfile_button_saveChanges": "Änderungen speichern"
 }

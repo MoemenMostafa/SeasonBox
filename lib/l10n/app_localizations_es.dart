@@ -111,7 +111,9 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get home_appBar_subtitle => 'Familia Johnson';
+  String home_appBar_subtitle(String familyName) {
+    return 'Familia $familyName';
+  }
 
   @override
   String get home_stats_totalItems => 'Artículos Totales';
@@ -362,7 +364,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get profile_section_language => 'Idioma';
 
   @override
-  String get profile_family_name => 'Familia Johnson';
+  String profile_family_name(String familyName) {
+    return 'Familia $familyName';
+  }
 
   @override
   String profile_family_members(int count) {
@@ -535,6 +539,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get common_success => 'Éxito';
+
+  @override
+  String get common_comingSoon => 'Próximamente';
 
   @override
   String get addMember_title_add => 'Agregar Miembro Familiar';
@@ -899,4 +906,68 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get items_statusOutgrown => 'Quedó Pequeño';
+
+  @override
+  String get editProfile_title => 'Editar Perfil';
+
+  @override
+  String get editProfile_changePhoto => 'Cambiar Foto';
+
+  @override
+  String get editProfile_section_personalInfo => 'Información Personal';
+
+  @override
+  String get editProfile_field_fullName => 'Nombre Completo';
+
+  @override
+  String get editProfile_field_email => 'Correo Electrónico';
+
+  @override
+  String get editProfile_hint_emailCannotChanged =>
+      'El correo no se puede cambiar';
+
+  @override
+  String get editProfile_field_phone => 'Número de Teléfono';
+
+  @override
+  String get editProfile_field_role => 'Rol';
+
+  @override
+  String get editProfile_section_preferences => 'Preferencias';
+
+  @override
+  String get editProfile_pref_emailNotifications => 'Notificaciones por Correo';
+
+  @override
+  String get editProfile_pref_emailNotificationsSubtitle =>
+      'Recibir actualizaciones por correo';
+
+  @override
+  String get editProfile_pref_pushNotifications => 'Notificaciones Push';
+
+  @override
+  String get editProfile_pref_pushNotificationsSubtitle =>
+      'Recibir alertas en tu dispositivo';
+
+  @override
+  String get editProfile_pref_weeklyDigest => 'Resumen Semanal';
+
+  @override
+  String get editProfile_pref_weeklyDigestSubtitle =>
+      'Resumen de actividad familiar';
+
+  @override
+  String get editProfile_section_unitsDisplay => 'Unidades y Visualización';
+
+  @override
+  String get editProfile_field_measurementSystem => 'Sistema de Medidas';
+
+  @override
+  String get editProfile_option_imperial => 'Imperial (EE. UU.)';
+
+  @override
+  String get editProfile_option_metric => 'Métrico';
+
+  @override
+  String get editProfile_button_saveChanges => 'Guardar Cambios';
 }

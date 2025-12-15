@@ -8,6 +8,9 @@ import 'package:seasonbox/data/services/biometric_service.dart';
 import 'package:seasonbox/features/auth/data/auth_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
+import 'package:seasonbox/features/profile/presentation/screens/edit_profile_screen.dart';
+import 'package:seasonbox/data/services/user_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -117,20 +120,53 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  void _showComingSoon(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.common_comingSoon),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
+  Stream<DocumentSnapshot>? _userStream;
+
   @override
   void initState() {
     super.initState();
+    // Initialize stream once to prevent reloading on setState
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final userService = Provider.of<UserService>(context, listen: false);
+      final user = authService.currentUser;
+      if (user != null) {
+        setState(() {
+          _userStream = userService.getUserStream(user.uid);
+        });
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    // We still need generic access to authService/userService for consistency checks
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final user = authService.currentUser;
+
+    if (user == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
       appBar: SeasonBoxAppBar(
         title: AppLocalizations.of(context)!.profile_title,
         actions: [
           IconButton(
             icon: const Icon(Icons.settings, color: Colors.white),
-            onPressed: () {},
+            onPressed: () {
+              // TODO: Implement settings screen
+              _showComingSoon(context);
+            },
           ),
         ],
       ),
@@ -140,9 +176,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildProfileCard(context),
-              const SizedBox(height: 24),
-              _buildFamilyManagement(context),
+              if (_userStream != null)
+                StreamBuilder<DocumentSnapshot>(
+                  stream: _userStream,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    }
+
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      // Return a placeholder or the card with basic info if available
+                      // For now, indicator is fine, but since we cache stream it should only happen once.
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    final userData =
+                        snapshot.data?.data() as Map<String, dynamic>?;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildProfileCard(context, userData, user),
+                        const SizedBox(height: 24),
+                        _buildFamilyManagement(context, userData),
+                      ],
+                    );
+                  },
+                )
+              else
+                const Center(child: CircularProgressIndicator()),
               const SizedBox(height: 24),
               _buildAppSettings(context),
               const SizedBox(height: 24),
@@ -222,7 +284,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildProfileCard(BuildContext context) {
+  Widget _buildProfileCard(
+      BuildContext context, Map<String, dynamic>? userData, dynamic authUser) {
+    final displayName = userData?['displayName'] ?? 'User';
+    final email = userData?['email'] ?? authUser?.email ?? 'No Email';
+    final photoURL = userData?['photoURL'];
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -240,25 +307,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Row(
             children: [
-              const CircleAvatar(
+              CircleAvatar(
                 radius: 35,
-                backgroundImage: AssetImage(
-                    'assets/images/avatar_placeholder.png'), // Placeholder
+                backgroundImage:
+                    photoURL != null ? NetworkImage(photoURL) : null,
+                child: photoURL == null
+                    ? Icon(
+                        Icons.person,
+                        size: 35,
+                        color: Colors.grey.shade400,
+                      )
+                    : null,
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Sarah Johnson',
-                      style: TextStyle(
+                    Text(
+                      displayName,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
-                      'sarah.johnson@email.com',
+                      email,
                       style: TextStyle(
                         color: Colors.grey.shade600,
                         fontSize: 14,
@@ -266,7 +340,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      AppLocalizations.of(context)!.profile_role_familyAdmin,
+                      'Admin',
                       style: TextStyle(
                         color: Colors.purple.shade700,
                         fontSize: 12,
@@ -282,7 +356,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          EditProfileScreen(userData: userData)),
+                );
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.purple.shade50,
                 foregroundColor: Colors.purple.shade700,
@@ -314,7 +395,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildFamilyManagement(BuildContext context) {
+  Widget _buildFamilyManagement(
+      BuildContext context, Map<String, dynamic>? userData) {
+    final familyName = userData?['familyName'];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -325,9 +408,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           icon: Icons.people,
           iconColor: Colors.blue,
           iconBgColor: Colors.blue.shade50,
-          title: AppLocalizations.of(context)!.profile_family_name,
+          title: AppLocalizations.of(context)!.profile_family_name(familyName),
           subtitle: AppLocalizations.of(context)!.profile_family_members(5),
-          onTap: () {},
+          onTap: () {
+            // TODO: Implement family details screen
+            _showComingSoon(context);
+          },
         ),
         const SizedBox(height: 12),
         _buildListTile(
@@ -337,7 +423,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           iconBgColor: Colors.green.shade50,
           title: AppLocalizations.of(context)!.profile_family_inviteMembers,
           subtitle: AppLocalizations.of(context)!.profile_family_inviteSubtitle,
-          onTap: () {},
+          onTap: () {
+            // TODO: Implement invite members functionality
+            _showComingSoon(context);
+          },
         ),
       ],
     );
@@ -391,9 +480,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               .profile_setting_notificationsSubtitle,
           value: _notificationsEnabled,
           onChanged: (val) {
-            setState(() {
-              _notificationsEnabled = val;
-            });
+            // TODO: Implement notifications functionality
+            _showComingSoon(context);
           },
         ),
         const SizedBox(height: 12),
@@ -408,9 +496,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               .profile_setting_seasonalRemindersSubtitle,
           value: _seasonalRemindersEnabled,
           onChanged: (val) {
-            setState(() {
-              _seasonalRemindersEnabled = val;
-            });
+            // TODO: Implement seasonal reminders functionality
+            _showComingSoon(context);
           },
         ),
         const SizedBox(height: 12),
@@ -424,9 +511,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               AppLocalizations.of(context)!.profile_setting_autoSyncSubtitle,
           value: _autoSyncEnabled,
           onChanged: (val) {
-            setState(() {
-              _autoSyncEnabled = val;
-            });
+            // TODO: Implement auto sync functionality
+            _showComingSoon(context);
           },
         ),
         const SizedBox(height: 12),
@@ -549,7 +635,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           title: AppLocalizations.of(context)!.profile_data_exportData,
           subtitle:
               AppLocalizations.of(context)!.profile_data_exportDataSubtitle,
-          onTap: () {},
+          onTap: () {
+            // TODO: Implement export data
+            _showComingSoon(context);
+          },
         ),
         const SizedBox(height: 12),
         _buildListTile(
@@ -560,7 +649,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           title: AppLocalizations.of(context)!.profile_data_backupData,
           subtitle:
               AppLocalizations.of(context)!.profile_data_backupDataSubtitle,
-          onTap: () {},
+          onTap: () {
+            // TODO: Implement backup data
+            _showComingSoon(context);
+          },
         ),
         const SizedBox(height: 12),
         _buildListTile(
@@ -571,7 +663,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           title: AppLocalizations.of(context)!.profile_data_privacyPolicy,
           subtitle:
               AppLocalizations.of(context)!.profile_data_privacyPolicySubtitle,
-          onTap: () {},
+          onTap: () {
+            // TODO: Navigate to privacy policy
+            _showComingSoon(context);
+          },
         ),
       ],
     );
@@ -591,7 +686,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           title: AppLocalizations.of(context)!.profile_support_helpCenter,
           subtitle:
               AppLocalizations.of(context)!.profile_support_helpCenterSubtitle,
-          onTap: () {},
+          onTap: () {
+            // TODO: Navigate to help center
+            _showComingSoon(context);
+          },
         ),
         const SizedBox(height: 12),
         _buildListTile(
@@ -602,7 +700,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           title: AppLocalizations.of(context)!.profile_support_contactSupport,
           subtitle: AppLocalizations.of(context)!
               .profile_support_contactSupportSubtitle,
-          onTap: () {},
+          onTap: () {
+            // TODO: Implement contact support
+            _showComingSoon(context);
+          },
         ),
         const SizedBox(height: 12),
         _buildListTile(
@@ -613,7 +714,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           title: AppLocalizations.of(context)!.profile_support_rateApp,
           subtitle:
               AppLocalizations.of(context)!.profile_support_rateAppSubtitle,
-          onTap: () {},
+          onTap: () {
+            // TODO: Implement rate app
+            _showComingSoon(context);
+          },
         ),
       ],
     );

@@ -54,7 +54,14 @@
     }
   },
 
-  "home_appBar_subtitle": "Johnson Family",
+  "home_appBar_subtitle": "{familyName} Family",
+  "@home_appBar_subtitle": {
+    "placeholders": {
+      "familyName": {
+        "type": "String"
+      }
+    }
+  },
   "home_stats_totalItems": "Total Items",
   "home_stats_members": "Members",
   "home_search_hint": "Search items, locations...",
@@ -196,7 +203,14 @@
   "profile_section_dataPrivacy": "Data & Privacy",
   "profile_section_support": "Support",
   "profile_section_language": "Language",
-  "profile_family_name": "Johnson Family",
+  "profile_family_name": "{familyName} Family",
+  "@profile_family_name": {
+    "placeholders": {
+      "familyName": {
+        "type": "String"
+      }
+    }
+  },
   "profile_family_members": "{count} members • You are admin",
   "@profile_family_members": {
     "placeholders": {
@@ -267,6 +281,7 @@
   "common_filter": "Filter",
   "common_error": "Error",
   "common_success": "Success",
+  "common_comingSoon": "Coming Soon",
 
   "addMember_title_add": "Add Family Member",
   "addMember_title_edit": "Edit Family Member",
@@ -464,5 +479,26 @@
   },
   "items_statusInUse": "In Use",
   "items_statusStored": "Stored",
-  "items_statusOutgrown": "Outgrown"
+  "items_statusOutgrown": "Outgrown",
+
+  "editProfile_title": "Edit Profile",
+  "editProfile_changePhoto": "Change Photo",
+  "editProfile_section_personalInfo": "Personal Information",
+  "editProfile_field_fullName": "Full Name",
+  "editProfile_field_email": "Email Address",
+  "editProfile_hint_emailCannotChanged": "Email cannot be changed",
+  "editProfile_field_phone": "Phone Number",
+  "editProfile_field_role": "Role",
+  "editProfile_section_preferences": "Preferences",
+  "editProfile_pref_emailNotifications": "Email Notifications",
+  "editProfile_pref_emailNotificationsSubtitle": "Receive updates via email",
+  "editProfile_pref_pushNotifications": "Push Notifications",
+  "editProfile_pref_pushNotificationsSubtitle": "Get alerts on your device",
+  "editProfile_pref_weeklyDigest": "Weekly Digest",
+  "editProfile_pref_weeklyDigestSubtitle": "Summary of family activity",
+  "editProfile_section_unitsDisplay": "Units & Display",
+  "editProfile_field_measurementSystem": "Measurement System",
+  "editProfile_option_imperial": "Imperial (US)",
+  "editProfile_option_metric": "Metric",
+  "editProfile_button_saveChanges": "Save Changes"
 }

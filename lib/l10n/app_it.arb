@@ -33,7 +33,14 @@
   "emailLogin_success_passwordReset": "Email di reimpostazione inviata",
   "emailLogin_error_generic": "Errore: {error}",
 
-  "home_appBar_subtitle": "Famiglia Johnson",
+  "home_appBar_subtitle": "Famiglia {familyName}",
+  "@home_appBar_subtitle": {
+    "placeholders": {
+      "familyName": {
+        "type": "String"
+      }
+    }
+  },
   "home_stats_totalItems": "Articoli Totali",
   "home_stats_members": "Membri",
   "home_search_hint": "Cerca articoli, posizioni...",
@@ -112,7 +119,7 @@
   "profile_section_dataPrivacy": "Dati e Privacy",
   "profile_section_support": "Supporto",
   "profile_section_language": "Lingua",
-  "profile_family_name": "Famiglia Johnson",
+  "profile_family_name": "Famiglia {familyName}",
   "profile_family_members": "{count} membri • Sei amministratore",
   "profile_family_inviteMembers": "Invita Membri",
   "profile_family_inviteSubtitle": "Condividi accesso familiare",
@@ -169,6 +176,7 @@
   "common_filter": "Filtra",
   "common_error": "Errore",
   "common_success": "Successo",
+  "common_comingSoon": "Prossimamente",
 
   "addMember_title_add": "Aggiungi Membro Familiare",
   "addMember_title_edit": "Modifica Membro Familiare",
@@ -283,5 +291,26 @@
   "items_quantity": "Quantità: {count}",
   "items_statusInUse": "In Uso",
   "items_statusStored": "Archiviato",
-  "items_statusOutgrown": "Troppo Piccolo"
+  "items_statusOutgrown": "Troppo Piccolo",
+
+  "editProfile_title": "Modifica Profilo",
+  "editProfile_changePhoto": "Cambia Foto",
+  "editProfile_section_personalInfo": "Informazioni Personali",
+  "editProfile_field_fullName": "Nome Completo",
+  "editProfile_field_email": "Indirizzo Email",
+  "editProfile_hint_emailCannotChanged": "L'email non può essere modificata",
+  "editProfile_field_phone": "Numero di Telefono",
+  "editProfile_field_role": "Ruolo",
+  "editProfile_section_preferences": "Preferenze",
+  "editProfile_pref_emailNotifications": "Notifiche Email",
+  "editProfile_pref_emailNotificationsSubtitle": "Ricevi aggiornamenti via email",
+  "editProfile_pref_pushNotifications": "Notifiche Push",
+  "editProfile_pref_pushNotificationsSubtitle": "Ricevi avvisi sul tuo dispositivo",
+  "editProfile_pref_weeklyDigest": "Riepilogo Settimanale",
+  "editProfile_pref_weeklyDigestSubtitle": "Riepilogo dell'attività familiare",
+  "editProfile_section_unitsDisplay": "Unità e Visualizzazione",
+  "editProfile_field_measurementSystem": "Sistema di Misurazione",
+  "editProfile_option_imperial": "Imperiale (USA)",
+  "editProfile_option_metric": "Metrico",
+  "editProfile_button_saveChanges": "Salva Modifiche"
 }

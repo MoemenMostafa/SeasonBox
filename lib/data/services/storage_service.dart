@@ -112,6 +112,41 @@ class StorageService {
     }
   }
 
+  /// Upload profile image (full and thumbnail)
+  Future<String> uploadProfileImage({
+    required File file,
+    required String userId,
+  }) async {
+    try {
+      final uuid = _uuid.v4();
+
+      // Compress full image
+      final compressedFile = await compressImage(file);
+
+      // Generate thumbnail (we'll specifically use the thumbnail for profile display)
+      final thumbnailFile = await generateThumbnail(file);
+
+      // Upload thumbnail (as primary profile photo)
+      final ref = _storage
+          .ref()
+          .child('users')
+          .child(userId)
+          .child('profile')
+          .child('profile_$uuid.jpg');
+
+      await ref.putFile(thumbnailFile);
+      final downloadUrl = await ref.getDownloadURL();
+
+      // Clean up temp files
+      await compressedFile.delete();
+      await thumbnailFile.delete();
+
+      return downloadUrl;
+    } catch (e) {
+      throw Exception('Failed to upload profile image: $e');
+    }
+  }
+
   Future<void> deleteFile(String fileUrl) async {
     try {
       final Reference ref = _storage.refFromURL(fileUrl);

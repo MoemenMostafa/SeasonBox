@@ -13,6 +13,7 @@ import 'package:seasonbox/data/repositories/storage_location_repository.dart';
 import 'package:seasonbox/features/auth/data/auth_service.dart';
 import 'package:seasonbox/widgets/image_gallery_viewer.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
+import 'package:seasonbox/data/services/user_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -27,6 +28,9 @@ class _HomeScreenState extends State<HomeScreen> {
   List<StorageLocation> _locations = [];
   bool _isLoading = true;
 
+  String? _familyName;
+  String? _userPhotoURL;
+
   @override
   void initState() {
     super.initState();
@@ -35,14 +39,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadData() async {
     try {
-      final familyId =
-          await context.read<AuthService>().getCurrentUserFamilyId();
+      final authService = context.read<AuthService>();
+      final currentUser = authService.currentUser;
+      final familyId = await authService.getCurrentUserFamilyId();
 
       if (!mounted) return;
 
-      if (familyId == null) {
+      if (familyId == null || currentUser == null) {
         throw Exception('User not authenticated');
       }
+
+      // Fetch user data for family name and photo
+      final userDoc = await context
+          .read<UserService>()
+          .getUserStream(currentUser.uid)
+          .first;
+      final userData = userDoc.data() as Map<String, dynamic>?;
 
       final members = await context
           .read<FamilyMemberRepository>()
@@ -68,6 +80,8 @@ class _HomeScreenState extends State<HomeScreen> {
           _members = members;
           _items = items;
           _locations = locations;
+          _familyName = userData?['familyName'] ?? 'Your'; // Fallback
+          _userPhotoURL = userData?['photoURL'];
           _isLoading = false;
         });
       }
@@ -88,7 +102,16 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: SeasonBoxAppBar(
         title: AppLocalizations.of(context)!.appTitle,
-        subtitle: AppLocalizations.of(context)!.home_appBar_subtitle,
+        subtitle: AppLocalizations.of(context)!
+            .home_appBar_subtitle(_familyName ?? ''),
+        leading: _userPhotoURL != null
+            ? Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: CircleAvatar(
+                  backgroundImage: NetworkImage(_userPhotoURL!),
+                ),
+              )
+            : null,
       ),
       body: SafeArea(
         child: _isLoading

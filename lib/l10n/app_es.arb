@@ -33,7 +33,14 @@
   "emailLogin_success_passwordReset": "Correo de restablecimiento enviado",
   "emailLogin_error_generic": "Error: {error}",
 
-  "home_appBar_subtitle": "Familia Johnson",
+  "home_appBar_subtitle": "Familia {familyName}",
+  "@home_appBar_subtitle": {
+    "placeholders": {
+      "familyName": {
+        "type": "String"
+      }
+    }
+  },
   "home_stats_totalItems": "Artículos Totales",
   "home_stats_members": "Miembros",
   "home_search_hint": "Buscar artículos, ubicaciones...",
@@ -112,7 +119,7 @@
   "profile_section_dataPrivacy": "Datos y Privacidad",
   "profile_section_support": "Soporte",
   "profile_section_language": "Idioma",
-  "profile_family_name": "Familia Johnson",
+  "profile_family_name": "Familia {familyName}",
   "profile_family_members": "{count} miembros • Eres administrador",
   "profile_family_inviteMembers": "Invitar Miembros",
   "profile_family_inviteSubtitle": "Compartir acceso familiar",
@@ -169,6 +176,7 @@
   "common_filter": "Filtrar",
   "common_error": "Error",
   "common_success": "Éxito",
+  "common_comingSoon": "Próximamente",
 
   "addMember_title_add": "Agregar Miembro Familiar",
   "addMember_title_edit": "Editar Miembro Familiar",
@@ -283,5 +291,26 @@
   "items_quantity": "Cantidad: {count}",
   "items_statusInUse": "En Uso",
   "items_statusStored": "Almacenado",
-  "items_statusOutgrown": "Quedó Pequeño"
+  "items_statusOutgrown": "Quedó Pequeño",
+
+  "editProfile_title": "Editar Perfil",
+  "editProfile_changePhoto": "Cambiar Foto",
+  "editProfile_section_personalInfo": "Información Personal",
+  "editProfile_field_fullName": "Nombre Completo",
+  "editProfile_field_email": "Correo Electrónico",
+  "editProfile_hint_emailCannotChanged": "El correo no se puede cambiar",
+  "editProfile_field_phone": "Número de Teléfono",
+  "editProfile_field_role": "Rol",
+  "editProfile_section_preferences": "Preferencias",
+  "editProfile_pref_emailNotifications": "Notificaciones por Correo",
+  "editProfile_pref_emailNotificationsSubtitle": "Recibir actualizaciones por correo",
+  "editProfile_pref_pushNotifications": "Notificaciones Push",
+  "editProfile_pref_pushNotificationsSubtitle": "Recibir alertas en tu dispositivo",
+  "editProfile_pref_weeklyDigest": "Resumen Semanal",
+  "editProfile_pref_weeklyDigestSubtitle": "Resumen de actividad familiar",
+  "editProfile_section_unitsDisplay": "Unidades y Visualización",
+  "editProfile_field_measurementSystem": "Sistema de Medidas",
+  "editProfile_option_imperial": "Imperial (EE. UU.)",
+  "editProfile_option_metric": "Métrico",
+  "editProfile_button_saveChanges": "Guardar Cambios"
 }

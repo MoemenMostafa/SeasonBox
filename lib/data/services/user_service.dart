@@ -23,6 +23,8 @@ class UserService {
       'email': firebaseUser.email,
       'displayName': firebaseUser.displayName,
       'familyId': firebaseUser.uid, // User's own family by default
+      'photoURL': firebaseUser.photoURL,
+      'phoneNumber': firebaseUser.phoneNumber,
     }, SetOptions(merge: true));
 
     // Ensure a family exists for this user.
@@ -33,6 +35,32 @@ class UserService {
         settings: const {},
       );
       await _familyRepository.createFamily(family);
+    }
+  }
+
+  /// Returns a stream of the user document for the given [uid].
+  Stream<DocumentSnapshot> getUserStream(String uid) {
+    return _firestoreService.users.doc(uid).snapshots();
+  }
+
+  /// Updates the user's profile information in Firestore.
+  Future<void> updateUserProfile({
+    required String uid,
+    String? displayName,
+    String? phoneNumber,
+    String? photoURL,
+    String? familyName,
+    Map<String, dynamic>? preferences,
+  }) async {
+    final Map<String, dynamic> data = {};
+    if (displayName != null) data['displayName'] = displayName;
+    if (phoneNumber != null) data['phoneNumber'] = phoneNumber;
+    if (photoURL != null) data['photoURL'] = photoURL;
+    if (familyName != null) data['familyName'] = familyName;
+    if (preferences != null) data['preferences'] = preferences;
+
+    if (data.isNotEmpty) {
+      await _firestoreService.users.doc(uid).update(data);
     }
   }
 }

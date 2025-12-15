@@ -107,7 +107,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get home_appBar_subtitle => 'Johnson Family';
+  String home_appBar_subtitle(String familyName) {
+    return '$familyName Family';
+  }
 
   @override
   String get home_stats_totalItems => 'Total Items';
@@ -358,7 +360,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profile_section_language => 'Language';
 
   @override
-  String get profile_family_name => 'Johnson Family';
+  String profile_family_name(String familyName) {
+    return '$familyName Family';
+  }
 
   @override
   String profile_family_members(int count) {
@@ -528,6 +532,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get common_success => 'Success';
+
+  @override
+  String get common_comingSoon => 'Coming Soon';
 
   @override
   String get addMember_title_add => 'Add Family Member';
@@ -886,4 +893,67 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get items_statusOutgrown => 'Outgrown';
+
+  @override
+  String get editProfile_title => 'Edit Profile';
+
+  @override
+  String get editProfile_changePhoto => 'Change Photo';
+
+  @override
+  String get editProfile_section_personalInfo => 'Personal Information';
+
+  @override
+  String get editProfile_field_fullName => 'Full Name';
+
+  @override
+  String get editProfile_field_email => 'Email Address';
+
+  @override
+  String get editProfile_hint_emailCannotChanged => 'Email cannot be changed';
+
+  @override
+  String get editProfile_field_phone => 'Phone Number';
+
+  @override
+  String get editProfile_field_role => 'Role';
+
+  @override
+  String get editProfile_section_preferences => 'Preferences';
+
+  @override
+  String get editProfile_pref_emailNotifications => 'Email Notifications';
+
+  @override
+  String get editProfile_pref_emailNotificationsSubtitle =>
+      'Receive updates via email';
+
+  @override
+  String get editProfile_pref_pushNotifications => 'Push Notifications';
+
+  @override
+  String get editProfile_pref_pushNotificationsSubtitle =>
+      'Get alerts on your device';
+
+  @override
+  String get editProfile_pref_weeklyDigest => 'Weekly Digest';
+
+  @override
+  String get editProfile_pref_weeklyDigestSubtitle =>
+      'Summary of family activity';
+
+  @override
+  String get editProfile_section_unitsDisplay => 'Units & Display';
+
+  @override
+  String get editProfile_field_measurementSystem => 'Measurement System';
+
+  @override
+  String get editProfile_option_imperial => 'Imperial (US)';
+
+  @override
+  String get editProfile_option_metric => 'Metric';
+
+  @override
+  String get editProfile_button_saveChanges => 'Save Changes';
 }

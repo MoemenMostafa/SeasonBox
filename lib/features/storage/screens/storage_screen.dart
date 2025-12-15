@@ -252,7 +252,7 @@ class _StorageScreenState extends State<StorageScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: color, size: 24),
@@ -267,7 +267,7 @@ class _StorageScreenState extends State<StorageScreen> {
           Text(
             label,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
             ),
           ),
         ],
@@ -289,7 +289,8 @@ class _StorageScreenState extends State<StorageScreen> {
               prefixIcon: Icon(Icons.search, color: theme.iconTheme.color),
               suffixIcon: Icon(Icons.tune, color: theme.iconTheme.color),
               filled: true,
-              fillColor: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
+              fillColor:
+                  isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
@@ -491,7 +492,7 @@ class _StorageScreenState extends State<StorageScreen> {
                   width: 50,
                   height: 50,
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
+                    color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(icon, color: color),
@@ -511,7 +512,7 @@ class _StorageScreenState extends State<StorageScreen> {
                         '${location.type} \u2022 ${location.description.isNotEmpty ? location.description : AppLocalizations.of(context)!.storage_noDescription}',
                         style: TextStyle(
                           color: theme.textTheme.bodySmall?.color
-                              ?.withOpacity(0.7),
+                              ?.withValues(alpha: 0.7),
                           fontSize: 13,
                         ),
                       ),

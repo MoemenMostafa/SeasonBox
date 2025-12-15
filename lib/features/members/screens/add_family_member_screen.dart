@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 import 'package:seasonbox/widgets/app_card.dart';
 import 'package:seasonbox/widgets/season_box_app_bar.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
+import 'package:seasonbox/widgets/action_buttons.dart';
 
 class AddFamilyMemberScreen extends StatefulWidget {
   final FamilyMember? member;
@@ -351,51 +352,16 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                     const SizedBox(height: 32),
 
                     // Action Buttons
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => context.pop(),
-                            style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: Colors.grey.shade600),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 20),
-                            ),
-                            child: Text(
-                              AppLocalizations.of(context)!.common_cancel,
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: _saveMember,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: theme.colorScheme.primary,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 20),
-                              elevation: 0,
-                            ),
-                            child: Text(
-                              widget.member != null
-                                  ? AppLocalizations.of(context)!
-                                      .addMember_button_update
-                                  : AppLocalizations.of(context)!
-                                      .addMember_button_add,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                    ActionButtons(
+                      primaryLabel: widget.member != null
+                          ? AppLocalizations.of(context)!
+                              .addMember_button_update
+                          : AppLocalizations.of(context)!.addMember_button_add,
+                      secondaryLabel:
+                          AppLocalizations.of(context)!.common_cancel,
+                      onPrimaryPressed: _saveMember,
+                      onSecondaryPressed: () => context.pop(),
+                      isLoading: _isLoading,
                     ),
                     if (widget.member != null) ...[
                       const SizedBox(height: 16),
