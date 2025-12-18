@@ -8,3 +8,5 @@
 - Fixed bug where profile role changes were not being saved.
 - Fixed Profile Screen showing hardcoded 'Admin' role.
 - Standardized styling in `AddFamilyMemberScreen` and `EditProfileScreen` to match app theme.
+- Added user profile picture to the app bar header.
+- Tapping the profile picture in the header now navigates to the Profile tab.

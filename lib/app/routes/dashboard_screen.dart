@@ -5,6 +5,8 @@ import 'package:seasonbox/features/items/screens/items_screen.dart';
 import 'package:seasonbox/features/members/screens/family_members_screen.dart';
 import 'package:seasonbox/features/storage/screens/storage_screen.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
+import 'package:provider/provider.dart';
+import 'package:seasonbox/app/providers/navigation_provider.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -14,8 +16,6 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  int _selectedIndex = 0;
-
   static const List<Widget> _pages = <Widget>[
     HomeScreen(),
     ItemsScreen(),
@@ -24,16 +24,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ProfileScreen(),
   ];
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
+    final navigationProvider = context.watch<NavigationProvider>();
+    final selectedIndex = navigationProvider.selectedIndex;
+
+    // Ensure index is within bounds (safety check)
+    final safeIndex = (selectedIndex >= 0 && selectedIndex < _pages.length)
+        ? selectedIndex
+        : 0;
+
     return Scaffold(
-      body: _pages.elementAt(_selectedIndex),
+      body: _pages.elementAt(safeIndex),
       bottomNavigationBar: BottomNavigationBar(
         items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -57,10 +59,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             label: AppLocalizations.of(context)!.nav_profile,
           ),
         ],
-        currentIndex: _selectedIndex,
+        currentIndex: safeIndex,
         selectedItemColor: Theme.of(context).colorScheme.primary,
         unselectedItemColor: Colors.grey,
-        onTap: _onItemTapped,
+        onTap: (index) => context.read<NavigationProvider>().setIndex(index),
         type: BottomNavigationBarType.fixed,
       ),
     );

@@ -10,6 +10,7 @@ import 'package:seasonbox/data/services/user_service.dart';
 import 'package:seasonbox/data/services/biometric_service.dart';
 import 'package:seasonbox/app/routes/router.dart';
 import 'package:seasonbox/app/theme/theme.dart';
+import 'package:seasonbox/app/providers/navigation_provider.dart';
 import 'package:seasonbox/app/providers/theme_provider.dart';
 import 'package:seasonbox/data/services/firestore_service.dart';
 import 'package:seasonbox/data/repositories/family_repository.dart';
@@ -32,6 +33,8 @@ class SeasonBox extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider<NavigationProvider>(
+            create: (_) => NavigationProvider()),
         Provider<AuthService>(create: (_) => AuthService()),
         Provider<FirestoreService>(create: (_) => FirestoreService()),
         Provider<BiometricService>(create: (_) => BiometricService()),
