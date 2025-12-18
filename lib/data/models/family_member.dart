@@ -11,6 +11,9 @@ class FamilyMember {
   final String? notes;
   final Map<String, double> currentSizeByCategory;
   final List<Map<String, dynamic>> sizeHistory;
+  final String? inviteEmail;
+  final String? inviteStatus; // 'pending', 'accepted', 'none'
+  final String role; // 'admin', 'member', 'child'
 
   FamilyMember({
     required this.id,
@@ -23,6 +26,9 @@ class FamilyMember {
     this.notes,
     this.currentSizeByCategory = const {},
     this.sizeHistory = const [],
+    this.inviteEmail,
+    this.inviteStatus,
+    this.role = 'member',
   });
 
   Map<String, dynamic> toMap() {
@@ -36,6 +42,9 @@ class FamilyMember {
       'notes': notes,
       'currentSizeByCategory': currentSizeByCategory,
       'sizeHistory': sizeHistory,
+      'inviteEmail': inviteEmail,
+      'inviteStatus': inviteStatus,
+      'role': role,
     };
   }
 
@@ -52,6 +61,9 @@ class FamilyMember {
       currentSizeByCategory:
           Map<String, double>.from(map['currentSizeByCategory'] ?? {}),
       sizeHistory: List<Map<String, dynamic>>.from(map['sizeHistory'] ?? []),
+      inviteEmail: map['inviteEmail'],
+      inviteStatus: map['inviteStatus'],
+      role: map['role'] ?? 'member',
     );
   }
 }

@@ -1226,6 +1226,96 @@ abstract class AppLocalizations {
   /// **'Delete Member'**
   String get addMember_button_deleteMember;
 
+  /// No description provided for @addMember_section_accountAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Access'**
+  String get addMember_section_accountAccess;
+
+  /// No description provided for @addMember_field_inviteEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite Email'**
+  String get addMember_field_inviteEmail;
+
+  /// No description provided for @addMember_field_inviteEmailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter email address'**
+  String get addMember_field_inviteEmailHint;
+
+  /// No description provided for @addMember_button_sendInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Invite'**
+  String get addMember_button_sendInvite;
+
+  /// No description provided for @addMember_button_resendInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend Invite'**
+  String get addMember_button_resendInvite;
+
+  /// No description provided for @addMember_status_pending.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitation Pending'**
+  String get addMember_status_pending;
+
+  /// No description provided for @addMember_status_accepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitation Accepted'**
+  String get addMember_status_accepted;
+
+  /// No description provided for @addMember_status_inviteSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitation sent to {email}'**
+  String addMember_status_inviteSent(Object email);
+
+  /// No description provided for @addMember_status_accountLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Linked: {email}'**
+  String addMember_status_accountLinked(Object email);
+
+  /// No description provided for @addMember_error_invalidEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid email'**
+  String get addMember_error_invalidEmail;
+
+  /// No description provided for @addMember_field_role.
+  ///
+  /// In en, this message translates to:
+  /// **'Member Role'**
+  String get addMember_field_role;
+
+  /// No description provided for @addMember_role_admin.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin'**
+  String get addMember_role_admin;
+
+  /// No description provided for @addMember_role_member.
+  ///
+  /// In en, this message translates to:
+  /// **'Member'**
+  String get addMember_role_member;
+
+  /// No description provided for @addMember_role_child.
+  ///
+  /// In en, this message translates to:
+  /// **'Child'**
+  String get addMember_role_child;
+
+  /// No description provided for @addMember_invite_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite family members to join your SeasonBox family. They will be able to view and manage items based on their role.'**
+  String get addMember_invite_description;
+
   /// No description provided for @addMember_validation_nameRequired.
   ///
   /// In en, this message translates to:

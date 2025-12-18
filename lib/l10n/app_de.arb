@@ -204,6 +204,21 @@
   "addMember_button_add": "Hinzufügen",
   "addMember_button_deleteMember": "Mitglied Löschen",
   "addMember_validation_nameRequired": "Bitte geben Sie einen Namen ein",
+  "addMember_section_accountAccess": "Kontozugriff",
+  "addMember_field_inviteEmail": "Einladungs-E-Mail",
+  "addMember_field_inviteEmailHint": "E-Mail-Adresse eingeben",
+  "addMember_button_sendInvite": "Einladung senden",
+  "addMember_button_resendInvite": "Einladung erneut senden",
+  "addMember_status_pending": "Einladung ausstehend",
+  "addMember_status_accepted": "Einladung angenommen",
+  "addMember_status_inviteSent": "Einladung gesendet an {email}",
+  "addMember_status_accountLinked": "Konto verknüpft: {email}",
+  "addMember_error_invalidEmail": "Bitte geben Sie eine gültige E-Mail ein",
+  "addMember_field_role": "Mitgliedsrolle",
+  "addMember_role_admin": "Admin",
+  "addMember_role_member": "Mitglied",
+  "addMember_role_child": "Kind",
+  "addMember_invite_description": "Laden Sie Familienmitglieder ein, Ihrer SeasonBox-Familie beizutreten. Sie können Artikel je nach Rolle anzeigen und verwalten.",
 
   "members_title": "Familienmitglieder",
   "members_label_currentSize": "Aktuelle Größe",
@@ -313,4 +328,5 @@
   "editProfile_option_imperial": "Imperial (US)",
   "editProfile_option_metric": "Metrisch",
   "editProfile_button_saveChanges": "Änderungen speichern"
+
 }

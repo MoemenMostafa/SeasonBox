@@ -32,6 +32,13 @@ The AI is empowered to modify the Flutter codebase and manage its dependencies a
   1. When a change introduces a need for code generation (e.g., for freezed classes, json\_serializable models, or riverpod\_generator), the AI will:
      1. Ensure build\_runner is listed in dev\_dependencies in pubspec.yaml.
      2. Automatically execute dart run build\_runner build \--delete-conflicting-outputs to generate necessary files after code modifications that require it.
+* **Localization:**
+  * The AI will ensure all user-facing text is localized using `.arb` files.
+  * **Critical Workflow:** When adding ANY new text content:
+    1. Create a new key in `lib/l10n/app_en.arb`.
+    2. IMMEDIATELY copy that key to **ALL** other supported language files (`app_es.arb`, `app_fr.arb`, `app_de.arb`, `app_it.arb`).
+    3. Translate the values for each language effectively.
+  * When adding new keys, the AI **MUST** maintain the structural integrity of the `.arb` files by grouping keys logically by feature or screen (e.g., all `addMember_*` keys together), rather than appending them to the end of the file.
 * **Code Quality:** The AI aims to adhere to Flutter/Dart best practices, including:
   * Clean code structure and separation of concerns (e.g., UI logic separate from business logic).
   * Meaningful and consistent naming conventions.

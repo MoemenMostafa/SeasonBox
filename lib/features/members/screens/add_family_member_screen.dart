@@ -9,6 +9,7 @@ import 'package:seasonbox/widgets/app_card.dart';
 import 'package:seasonbox/widgets/season_box_app_bar.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
 import 'package:seasonbox/widgets/action_buttons.dart';
+import 'package:seasonbox/core/enums/user_role.dart';
 
 class AddFamilyMemberScreen extends StatefulWidget {
   final FamilyMember? member;
@@ -25,14 +26,17 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
   final _notesController = TextEditingController();
   final _clothingSizeController = TextEditingController();
   final _shoeSizeController = TextEditingController();
+  final _inviteEmailController = TextEditingController();
 
   String _gender = 'Unisex';
+  String _role = 'member';
   DateTime _birthdate = DateTime.now();
 
   // Sizes
   double? _clothesSize;
   double? _shoeSize;
 
+  String? _inviteStatus;
   bool _isLoading = false;
 
   @override
@@ -47,6 +51,9 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
       _shoeSize = widget.member!.shoeSize;
       _clothingSizeController.text = _clothesSize?.toString() ?? '';
       _shoeSizeController.text = _shoeSize?.toString() ?? '';
+      _inviteStatus = widget.member!.inviteStatus;
+      _inviteEmailController.text = widget.member!.inviteEmail ?? '';
+      _role = widget.member!.role;
     }
   }
 
@@ -56,6 +63,7 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
     _notesController.dispose();
     _clothingSizeController.dispose();
     _shoeSizeController.dispose();
+    _inviteEmailController.dispose();
     super.dispose();
   }
 
@@ -80,9 +88,14 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
         name: _nameController.text.trim(),
         birthdate: _birthdate,
         gender: _gender,
+        role: _role,
         clothingSize: _clothesSize,
         shoeSize: _shoeSize,
         notes: _notesController.text.trim(),
+        inviteEmail: _inviteEmailController.text.trim().isNotEmpty
+            ? _inviteEmailController.text.trim()
+            : null,
+        inviteStatus: _inviteStatus,
       );
 
       if (!mounted) return;
@@ -116,6 +129,24 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
         });
       }
     }
+  }
+
+  Future<void> _sendInvite() async {
+    final email = _inviteEmailController.text.trim();
+    if (email.isEmpty || !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(
+                AppLocalizations.of(context)!.addMember_error_invalidEmail)),
+      );
+      return;
+    }
+
+    setState(() {
+      _inviteStatus = 'pending';
+    });
+
+    await _saveMember();
   }
 
   Future<void> _deleteMember() async {
@@ -351,6 +382,27 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                     ),
                     const SizedBox(height: 32),
 
+                    const SizedBox(height: 24),
+
+                    // Account Access Section
+                    Text(
+                        AppLocalizations.of(context)!
+                            .addMember_section_accountAccess,
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    Text(
+                      AppLocalizations.of(context)!
+                          .addMember_invite_description,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildAccountAccessSection(theme),
+                    const SizedBox(height: 32),
+
                     // Action Buttons
                     ActionButtons(
                       primaryLabel: widget.member != null
@@ -449,6 +501,116 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
           ),
         );
       }).toList(),
+    );
+  }
+
+  Widget _buildAccountAccessSection(ThemeData theme) {
+    if (_inviteStatus == 'accepted') {
+      return AppCard(
+        child: Row(
+          children: [
+            const Icon(Icons.check_circle, color: Colors.green),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                AppLocalizations.of(context)!.addMember_status_accountLinked(
+                    _inviteEmailController.text),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else if (_inviteStatus == 'pending') {
+      return AppCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.mark_email_read, color: Colors.orange),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    AppLocalizations.of(context)!.addMember_status_inviteSent(
+                        _inviteEmailController.text),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: _sendInvite,
+                child: Text(AppLocalizations.of(context)!
+                    .addMember_button_resendInvite),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildRoleSelector(),
+          ],
+        ),
+      );
+    } else {
+      return AppCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextFormField(
+              controller: _inviteEmailController,
+              decoration: InputDecoration(
+                labelText:
+                    AppLocalizations.of(context)!.addMember_field_inviteEmail,
+                hintText: AppLocalizations.of(context)!
+                    .addMember_field_inviteEmailHint,
+                prefixIcon: const Icon(Icons.email),
+              ),
+              keyboardType: TextInputType.emailAddress,
+            ),
+            const SizedBox(height: 16),
+            _buildRoleSelector(),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _sendInvite,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.primaryContainer,
+                  foregroundColor: theme.colorScheme.onPrimaryContainer,
+                ),
+                child: Text(
+                    AppLocalizations.of(context)!.addMember_button_sendInvite),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  Widget _buildRoleSelector() {
+    return DropdownButtonFormField<String>(
+      // ignore: deprecated_member_use
+      value: _role,
+      decoration: InputDecoration(
+        labelText: AppLocalizations.of(context)!.addMember_field_role,
+        prefixIcon: const Icon(Icons.security),
+      ),
+      items: UserRole.values.map((role) {
+        return DropdownMenuItem(
+          value: role.toShortString(),
+          child: Text(role.getLocalizedName(context)),
+        );
+      }).toList(),
+      onChanged: (value) {
+        if (value != null) {
+          setState(() {
+            _role = value;
+          });
+        }
+      },
     );
   }
 }

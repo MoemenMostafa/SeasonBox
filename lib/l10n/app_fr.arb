@@ -200,11 +200,26 @@
   "addMember_field_shoeSizeHint": "ex. 28",
   "addMember_section_notes": "Notes Supplémentaires",
   "addMember_field_notesHint": "Notes spéciales sur les préférences de cet enfant, etc.",
-  "addMember_button_update": "Mettre à Jour",
+  "addMember_button_update": "Mettre à jour",
   "addMember_button_add": "Ajouter",
-  "addMember_button_deleteMember": "Supprimer le Membre",
+  "addMember_button_deleteMember": "Supprimer le membre",
   "addMember_validation_nameRequired": "Veuillez entrer un nom",
-
+  "addMember_section_accountAccess": "Accès au Compte",
+  "addMember_field_inviteEmail": "Email d'invitation",
+  "addMember_field_inviteEmailHint": "Entrez l'adresse e-mail",
+  "addMember_button_sendInvite": "Envoyer l'invitation",
+  "addMember_button_resendInvite": "Renvoyer l'invitation",
+  "addMember_status_pending": "Invitation en attente",
+  "addMember_status_accepted": "Invitation acceptée",
+  "addMember_status_inviteSent": "Invitation envoyée à {email}",
+  "addMember_status_accountLinked": "Compte lié : {email}",
+  "addMember_error_invalidEmail": "Veuillez entrer un email valide",
+  "addMember_field_role": "Rôle du Membre",
+  "addMember_role_admin": "Admin",
+  "addMember_role_member": "Membre",
+  "addMember_role_child": "Enfant",
+  "addMember_invite_description": "Invitez des membres de la famille à rejoindre votre famille SeasonBox. Ils pourront voir et gérer les articles selon leur rôle.",
+  
   "members_title": "Membres de la Famille",
   "members_label_currentSize": "Taille Actuelle",
   "members_label_items": "Articles",
@@ -313,4 +328,5 @@
   "editProfile_option_imperial": "Impérial (US)",
   "editProfile_option_metric": "Métrique",
   "editProfile_button_saveChanges": "Enregistrer les modifications"
+
 }

@@ -625,6 +625,56 @@ class AppLocalizationsIt extends AppLocalizations {
   String get addMember_button_deleteMember => 'Elimina Membro';
 
   @override
+  String get addMember_section_accountAccess => 'Accesso all\'Account';
+
+  @override
+  String get addMember_field_inviteEmail => 'Email di Invito';
+
+  @override
+  String get addMember_field_inviteEmailHint => 'Inserisci indirizzo email';
+
+  @override
+  String get addMember_button_sendInvite => 'Invia Invito';
+
+  @override
+  String get addMember_button_resendInvite => 'Reinvia Invito';
+
+  @override
+  String get addMember_status_pending => 'Invito in Sospeso';
+
+  @override
+  String get addMember_status_accepted => 'Invito Accettato';
+
+  @override
+  String addMember_status_inviteSent(Object email) {
+    return 'Invito inviato a $email';
+  }
+
+  @override
+  String addMember_status_accountLinked(Object email) {
+    return 'Account Collegato: $email';
+  }
+
+  @override
+  String get addMember_error_invalidEmail => 'Inserisci un\'email valida';
+
+  @override
+  String get addMember_field_role => 'Ruolo Membro';
+
+  @override
+  String get addMember_role_admin => 'Admin';
+
+  @override
+  String get addMember_role_member => 'Membro';
+
+  @override
+  String get addMember_role_child => 'Bambino/a';
+
+  @override
+  String get addMember_invite_description =>
+      'Invita i familiari a unirsi alla tua famiglia SeasonBox. Potranno visualizzare e gestire gli articoli in base al loro ruolo.';
+
+  @override
   String get addMember_validation_nameRequired => 'Inserisci un nome';
 
   @override

@@ -618,6 +618,56 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addMember_button_deleteMember => 'Delete Member';
 
   @override
+  String get addMember_section_accountAccess => 'Account Access';
+
+  @override
+  String get addMember_field_inviteEmail => 'Invite Email';
+
+  @override
+  String get addMember_field_inviteEmailHint => 'Enter email address';
+
+  @override
+  String get addMember_button_sendInvite => 'Send Invite';
+
+  @override
+  String get addMember_button_resendInvite => 'Resend Invite';
+
+  @override
+  String get addMember_status_pending => 'Invitation Pending';
+
+  @override
+  String get addMember_status_accepted => 'Invitation Accepted';
+
+  @override
+  String addMember_status_inviteSent(Object email) {
+    return 'Invitation sent to $email';
+  }
+
+  @override
+  String addMember_status_accountLinked(Object email) {
+    return 'Account Linked: $email';
+  }
+
+  @override
+  String get addMember_error_invalidEmail => 'Please enter a valid email';
+
+  @override
+  String get addMember_field_role => 'Member Role';
+
+  @override
+  String get addMember_role_admin => 'Admin';
+
+  @override
+  String get addMember_role_member => 'Member';
+
+  @override
+  String get addMember_role_child => 'Child';
+
+  @override
+  String get addMember_invite_description =>
+      'Invite family members to join your SeasonBox family. They will be able to view and manage items based on their role.';
+
+  @override
   String get addMember_validation_nameRequired => 'Please enter a name';
 
   @override

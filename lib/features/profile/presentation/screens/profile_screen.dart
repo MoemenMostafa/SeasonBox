@@ -415,19 +415,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _showComingSoon(context);
           },
         ),
-        const SizedBox(height: 12),
-        _buildListTile(
-          context,
-          icon: Icons.person_add,
-          iconColor: Colors.green,
-          iconBgColor: Colors.green.shade50,
-          title: AppLocalizations.of(context)!.profile_family_inviteMembers,
-          subtitle: AppLocalizations.of(context)!.profile_family_inviteSubtitle,
-          onTap: () {
-            // TODO: Implement invite members functionality
-            _showComingSoon(context);
-          },
-        ),
       ],
     );
   }
@@ -480,6 +467,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               .profile_setting_notificationsSubtitle,
           value: _notificationsEnabled,
           onChanged: (val) {
+            setState(() {
+              _notificationsEnabled = val;
+            });
             // TODO: Implement notifications functionality
             _showComingSoon(context);
           },
@@ -496,6 +486,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               .profile_setting_seasonalRemindersSubtitle,
           value: _seasonalRemindersEnabled,
           onChanged: (val) {
+            setState(() {
+              _seasonalRemindersEnabled = val;
+            });
             // TODO: Implement seasonal reminders functionality
             _showComingSoon(context);
           },
@@ -511,6 +504,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               AppLocalizations.of(context)!.profile_setting_autoSyncSubtitle,
           value: _autoSyncEnabled,
           onChanged: (val) {
+            setState(() {
+              _autoSyncEnabled = val;
+            });
             // TODO: Implement auto sync functionality
             _showComingSoon(context);
           },

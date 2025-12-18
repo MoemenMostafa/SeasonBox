@@ -8,6 +8,7 @@ import 'package:seasonbox/data/services/storage_service.dart';
 import 'package:seasonbox/data/services/user_service.dart';
 import 'package:seasonbox/features/auth/data/auth_service.dart';
 import 'package:seasonbox/widgets/action_buttons.dart';
+import 'package:seasonbox/core/enums/user_role.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final Map<String, dynamic>? userData;
@@ -22,6 +23,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _nameController;
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
+  late UserRole _role;
   File? _imageFile;
   bool _isLoading = false;
 
@@ -42,6 +44,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         TextEditingController(text: widget.userData?['email'] ?? '');
     _phoneController =
         TextEditingController(text: widget.userData?['phoneNumber'] ?? '');
+
+    _role = UserRole.fromString(widget.userData?['role'] ?? 'member');
 
     // Initialize preferences if they exist in userData
     if (widget.userData?['preferences'] != null) {
@@ -330,9 +334,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           const SizedBox(height: 16),
           _buildDropdownField(
             label: AppLocalizations.of(context)!.editProfile_field_role,
-            value: 'Admin',
-            items: ['Admin', 'Member'],
-            onChanged: (val) {}, // Read-only or functional later
+            value: _role.toShortString(),
+            items: UserRole.values.map((e) => e.toShortString()).toList(),
+            itemLabelBuilder: (value) =>
+                UserRole.fromString(value).getLocalizedName(context),
+            onChanged: (val) {
+              if (val != null) {
+                setState(() => _role = UserRole.fromString(val));
+              }
+            },
           ),
         ],
       ),

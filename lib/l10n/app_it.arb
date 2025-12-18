@@ -205,6 +205,22 @@
   "addMember_button_deleteMember": "Elimina Membro",
   "addMember_validation_nameRequired": "Inserisci un nome",
 
+  "addMember_section_accountAccess": "Accesso all'Account",
+  "addMember_field_inviteEmail": "Email di Invito",
+  "addMember_field_inviteEmailHint": "Inserisci indirizzo email",
+  "addMember_button_sendInvite": "Invia Invito",
+  "addMember_button_resendInvite": "Reinvia Invito",
+  "addMember_status_pending": "Invito in Sospeso",
+  "addMember_status_accepted": "Invito Accettato",
+  "addMember_status_inviteSent": "Invito inviato a {email}",
+  "addMember_status_accountLinked": "Account Collegato: {email}",
+  "addMember_error_invalidEmail": "Inserisci un'email valida",
+  "addMember_field_role": "Ruolo Membro",
+  "addMember_role_admin": "Admin",
+  "addMember_role_member": "Membro",
+  "addMember_role_child": "Bambino/a",
+  "addMember_invite_description": "Invita i familiari a unirsi alla tua famiglia SeasonBox. Potranno visualizzare e gestire gli articoli in base al loro ruolo.",
+
   "members_title": "Membri della Famiglia",
   "members_label_currentSize": "Taglia Attuale",
   "members_label_items": "Articoli",
@@ -313,4 +329,5 @@
   "editProfile_option_imperial": "Imperiale (USA)",
   "editProfile_option_metric": "Metrico",
   "editProfile_button_saveChanges": "Salva Modifiche"
+
 }
