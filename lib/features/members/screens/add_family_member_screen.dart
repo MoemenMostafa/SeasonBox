@@ -260,8 +260,7 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                     Text(
                         AppLocalizations.of(context)!
                             .addMember_section_basicInfo,
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
+                        style: theme.textTheme.titleMedium),
                     const SizedBox(height: 8),
                     AppCard(
                       child: Column(
@@ -319,8 +318,7 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
 
                     // Current Sizes Section
                     Text(AppLocalizations.of(context)!.addMember_section_sizes,
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
+                        style: theme.textTheme.titleMedium),
                     const SizedBox(height: 8),
                     AppCard(
                       child: Column(
@@ -366,8 +364,7 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
 
                     // Additional Notes Section
                     Text(AppLocalizations.of(context)!.addMember_section_notes,
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
+                        style: theme.textTheme.titleMedium),
                     const SizedBox(height: 8),
                     AppCard(
                       child: TextFormField(
@@ -388,8 +385,7 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                     Text(
                         AppLocalizations.of(context)!
                             .addMember_section_accountAccess,
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
+                        style: theme.textTheme.titleMedium),
                     const SizedBox(height: 4),
                     Text(
                       AppLocalizations.of(context)!
@@ -558,11 +554,14 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(
+              AppLocalizations.of(context)!.addMember_field_inviteEmail,
+              style: const TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 8),
             TextFormField(
               controller: _inviteEmailController,
               decoration: InputDecoration(
-                labelText:
-                    AppLocalizations.of(context)!.addMember_field_inviteEmail,
                 hintText: AppLocalizations.of(context)!
                     .addMember_field_inviteEmailHint,
                 prefixIcon: const Icon(Icons.email),
@@ -591,26 +590,35 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
   }
 
   Widget _buildRoleSelector() {
-    return DropdownButtonFormField<String>(
-      // ignore: deprecated_member_use
-      value: _role,
-      decoration: InputDecoration(
-        labelText: AppLocalizations.of(context)!.addMember_field_role,
-        prefixIcon: const Icon(Icons.security),
-      ),
-      items: UserRole.values.map((role) {
-        return DropdownMenuItem(
-          value: role.toShortString(),
-          child: Text(role.getLocalizedName(context)),
-        );
-      }).toList(),
-      onChanged: (value) {
-        if (value != null) {
-          setState(() {
-            _role = value;
-          });
-        }
-      },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          AppLocalizations.of(context)!.addMember_field_role,
+          style: const TextStyle(fontSize: 14),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          // ignore: deprecated_member_use
+          value: _role,
+          decoration: const InputDecoration(
+            prefixIcon: Icon(Icons.security),
+          ),
+          items: UserRole.values.map((role) {
+            return DropdownMenuItem(
+              value: role.toShortString(),
+              child: Text(role.getLocalizedName(context)),
+            );
+          }).toList(),
+          onChanged: (value) {
+            if (value != null) {
+              setState(() {
+                _role = value;
+              });
+            }
+          },
+        ),
+      ],
     );
   }
 }

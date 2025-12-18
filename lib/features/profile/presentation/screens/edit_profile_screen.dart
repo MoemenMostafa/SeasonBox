@@ -9,6 +9,7 @@ import 'package:seasonbox/data/services/user_service.dart';
 import 'package:seasonbox/features/auth/data/auth_service.dart';
 import 'package:seasonbox/widgets/action_buttons.dart';
 import 'package:seasonbox/core/enums/user_role.dart';
+import 'package:seasonbox/widgets/app_card.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final Map<String, dynamic>? userData;
@@ -289,28 +290,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Text(
         title,
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-        ),
+        style: Theme.of(context).textTheme.titleMedium,
       ),
     );
   }
 
   Widget _buildPersonalInfoForm(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
+    return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -351,18 +337,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Widget _buildPreferences(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
+    return AppCard(
       child: Column(
         children: [
           _buildSwitchTile(
@@ -392,19 +367,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Widget _buildUnitsAndDisplay(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
+    return AppCard(
       child: Column(
         children: [
           _buildDropdownField(
@@ -458,27 +421,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           keyboardType: keyboardType,
           style: const TextStyle(fontWeight: FontWeight.w500),
           decoration: InputDecoration(
-            filled: true,
-            fillColor: readOnly
-                ? theme.colorScheme.surfaceContainerHighest
-                    .withValues(alpha: 0.5)
-                : theme.inputDecorationTheme.fillColor ?? theme.cardColor,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: theme.colorScheme.outline.withValues(alpha: 0.2),
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: theme.colorScheme.outline.withValues(alpha: 0.2),
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: theme.colorScheme.primary),
-            ),
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             helperText: helperText,
@@ -511,36 +453,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: theme.inputDecorationTheme.fillColor ?? theme.cardColor,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: theme.colorScheme.outline.withValues(alpha: 0.2),
-            ),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: value,
-              isExpanded: true,
-              dropdownColor: theme.cardColor,
-              icon: Icon(Icons.keyboard_arrow_down,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
-              items: items.map((String item) {
-                return DropdownMenuItem<String>(
-                  value: item,
-                  child: Text(
-                    itemLabelBuilder != null ? itemLabelBuilder(item) : item,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                  ),
-                );
-              }).toList(),
-              onChanged: onChanged,
-            ),
+        DropdownButtonFormField<String>(
+          value: value,
+          isExpanded: true,
+          icon: Icon(Icons.keyboard_arrow_down,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+          items: items.map((String item) {
+            return DropdownMenuItem<String>(
+              value: item,
+              child: Text(
+                itemLabelBuilder != null ? itemLabelBuilder(item) : item,
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+            );
+          }).toList(),
+          onChanged: onChanged,
+          // Decoration to match styling if needed, though standard theme usually handles it
+          decoration: const InputDecoration(
+            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
         ),
       ],

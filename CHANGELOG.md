@@ -7,3 +7,4 @@
 - Fixed localization coverage for roles.
 - Fixed bug where profile role changes were not being saved.
 - Fixed Profile Screen showing hardcoded 'Admin' role.
+- Standardized styling in `AddFamilyMemberScreen` and `EditProfileScreen` to match app theme.
