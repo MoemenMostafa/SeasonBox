@@ -9,7 +9,7 @@ enum UserRole {
 
   static UserRole fromString(String role) {
     return UserRole.values.firstWhere(
-      (e) => e.toShortString() == role,
+      (e) => e.toShortString().toLowerCase() == role.toLowerCase(),
       orElse: () => UserRole.member,
     );
   }

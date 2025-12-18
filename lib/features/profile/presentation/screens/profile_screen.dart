@@ -11,6 +11,7 @@ import 'package:seasonbox/l10n/app_localizations.dart';
 import 'package:seasonbox/features/profile/presentation/screens/edit_profile_screen.dart';
 import 'package:seasonbox/data/services/user_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:seasonbox/core/enums/user_role.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -340,7 +341,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Admin',
+                      UserRole.fromString(userData?['role'] ?? 'member')
+                          .getLocalizedName(context),
                       style: TextStyle(
                         color: Colors.purple.shade700,
                         fontSize: 12,

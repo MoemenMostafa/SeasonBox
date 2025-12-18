@@ -50,6 +50,7 @@ class UserService {
     String? phoneNumber,
     String? photoURL,
     String? familyName,
+    String? role,
     Map<String, dynamic>? preferences,
   }) async {
     final Map<String, dynamic> data = {};
@@ -57,6 +58,7 @@ class UserService {
     if (phoneNumber != null) data['phoneNumber'] = phoneNumber;
     if (photoURL != null) data['photoURL'] = photoURL;
     if (familyName != null) data['familyName'] = familyName;
+    if (role != null) data['role'] = role;
     if (preferences != null) data['preferences'] = preferences;
 
     if (data.isNotEmpty) {

@@ -122,6 +122,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         familyName: familyName,
         phoneNumber: _phoneController.text.trim(),
         photoURL: photoURL,
+        role: _role.toShortString(),
         preferences: {
           'emailNotifications': _emailNotifications,
           'pushNotifications': _pushNotifications,
