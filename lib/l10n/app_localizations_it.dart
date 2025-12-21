@@ -678,6 +678,16 @@ class AppLocalizationsIt extends AppLocalizations {
   String get addMember_validation_nameRequired => 'Inserisci un nome';
 
   @override
+  String get addMember_dialog_cancelInvite_title => 'Annulla invito';
+
+  @override
+  String get addMember_dialog_cancelInvite_message =>
+      'Sei sicuro di voler annullare questo invito? L\'utente non potrà più unirsi utilizzando questo invito.';
+
+  @override
+  String get addMember_button_cancelInvite => 'Annulla invito';
+
+  @override
   String get members_title => 'Membri della Famiglia';
 
   @override

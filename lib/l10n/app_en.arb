@@ -334,6 +334,9 @@
   "addMember_role_child": "Child",
   "addMember_invite_description": "Invite family members to join your SeasonBox family. They will be able to view and manage items based on their role.",
   "addMember_validation_nameRequired": "Please enter a name",
+  "addMember_dialog_cancelInvite_title": "Cancel Invitation",
+  "addMember_dialog_cancelInvite_message": "Are you sure you want to cancel this invitation? The user will no longer be able to join using this invite.",
+  "addMember_button_cancelInvite": "Cancel Invitation",
 
   "members_title": "Family Members",
   "members_label_currentSize": "Current Size",

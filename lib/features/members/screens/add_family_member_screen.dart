@@ -67,7 +67,7 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
     super.dispose();
   }
 
-  Future<void> _saveMember() async {
+  Future<void> _saveMember({bool resendingInvite = false}) async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
@@ -96,6 +96,8 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
             ? _inviteEmailController.text.trim()
             : null,
         inviteStatus: _inviteStatus,
+        lastInviteSent:
+            resendingInvite ? DateTime.now() : widget.member?.lastInviteSent,
       );
 
       if (!mounted) return;
@@ -144,6 +146,39 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
 
     setState(() {
       _inviteStatus = 'pending';
+    });
+
+    await _saveMember(resendingInvite: true);
+  }
+
+  Future<void> _cancelInvite() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+            AppLocalizations.of(context)!.addMember_dialog_cancelInvite_title),
+        content: Text(AppLocalizations.of(context)!
+            .addMember_dialog_cancelInvite_message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(AppLocalizations.of(context)!.common_cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text(
+                AppLocalizations.of(context)!.addMember_button_cancelInvite),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() {
+      _inviteStatus = null;
+      _inviteEmailController.clear();
     });
 
     await _saveMember();
@@ -536,12 +571,37 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
               ],
             ),
             const SizedBox(height: 16),
+            Text(
+              AppLocalizations.of(context)!.addMember_field_inviteEmail,
+              style: const TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _inviteEmailController,
+              decoration: InputDecoration(
+                hintText: AppLocalizations.of(context)!
+                    .addMember_field_inviteEmailHint,
+                prefixIcon: const Icon(Icons.edit),
+              ),
+              keyboardType: TextInputType.emailAddress,
+            ),
+            const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: _sendInvite,
                 child: Text(AppLocalizations.of(context)!
                     .addMember_button_resendInvite),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: TextButton(
+                onPressed: _cancelInvite,
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: Text(AppLocalizations.of(context)!
+                    .addMember_button_cancelInvite),
               ),
             ),
             const SizedBox(height: 16),

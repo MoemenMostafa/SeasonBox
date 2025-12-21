@@ -687,6 +687,16 @@ class AppLocalizationsDe extends AppLocalizations {
       'Bitte geben Sie einen Namen ein';
 
   @override
+  String get addMember_dialog_cancelInvite_title => 'Einladung stornieren';
+
+  @override
+  String get addMember_dialog_cancelInvite_message =>
+      'Möchten Sie diese Einladung wirklich stornieren? Der Benutzer kann dieser Einladung nicht mehr beitreten.';
+
+  @override
+  String get addMember_button_cancelInvite => 'Einladung stornieren';
+
+  @override
   String get members_title => 'Familienmitglieder';
 
   @override

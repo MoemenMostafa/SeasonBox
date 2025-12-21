@@ -204,6 +204,9 @@
   "addMember_button_add": "Aggiungi",
   "addMember_button_deleteMember": "Elimina Membro",
   "addMember_validation_nameRequired": "Inserisci un nome",
+  "addMember_dialog_cancelInvite_title": "Annulla invito",
+  "addMember_dialog_cancelInvite_message": "Sei sicuro di voler annullare questo invito? L'utente non potrà più unirsi utilizzando questo invito.",
+  "addMember_button_cancelInvite": "Annulla invito",
 
   "addMember_section_accountAccess": "Accesso all'Account",
   "addMember_field_inviteEmail": "Email di Invito",

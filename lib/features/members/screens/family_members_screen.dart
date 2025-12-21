@@ -306,7 +306,8 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                   child: Text(AppLocalizations.of(context)!.members_empty),
                 )
               : ListView(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.only(
+                      left: 16, right: 16, top: 16, bottom: 84),
                   children: [
                     // Summary Cards
                     Row(

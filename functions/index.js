@@ -34,7 +34,11 @@ exports.sendFamilyInvitation = onDocumentWritten(
     const isPending = inviteStatus === "pending";
     const emailChanged = oldData && oldData.inviteEmail !== inviteEmail;
 
-    if (isPending && inviteEmail && (!wasPending || emailChanged)) {
+    // Check if lastInviteSent changed (indicating a resend request)
+    const lastInviteSentChanged = oldData && newData.lastInviteSent &&
+      (!oldData.lastInviteSent || newData.lastInviteSent._seconds !== oldData.lastInviteSent._seconds);
+
+    if (isPending && inviteEmail && (!wasPending || emailChanged || lastInviteSentChanged)) {
       const familyId = event.params.familyId;
       return sendInvitationEmail(inviteEmail, familyId);
     }

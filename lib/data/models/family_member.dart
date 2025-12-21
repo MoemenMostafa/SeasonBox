@@ -13,6 +13,7 @@ class FamilyMember {
   final List<Map<String, dynamic>> sizeHistory;
   final String? inviteEmail;
   final String? inviteStatus; // 'pending', 'accepted', 'none'
+  final DateTime? lastInviteSent;
   final String role; // 'admin', 'member', 'child'
 
   FamilyMember({
@@ -28,6 +29,7 @@ class FamilyMember {
     this.sizeHistory = const [],
     this.inviteEmail,
     this.inviteStatus,
+    this.lastInviteSent,
     this.role = 'member',
   });
 
@@ -44,6 +46,8 @@ class FamilyMember {
       'sizeHistory': sizeHistory,
       'inviteEmail': inviteEmail,
       'inviteStatus': inviteStatus,
+      'lastInviteSent':
+          lastInviteSent != null ? Timestamp.fromDate(lastInviteSent!) : null,
       'role': role,
     };
   }
@@ -63,6 +67,9 @@ class FamilyMember {
       sizeHistory: List<Map<String, dynamic>>.from(map['sizeHistory'] ?? []),
       inviteEmail: map['inviteEmail'],
       inviteStatus: map['inviteStatus'],
+      lastInviteSent: map['lastInviteSent'] != null
+          ? (map['lastInviteSent'] as Timestamp).toDate()
+          : null,
       role: map['role'] ?? 'member',
     );
   }

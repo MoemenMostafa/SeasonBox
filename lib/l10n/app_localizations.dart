@@ -1322,6 +1322,24 @@ abstract class AppLocalizations {
   /// **'Please enter a name'**
   String get addMember_validation_nameRequired;
 
+  /// No description provided for @addMember_dialog_cancelInvite_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Invitation'**
+  String get addMember_dialog_cancelInvite_title;
+
+  /// No description provided for @addMember_dialog_cancelInvite_message.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to cancel this invitation? The user will no longer be able to join using this invite.'**
+  String get addMember_dialog_cancelInvite_message;
+
+  /// No description provided for @addMember_button_cancelInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Invitation'**
+  String get addMember_button_cancelInvite;
+
   /// No description provided for @members_title.
   ///
   /// In en, this message translates to:
