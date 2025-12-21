@@ -1,24 +1,11 @@
-const functions = require("firebase-functions");
+const { onDocumentWritten } = require("firebase-functions/v2/firestore");
+const { defineJsonSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
 const nodemailer = require("nodemailer");
 
 admin.initializeApp();
 
-// Configure the email transport using the default SMTP transport and a GMail account.
-// For other services (e.g. SendGrid, Mailgun), check their respective documentations.
-// You need to enable "Less secure apps" or generate an App Password for Gmail.
-// Ideally, use environment variables for sensitive info:
-// firebase functions:config:set gmail.email="my-email@gmail.com" gmail.password="generated-app-password"
-const gmailEmail = functions.config().gmail?.email;
-const gmailPassword = functions.config().gmail?.password;
-
-const mailTransport = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: gmailEmail,
-    pass: gmailPassword,
-  },
-});
+const gmailConfig = defineJsonSecret("FUNCTIONS_CONFIG_EXPORT");
 
 const APP_NAME = "SeasonBox";
 
@@ -26,48 +13,51 @@ const APP_NAME = "SeasonBox";
  * Triggered by a write to a family member document.
  * Checks if 'inviteStatus' is 'pending' and sends an invitation email.
  */
-exports.sendFamilyInvitation = functions.firestore
-    .document("families/{familyId}/members/{memberId}")
-    .onWrite(async (change, context) => {
-      const newData = change.after.exists ? change.after.data() : null;
-      const oldData = change.before.exists ? change.before.data() : null;
+exports.sendFamilyInvitation = onDocumentWritten(
+  {
+    document: "families/{familyId}/members/{memberId}",
+    secrets: [gmailConfig],
+  },
+  async (event) => {
+    const newData = event.data && event.data.after ? event.data.after.data() : null;
+    const oldData = event.data && event.data.before ? event.data.before.data() : null;
 
-      // Exit if document was deleted
-      if (!newData) {
-        return null;
-      }
-
-      const inviteStatus = newData.inviteStatus;
-      const inviteEmail = newData.inviteEmail;
-      // Check if status changed to pending or if it is a new doc with pending status
-      // checking if email is present
-      const wasPending = oldData && oldData.inviteStatus === "pending";
-      const isPending = inviteStatus === "pending";
-
-      // If strict trigger on status change:
-      // if ((!wasPending && isPending) || (isPending && !oldData)) { ... }
-      
-      // We will trigger if it is pending and we haven't 'processed' it yet?
-      // Simpler: if it IS pending, and (wasNOT pending OR didn't exist OR email changed)
-      const emailChanged = oldData && oldData.inviteEmail !== inviteEmail;
-
-      if (isPending && inviteEmail && (!wasPending || emailChanged)) {
-        const familyId = context.params.familyId;
-        
-        // Fetch family name/info if needed
-        // const familySnapshot = await admin.firestore().collection('families').doc(familyId).get();
-        // const familyName = familySnapshot.data().name; 
-
-        return sendInvitationEmail(inviteEmail, familyId);
-      }
-
+    // Exit if document was deleted
+    if (!newData) {
       return null;
-    });
+    }
+
+    const inviteStatus = newData.inviteStatus;
+    const inviteEmail = newData.inviteEmail;
+
+    const wasPending = oldData && oldData.inviteStatus === "pending";
+    const isPending = inviteStatus === "pending";
+    const emailChanged = oldData && oldData.inviteEmail !== inviteEmail;
+
+    if (isPending && inviteEmail && (!wasPending || emailChanged)) {
+      const familyId = event.params.familyId;
+      return sendInvitationEmail(inviteEmail, familyId);
+    }
+
+    return null;
+  }
+);
 
 /**
  * Sends an invitation email.
  */
 async function sendInvitationEmail(email, familyId) {
+  const gmailEmail = gmailConfig.value().gmail.email;
+  const gmailPassword = gmailConfig.value().gmail.password;
+
+  const mailTransport = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: gmailEmail,
+      pass: gmailPassword,
+    },
+  });
+
   const mailOptions = {
     from: `${APP_NAME} <noreply@firebase.com>`,
     to: email,

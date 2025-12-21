@@ -35,7 +35,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         : 0;
 
     return Scaffold(
-      body: _pages.elementAt(safeIndex),
+      body: IndexedStack(
+        index: safeIndex,
+        children: _pages,
+      ),
       bottomNavigationBar: BottomNavigationBar(
         items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(

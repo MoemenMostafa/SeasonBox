@@ -14,6 +14,7 @@ import 'package:seasonbox/features/auth/data/auth_service.dart';
 import 'package:seasonbox/widgets/image_gallery_viewer.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
 import 'package:seasonbox/data/services/user_service.dart';
+import 'package:seasonbox/app/providers/navigation_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -107,8 +108,13 @@ class _HomeScreenState extends State<HomeScreen> {
         leading: _userPhotoURL != null
             ? Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: CircleAvatar(
-                  backgroundImage: NetworkImage(_userPhotoURL!),
+                child: GestureDetector(
+                  onTap: () {
+                    context.read<NavigationProvider>().setIndex(4);
+                  },
+                  child: CircleAvatar(
+                    backgroundImage: NetworkImage(_userPhotoURL!),
+                  ),
                 ),
               )
             : null,
