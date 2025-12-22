@@ -693,6 +693,21 @@ class AppLocalizationsFr extends AppLocalizations {
   String get addMember_button_cancelInvite => 'Annuler l\'invitation';
 
   @override
+  String addMember_share_message(String familyId) {
+    return 'Rejoignez ma famille SeasonBox ! Utilisez le code : $familyId';
+  }
+
+  @override
+  String get addMember_action_share => 'Partager l\'invitation';
+
+  @override
+  String get addMember_action_copy => 'Copier le code';
+
+  @override
+  String get addMember_snack_copied =>
+      'ID de la famille copié dans le presse-papiers';
+
+  @override
   String get members_title => 'Membres de la Famille';
 
   @override

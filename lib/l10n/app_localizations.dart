@@ -1340,6 +1340,30 @@ abstract class AppLocalizations {
   /// **'Cancel Invitation'**
   String get addMember_button_cancelInvite;
 
+  /// No description provided for @addMember_share_message.
+  ///
+  /// In en, this message translates to:
+  /// **'Join my SeasonBox family! Use code: {familyId}'**
+  String addMember_share_message(String familyId);
+
+  /// No description provided for @addMember_action_share.
+  ///
+  /// In en, this message translates to:
+  /// **'Share Invite'**
+  String get addMember_action_share;
+
+  /// No description provided for @addMember_action_copy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Code'**
+  String get addMember_action_copy;
+
+  /// No description provided for @addMember_snack_copied.
+  ///
+  /// In en, this message translates to:
+  /// **'Family ID copied to clipboard'**
+  String get addMember_snack_copied;
+
   /// No description provided for @members_title.
   ///
   /// In en, this message translates to:

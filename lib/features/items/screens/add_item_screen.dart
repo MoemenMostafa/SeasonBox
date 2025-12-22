@@ -894,7 +894,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         Text(
                             AppLocalizations.of(context)!
                                 .addItem_section_storageLocation,
-                            style: TextStyle(
+                            style: const TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
                         AppCard(

@@ -681,6 +681,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addMember_button_cancelInvite => 'Cancel Invitation';
 
   @override
+  String addMember_share_message(String familyId) {
+    return 'Join my SeasonBox family! Use code: $familyId';
+  }
+
+  @override
+  String get addMember_action_share => 'Share Invite';
+
+  @override
+  String get addMember_action_copy => 'Copy Code';
+
+  @override
+  String get addMember_snack_copied => 'Family ID copied to clipboard';
+
+  @override
   String get members_title => 'Family Members';
 
   @override

@@ -10,6 +10,8 @@ import 'package:seasonbox/widgets/season_box_app_bar.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
 import 'package:seasonbox/widgets/action_buttons.dart';
 import 'package:seasonbox/core/enums/user_role.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:flutter/services.dart';
 
 class AddFamilyMemberScreen extends StatefulWidget {
   final FamilyMember? member;
@@ -245,6 +247,29 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
         setState(() {
           _isLoading = false;
         });
+      }
+    }
+  }
+
+  Future<void> _shareInvite() async {
+    final familyId = await context.read<AuthService>().getCurrentUserFamilyId();
+    if (familyId != null && mounted) {
+      final message =
+          AppLocalizations.of(context)!.addMember_share_message(familyId);
+      await Share.share(message);
+    }
+  }
+
+  Future<void> _copyInviteCode() async {
+    final familyId = await context.read<AuthService>().getCurrentUserFamilyId();
+    if (familyId != null && mounted) {
+      await Clipboard.setData(ClipboardData(text: familyId));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content:
+                  Text(AppLocalizations.of(context)!.addMember_snack_copied)),
+        );
       }
     }
   }
@@ -593,6 +618,28 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                 child: Text(AppLocalizations.of(context)!
                     .addMember_button_resendInvite),
               ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _shareInvite,
+                    icon: const Icon(Icons.share, size: 18),
+                    label: Text(
+                        AppLocalizations.of(context)!.addMember_action_share),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _copyInviteCode,
+                    icon: const Icon(Icons.copy, size: 18),
+                    label: Text(
+                        AppLocalizations.of(context)!.addMember_action_copy),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             SizedBox(

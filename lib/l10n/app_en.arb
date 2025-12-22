@@ -337,6 +337,17 @@
   "addMember_dialog_cancelInvite_title": "Cancel Invitation",
   "addMember_dialog_cancelInvite_message": "Are you sure you want to cancel this invitation? The user will no longer be able to join using this invite.",
   "addMember_button_cancelInvite": "Cancel Invitation",
+  "addMember_share_message": "Join my SeasonBox family! Use code: {familyId}",
+  "@addMember_share_message": {
+    "placeholders": {
+      "familyId": {
+        "type": "String"
+      }
+    }
+  },
+  "addMember_action_share": "Share Invite",
+  "addMember_action_copy": "Copy Code",
+  "addMember_snack_copied": "Family ID copied to clipboard",
 
   "members_title": "Family Members",
   "members_label_currentSize": "Current Size",
