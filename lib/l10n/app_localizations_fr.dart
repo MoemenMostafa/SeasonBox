@@ -708,6 +708,61 @@ class AppLocalizationsFr extends AppLocalizations {
       'ID de la famille copié dans le presse-papiers';
 
   @override
+  String get register_title => 'Créer un Compte';
+
+  @override
+  String get register_subtitle => 'Rejoindre la famille SeasonBox';
+
+  @override
+  String get register_field_name => 'Nom complet';
+
+  @override
+  String get register_field_familyCode => 'Code famille (Optionnel)';
+
+  @override
+  String get register_button_create => 'Créer un Compte';
+
+  @override
+  String get register_link_login => 'Vous avez déjà un compte ? Connexion';
+
+  @override
+  String get register_text_noAccount => 'Vous n\'avez pas encore de compte ?';
+
+  @override
+  String get register_link_registerNow => 'Inscrivez-vous maintenant';
+
+  @override
+  String get register_error_familyNotFound => 'Famille introuvable';
+
+  @override
+  String get register_success => 'Compte créé avec succès';
+
+  @override
+  String get profile_joinFamily_title => 'Rejoindre une famille';
+
+  @override
+  String get profile_joinFamily_input => 'Entrez le code famille';
+
+  @override
+  String get profile_leaveFamily_title => 'Quitter la famille';
+
+  @override
+  String get profile_leaveFamily_confirm =>
+      'Êtes-vous sûr de vouloir quitter cette famille ? Vous serez retiré de la liste des membres.';
+
+  @override
+  String get error_no_invitation =>
+      'Aucune invitation active trouvée pour cette famille.';
+
+  @override
+  String get profile_joinFamily_success =>
+      'Vous avez rejoint la famille avec succès';
+
+  @override
+  String get profile_leaveFamily_success =>
+      'Vous avez quitté la famille avec succès';
+
+  @override
   String get members_title => 'Membres de la Famille';
 
   @override

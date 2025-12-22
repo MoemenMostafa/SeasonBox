@@ -454,7 +454,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: value,
+          initialValue: value,
           isExpanded: true,
           icon: Icon(Icons.keyboard_arrow_down,
               color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),

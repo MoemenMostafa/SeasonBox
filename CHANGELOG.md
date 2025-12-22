@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.4+9
+- **Item Management**:
+    - Implemented **Swipe-to-Delete** for items in the main list, including undo/confirmation.
+    - Added a **Delete Button** to the "Edit Item" screen with confirmation dialog.
+- **Bug Fixes**:
+    - Fixed a type error in `UserService` where Firestore data was not being correctly cast to a Map, preventing family joining logic from working properly.
+
 ## 1.1.3+8
 - Implemented **Invitation Management**:
     - Added "Cancel Invitation" functionality for pending invites.

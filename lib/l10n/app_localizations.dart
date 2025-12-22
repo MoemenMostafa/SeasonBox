@@ -1364,6 +1364,108 @@ abstract class AppLocalizations {
   /// **'Family ID copied to clipboard'**
   String get addMember_snack_copied;
 
+  /// No description provided for @register_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Account'**
+  String get register_title;
+
+  /// No description provided for @register_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Join SeasonBox family'**
+  String get register_subtitle;
+
+  /// No description provided for @register_field_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get register_field_name;
+
+  /// No description provided for @register_field_familyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Family Code (Optional)'**
+  String get register_field_familyCode;
+
+  /// No description provided for @register_button_create.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Account'**
+  String get register_button_create;
+
+  /// No description provided for @register_link_login.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account? Login'**
+  String get register_link_login;
+
+  /// No description provided for @register_text_noAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account yet?'**
+  String get register_text_noAccount;
+
+  /// No description provided for @register_link_registerNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Register now'**
+  String get register_link_registerNow;
+
+  /// No description provided for @register_error_familyNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Family not found'**
+  String get register_error_familyNotFound;
+
+  /// No description provided for @register_success.
+  ///
+  /// In en, this message translates to:
+  /// **'Account created successfully'**
+  String get register_success;
+
+  /// No description provided for @profile_joinFamily_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Join Family'**
+  String get profile_joinFamily_title;
+
+  /// No description provided for @profile_joinFamily_input.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Family Code'**
+  String get profile_joinFamily_input;
+
+  /// No description provided for @profile_leaveFamily_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave Family'**
+  String get profile_leaveFamily_title;
+
+  /// No description provided for @profile_leaveFamily_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to leave this family? You will be removed from the members list.'**
+  String get profile_leaveFamily_confirm;
+
+  /// No description provided for @error_no_invitation.
+  ///
+  /// In en, this message translates to:
+  /// **'No active invitation found for this family.'**
+  String get error_no_invitation;
+
+  /// No description provided for @profile_joinFamily_success.
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully joined family'**
+  String get profile_joinFamily_success;
+
+  /// No description provided for @profile_leaveFamily_success.
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully left family'**
+  String get profile_leaveFamily_success;
+
   /// No description provided for @members_title.
   ///
   /// In en, this message translates to:

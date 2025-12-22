@@ -442,6 +442,56 @@ class _AddItemScreenState extends State<AddItemScreen> {
     }
   }
 
+  Future<void> _confirmDelete() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Item'),
+          content: const Text(
+              'Are you sure you want to delete this item? This action cannot be undone.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true && mounted) {
+      setState(() => _isSaving = true);
+      try {
+        await context.read<ItemRepository>().deleteItem(
+              widget.item!.familyId,
+              widget.item!.id,
+            );
+        if (mounted) {
+          context.pop(); // Pop dialog or screen? Pop screen.
+          // Wait, context.pop() here pops the screen because dialog is already popped by Navigator.of(context).pop(true)
+          // Actually, if I use the return value 'confirmed', the dialog is already closed.
+          // So I just need to close the AddItemScreen.
+          context.pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Item deleted successfully')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isSaving = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error deleting item: $e')),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -450,6 +500,14 @@ class _AddItemScreenState extends State<AddItemScreen> {
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: SeasonBoxAppBar(
         title: widget.item != null ? 'Edit Item' : 'Add New Item',
+        actions: widget.item != null
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: _confirmDelete,
+                ),
+              ]
+            : null,
       ),
       body: _isSaving
           ? const Center(child: CircularProgressIndicator())
@@ -466,7 +524,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         Text(
                             AppLocalizations.of(context)!
                                 .addItem_section_photos,
-                            style: TextStyle(
+                            style: const TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
                         SizedBox(
@@ -631,7 +689,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         Text(
                             AppLocalizations.of(context)!
                                 .addItem_section_itemDetails,
-                            style: TextStyle(
+                            style: const TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
                         AppCard(
@@ -641,7 +699,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                               Text(
                                   AppLocalizations.of(context)!
                                       .addItem_field_itemName,
-                                  style: TextStyle(fontSize: 14)),
+                                  style: const TextStyle(fontSize: 14)),
                               const SizedBox(height: 8),
                               TextFormField(
                                 controller: _titleController,
@@ -661,7 +719,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                               Text(
                                   AppLocalizations.of(context)!
                                       .addItem_field_category,
-                                  style: TextStyle(fontSize: 14)),
+                                  style: const TextStyle(fontSize: 14)),
                               const SizedBox(height: 8),
                               DropdownButtonFormField<String>(
                                 initialValue: _selectedCategory,
@@ -689,7 +747,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                               Text(
                                   AppLocalizations.of(context)!
                                       .addItem_field_gender,
-                                  style: TextStyle(fontSize: 14)),
+                                  style: const TextStyle(fontSize: 14)),
                               const SizedBox(height: 8),
                               _buildGenderSelector(theme),
                             ],
@@ -709,7 +767,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                               Text(
                                   AppLocalizations.of(context)!
                                       .addItem_field_size,
-                                  style: TextStyle(fontSize: 14)),
+                                  style: const TextStyle(fontSize: 14)),
                               const SizedBox(height: 8),
                               Wrap(
                                 spacing: 8,
@@ -769,7 +827,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                               Text(
                                   AppLocalizations.of(context)!
                                       .addItem_field_quantity,
-                                  style: TextStyle(fontSize: 14)),
+                                  style: const TextStyle(fontSize: 14)),
                               const SizedBox(height: 8),
                               Row(
                                 children: [
@@ -805,7 +863,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         Text(
                             AppLocalizations.of(context)!
                                 .addItem_section_seasonMember,
-                            style: TextStyle(
+                            style: const TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
                         AppCard(
@@ -815,7 +873,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                               Text(
                                   AppLocalizations.of(context)!
                                       .addItem_field_seasons,
-                                  style: TextStyle(fontSize: 14)),
+                                  style: const TextStyle(fontSize: 14)),
                               const SizedBox(height: 8),
                               Wrap(
                                 spacing: 8,
@@ -856,7 +914,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                               Text(
                                   AppLocalizations.of(context)!
                                       .addItem_field_assignedTo,
-                                  style: TextStyle(fontSize: 14)),
+                                  style: const TextStyle(fontSize: 14)),
                               const SizedBox(height: 8),
                               _isLoadingData
                                   ? const SkeletonContainer.rectangular(
@@ -866,11 +924,11 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                   : DropdownButtonFormField<String>(
                                       key: ValueKey(_assignedChildId),
                                       initialValue: _assignedChildId,
-                                      decoration: InputDecoration(
+                                      decoration: const InputDecoration(
                                         hintText: 'Select member',
-                                        border: const OutlineInputBorder(),
+                                        border: OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
+                                            EdgeInsets.symmetric(
                                                 horizontal: 12, vertical: 12),
                                       ),
                                       items: [
@@ -904,7 +962,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                               Text(
                                   AppLocalizations.of(context)!
                                       .addItem_field_size,
-                                  style: TextStyle(fontSize: 14)),
+                                  style: const TextStyle(fontSize: 14)),
                               const SizedBox(height: 8),
                               _isLoadingData
                                   ? const SkeletonContainer.rectangular(
@@ -913,11 +971,11 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                           BorderRadius.all(Radius.circular(4)))
                                   : DropdownButtonFormField<String>(
                                       initialValue: _storageLocationId,
-                                      decoration: InputDecoration(
+                                      decoration: const InputDecoration(
                                         hintText: 'Select location',
-                                        border: const OutlineInputBorder(),
+                                        border: OutlineInputBorder(),
                                         contentPadding:
-                                            const EdgeInsets.symmetric(
+                                            EdgeInsets.symmetric(
                                                 horizontal: 12, vertical: 12),
                                       ),
                                       items: _locations
@@ -1025,7 +1083,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                             ),
                             child: Text(
                                 AppLocalizations.of(context)!.common_cancel,
-                                style: TextStyle(
+                                style: const TextStyle(
                                     color: Colors
                                         .white)), // Assuming dark theme button text needs white or dynamic
                           ),

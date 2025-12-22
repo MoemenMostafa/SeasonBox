@@ -55,8 +55,11 @@ class SeasonBox extends StatelessWidget {
               StorageLocationRepository(firestoreService),
         ),
         ProxyProvider2<FirestoreService, FamilyRepository, UserService>(
-          update: (_, firestoreService, familyRepository, __) =>
-              UserService(firestoreService, familyRepository),
+          update: (_, firestoreService, familyRepository, __) => UserService(
+            firestoreService,
+            familyRepository,
+            FamilyMemberRepository(firestoreService),
+          ),
         ),
       ],
       child: Consumer<ThemeProvider>(

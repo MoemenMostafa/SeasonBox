@@ -400,6 +400,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildFamilyManagement(
       BuildContext context, Map<String, dynamic>? userData) {
     final familyName = userData?['familyName'];
+    final familyId = userData?['familyId'];
+    // Need auth service to get current user ID
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final user = authService.currentUser;
+    final isSoloFamily = familyId == user?.uid;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -411,13 +417,161 @@ class _ProfileScreenState extends State<ProfileScreen> {
           iconColor: Colors.blue,
           iconBgColor: Colors.blue.shade50,
           title: AppLocalizations.of(context)!.profile_family_name(familyName),
-          subtitle: AppLocalizations.of(context)!.profile_family_members(5),
+          // subtitle: AppLocalizations.of(context)!.profile_family_members(5), // TODO: Get actual count
+          subtitle: familyId ?? '',
           onTap: () {
-            // TODO: Implement family details screen
+            // TODO: Navigate to family details
             _showComingSoon(context);
           },
         ),
+        const SizedBox(height: 12),
+        _buildListTile(
+          context,
+          icon: Icons.group_add,
+          iconColor: Colors.teal,
+          iconBgColor: Colors.teal.shade50,
+          title: AppLocalizations.of(context)!.profile_joinFamily_title,
+          subtitle: AppLocalizations.of(context)!.profile_joinFamily_input,
+          onTap: () => _showJoinFamilyDialog(context),
+        ),
+        if (!isSoloFamily) ...[
+          const SizedBox(height: 12),
+          _buildListTile(
+            context,
+            icon: Icons.exit_to_app,
+            iconColor: Colors.red,
+            iconBgColor: Colors.red.shade50,
+            title: AppLocalizations.of(context)!.profile_leaveFamily_title,
+            subtitle: AppLocalizations.of(context)!.profile_leaveFamily_title,
+            onTap: () => _showLeaveFamilyDialog(context, familyId!),
+          ),
+        ],
       ],
+    );
+  }
+
+  void _showJoinFamilyDialog(BuildContext context) {
+    final codeController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppLocalizations.of(context)!.profile_joinFamily_title),
+        content: TextField(
+          controller: codeController,
+          decoration: InputDecoration(
+            labelText: AppLocalizations.of(context)!.profile_joinFamily_input,
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+                AppLocalizations.of(context)!.profile_dialog_logout_cancel),
+          ),
+          TextButton(
+            onPressed: () async {
+              if (codeController.text.isNotEmpty) {
+                try {
+                  final userService =
+                      Provider.of<UserService>(context, listen: false);
+                  final authService =
+                      Provider.of<AuthService>(context, listen: false);
+                  final user = authService.currentUser;
+
+                  if (user != null) {
+                    await userService.joinFamily(
+                        user.uid, user.email!, codeController.text.trim());
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(AppLocalizations.of(context)!
+                              .profile_joinFamily_success),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                      // Force refresh stream
+                      setState(() {
+                        _userStream = userService.getUserStream(user.uid);
+                      });
+                    }
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(e.toString()),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              }
+            },
+            child: Text(AppLocalizations.of(context)!.profile_joinFamily_title),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLeaveFamilyDialog(BuildContext context, String currentFamilyId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppLocalizations.of(context)!.profile_leaveFamily_title),
+        content:
+            Text(AppLocalizations.of(context)!.profile_leaveFamily_confirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+                AppLocalizations.of(context)!.profile_dialog_logout_cancel),
+          ),
+          TextButton(
+            onPressed: () async {
+              try {
+                final userService =
+                    Provider.of<UserService>(context, listen: false);
+                final authService =
+                    Provider.of<AuthService>(context, listen: false);
+                final user = authService.currentUser;
+
+                if (user != null) {
+                  await userService.leaveFamily(user.uid, currentFamilyId);
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(AppLocalizations.of(context)!
+                            .profile_leaveFamily_success),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                    // Force refresh stream (optional as stream updates auto but good for safety)
+                    setState(() {
+                      _userStream = userService.getUserStream(user.uid);
+                    });
+                  }
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(e.toString()),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child:
+                Text(AppLocalizations.of(context)!.profile_leaveFamily_title),
+          ),
+        ],
+      ),
     );
   }
 

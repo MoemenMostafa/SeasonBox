@@ -290,6 +290,30 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                               ),
                       ),
                     ),
+                    const SizedBox(height: 24),
+                    Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            AppLocalizations.of(context)!
+                                .register_text_noAccount,
+                            style: const TextStyle(color: Colors.white70),
+                          ),
+                          TextButton(
+                            onPressed: () => context.push('/register'),
+                            child: Text(
+                              AppLocalizations.of(context)!
+                                  .register_link_registerNow,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
