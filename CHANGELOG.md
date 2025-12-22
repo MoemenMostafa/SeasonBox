@@ -4,6 +4,9 @@
 - **Item Management**:
     - Implemented **Swipe-to-Delete** for items in the main list, including undo/confirmation.
     - Added a **Delete Button** to the "Edit Item" screen with confirmation dialog.
+- **Family Management**:
+    - **Secure Join**: Users can now securely join families via the Profile screen or Registration page. Joining requires an active email invitation.
+    - **Leave Family**: Users can leave their current family and return to a personal space.
 - **Bug Fixes**:
     - Fixed a type error in `UserService` where Firestore data was not being correctly cast to a Map, preventing family joining logic from working properly.
 
