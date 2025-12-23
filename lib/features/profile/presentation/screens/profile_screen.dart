@@ -12,6 +12,7 @@ import 'package:seasonbox/features/profile/presentation/screens/edit_profile_scr
 import 'package:seasonbox/data/services/user_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:seasonbox/core/enums/user_role.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -808,6 +809,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Future<void> _launchUrl(String path) async {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final langCode = themeProvider.locale.languageCode;
+    // user might be on emulator, but we want to open real browser
+    // Assuming standard firebase hosting url
+    final Uri url = Uri.parse('https://seasonbox-f4b24.web.app/$langCode$path');
+
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not launch $url')),
+        );
+      }
+    }
+  }
+
   void _showPasswordDialog(
       BuildContext context, BiometricService biometricService) {
     final passwordController = TextEditingController();
@@ -921,8 +940,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           subtitle:
               AppLocalizations.of(context)!.profile_data_privacyPolicySubtitle,
           onTap: () {
-            // TODO: Navigate to privacy policy
-            _showComingSoon(context);
+            _launchUrl('/privacy');
           },
         ),
       ],
@@ -944,8 +962,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           subtitle:
               AppLocalizations.of(context)!.profile_support_helpCenterSubtitle,
           onTap: () {
-            // TODO: Navigate to help center
-            _showComingSoon(context);
+            _launchUrl('/help');
           },
         ),
         const SizedBox(height: 12),
@@ -958,8 +975,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           subtitle: AppLocalizations.of(context)!
               .profile_support_contactSupportSubtitle,
           onTap: () {
-            // TODO: Implement contact support
-            _showComingSoon(context);
+            _launchUrl('/help#contact');
           },
         ),
         const SizedBox(height: 12),

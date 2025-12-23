@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="/">
+    <title>Help Center - SeasonBox</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
+    <style>
+        .help-content {
+            padding: 60px 0;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .help-content h1 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .help-content>p {
+            text-align: center;
+            margin-bottom: 40px;
+            color: var(--text-color);
+        }
+
+        .help-content h2 {
+            margin-top: 40px;
+            margin-bottom: 20px;
+            color: var(--text-color);
+            border-bottom: 2px solid var(--primary-light);
+            padding-bottom: 10px;
+        }
+
+        /* Accordion Styles */
+        .accordion {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 18px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 16px;
+            transition: 0.4s;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 500;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .active,
+        .accordion:hover {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+        }
+
+        .accordion:after {
+            content: '\002B';
+            /* Plus sign */
+            color: var(--text-color);
+            font-weight: bold;
+            float: right;
+            margin-left: 5px;
+        }
+
+        .active:after {
+            content: "\2212";
+            /* Minus sign */
+        }
+
+        .panel {
+            padding: 0 18px;
+            background-color: white;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.2s ease-out;
+            margin-bottom: 10px;
+            border-radius: 0 0 8px 8px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .panel {
+                background-color: #2a2a2a;
+            }
+        }
+
+        .panel p {
+            padding: 15px 0;
+            margin: 0;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        /* Contact Form Styles */
+        .contact-section {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            margin-top: 50px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            scroll-margin-top: 100px;
+            /* Offset for fixed header */
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            background-color: white;
+        }
+
+        @media (prefers-color-scheme: dark) {
+
+            .form-group input,
+            .form-group textarea,
+            .form-group select {
+                background-color: #333;
+                border-color: #555;
+                color: white;
+            }
+        }
+
+        button.submit-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+
+        button.submit-btn:hover {
+            background-color: var(--secondary-color);
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <a href="/home" class="logo" style="text-decoration: none;">
+                <img src="assets/images/logo.png" alt="SeasonBox Logo">
+                <span>SeasonBox</span>
+            </a>
+            <div class="language-selector">
+                <select id="languageSelect">
+                    <option value="en">English</option>
+                    <option value="de">Deutsch</option>
+                    <option value="es">Español</option>
+                    <option value="fr">Français</option>
+                    <option value="it">Italiano</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <main class="help-content">
+        <div class="container">
+            <h1 data-i18n="help_title">Help Center</h1>
+            <p data-i18n="help_intro">Welcome to the SeasonBox Help Center. Here you can find answers to frequently
+                asked questions and tutorials on how to get the most out of SeasonBox.</p>
+
+            <h2 data-i18n="help_faq_title">Frequently Asked Questions (FAQ)</h2>
+
+            <button class="accordion" data-i18n="help_faq_q1">How do I add a family member?</button>
+            <div class="panel">
+                <p data-i18n="help_faq_a1">To add a family member, go to your Profile screen and verify your Family ID.
+                    If you are the admin or in a solo family, you can invite others by sharing your Family ID or
+                    creating a new family group.</p>
+            </div>
+
+            <button class="accordion" data-i18n="help_faq_q2">How do I create a box?</button>
+            <div class="panel">
+                <p data-i18n="help_faq_a2">Navigate to the Scanner or Items tab, and select "Create New Box". You can
+                    generate a QR code for the box and assign items to it.</p>
+            </div>
+
+            <button class="accordion" data-i18n="help_faq_q3">Can I share my inventory?</button>
+            <div class="panel">
+                <p data-i18n="help_faq_a3">Yes! Everyone in your Family Group has access to the shared inventory.
+                    Changes made by one member are instantly visible to others.</p>
+            </div>
+
+            <button class="accordion" data-i18n="help_faq_q4">Is my data secure?</button>
+            <div class="panel">
+                <p data-i18n="help_faq_a4">Absolutely. We use Google Firebase for secure authentication and data
+                    storage. Your data is encrypted and protected.</p>
+            </div>
+
+
+            <h2 data-i18n="help_tutorials_title">Tutorials</h2>
+            <p data-i18n="help_tutorials_intro">Explore our step-by-step guides to master SeasonBox.</p>
+
+            <button class="accordion" data-i18n="help_tut_guide_title">Getting Started Guide</button>
+            <div class="panel">
+                <p>
+                    <span data-i18n="help_tut_guide_step1">1. <strong>Create an Account:</strong> Sign up using email or
+                        Google.</span><br>
+                    <span data-i18n="help_tut_guide_step2">2. <strong>Set up Profile:</strong> Add your details and
+                        adjust settings.</span><br>
+                    <span data-i18n="help_tut_guide_step3">3. <strong>Create Inventory:</strong> Start adding items and
+                        boxes.</span>
+                </p>
+            </div>
+
+            <button class="accordion" data-i18n="help_tut_qr_title">Using the QR Scanner</button>
+            <div class="panel">
+                <p data-i18n="help_tut_qr_desc">Tap the Scanner icon in the bottom navigation bar. Point your camera at
+                    a SeasonBox QR code to instantly view the contents of a box.</p>
+            </div>
+
+            <button class="accordion" data-i18n="help_tut_invitation_title">Sending Family Invitations</button>
+            <div class="panel">
+                <p>
+                    <span data-i18n="help_tut_invitation_step1">1. <strong>Go to Profile:</strong> Tap on the Profile
+                        icon.</span><br>
+                    <span data-i18n="help_tut_invitation_step2">2. <strong>Find Family ID:</strong> Locate your unique
+                        Family ID in the Family Management section.</span><br>
+                    <span data-i18n="help_tut_invitation_step3">3. <strong>Share ID:</strong> Share this ID with family
+                        members you want to invite.</span><br>
+                    <span data-i18n="help_tut_invitation_step4">4. <strong>They Join:</strong> They enter this ID in
+                        their profile to join your family group.</span>
+                </p>
+            </div>
+
+            <div class="contact-section" id="contact">
+                <h2 style="margin-top: 0;" data-i18n="help_contact_title">Contact Us</h2>
+                <p data-i18n="help_contact_subtitle">Have a suggestion or found a bug? Let us know!</p>
+
+                <form action="mailto:support@seasonbox.app" method="post" enctype="text/plain">
+                    <div class="form-group">
+                        <label for="name" data-i18n="help_contact_name">Name</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="type" data-i18n="help_contact_type">Type</label>
+                        <select id="type" name="type">
+                            <option value="suggestion" data-i18n="help_contact_type_suggestion">Suggestion</option>
+                            <option value="bug" data-i18n="help_contact_type_bug">Bug Report</option>
+                            <option value="other" data-i18n="help_contact_type_other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="message" data-i18n="help_contact_message">Message</label>
+                        <textarea id="message" name="message" rows="5" required></textarea>
+                    </div>
+
+                    <button type="submit" class="submit-btn" data-i18n="help_contact_submit">Send Message</button>
+                </form>
+            </div>
+
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="/terms" data-i18n="login_footer_termsOfService">Terms of Service</a>
+                <span data-i18n="login_footer_and"> | </span>
+                <a href="/privacy" data-i18n="login_footer_privacyPolicy">Privacy Policy</a>
+                <span> | </span>
+                <a href="/help" data-i18n="login_footer_helpCenter">Help Center</a>
+                <span> | </span>
+                <a href="/help#contact" data-i18n="login_footer_contactUs">Contact Us</a>
+            </div>
+            <p>&copy; 2025 SeasonBox</p>
+        </div>
+    </footer>
+
+    <script src="l10n.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Accordion functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            const acc = document.getElementsByClassName("accordion");
+
+            for (let i = 0; i < acc.length; i++) {
+                acc[i].addEventListener("click", function () {
+                    this.classList.toggle("active");
+                    const panel = this.nextElementSibling;
+                    if (panel.style.maxHeight) {
+                        panel.style.maxHeight = null;
+                    } else {
+                        panel.style.maxHeight = panel.scrollHeight + "px";
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

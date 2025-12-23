@@ -42,6 +42,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!pathLang || pathLang !== initialLang) {
         updateUrl(initialLang, true);
     }
+
+    // Explicitly scroll to hash if present, to handle potential layout shifts or history updates
+    if (window.location.hash) {
+        setTimeout(() => {
+            const element = document.querySelector(window.location.hash);
+            if (element) {
+                const headerOffset = 120; // Adjust based on your header height + buffer
+                const elementPosition = element.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: "smooth"
+                });
+            }
+        }, 100);
+    }
 });
 
 function updateUrl(lang, replace = false) {
@@ -66,7 +83,7 @@ function updateUrl(lang, replace = false) {
     params.delete('lang'); // clean up legacy param
     const queryString = params.toString() ? '?' + params.toString() : '';
 
-    const newUrl = newPath + queryString;
+    const newUrl = newPath + queryString + window.location.hash;
 
     if (replace) {
         window.history.replaceState({}, '', newUrl);
@@ -80,7 +97,7 @@ function updateUrl(lang, replace = false) {
 
 function updateInternalLinks(lang) {
     const supportedLangs = ['en', 'de', 'es', 'fr', 'it'];
-    const internalLinks = document.querySelectorAll('a[href^="/"], a[href^="index"], a[href^="privacy"], a[href^="terms"], a[href^="home"]');
+    const internalLinks = document.querySelectorAll('a[href^="/"], a[href^="index"], a[href^="privacy"], a[href^="terms"], a[href^="home"], a[href^="help"]');
 
     internalLinks.forEach(link => {
         let url = new URL(link.href, window.location.origin);
@@ -95,7 +112,7 @@ function updateInternalLinks(lang) {
             // Add new lang prefix
             pathSegments.unshift(lang);
 
-            link.href = '/' + pathSegments.join('/');
+            link.href = '/' + pathSegments.join('/') + url.search + url.hash;
         }
     });
 }
@@ -112,7 +129,7 @@ function updateLanguage(lang) {
     elements.forEach(element => {
         const key = element.getAttribute('data-i18n');
         if (translations[key]) {
-            element.textContent = translations[key];
+            element.innerHTML = translations[key];
         }
     });
 

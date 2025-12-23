@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.7+12
+- **Help Center**:
+    - **New Help Page**: Created a comprehensive Help Center (`/help.html`) with FAQs and Tutorials in an accordion layout.
+    - **Invitation Guide**: Added a dedicated "Sending Family Invitations" tutorial.
+    - **Contact Support**: Added a "Contact Us" form (via mailto) and linked the Profile Screen's "Contact Support" button directly to it.
+    - **Localization**: Fully translated Help Center into English, German, Spanish, French, and Italian.
+- **Web Landing**:
+    - **Footer Links**: Updated footers on all pages (Home, Privacy, Terms) to include links to the Help Center and Contact Us.
+    - **Deep Linking**: Enhanced `script.js` to support deep linking to specific sections (e.g., `/help#contact`) with language prefixes.
+
 ## 1.1.6+11
 - **Authentication**:
     - **Biometric Social Login**: Enabled seamless biometric authentication for Google Sign-In, allowing users to re-authenticate without re-entering credentials.
