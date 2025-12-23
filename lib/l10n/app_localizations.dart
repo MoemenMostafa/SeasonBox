@@ -2083,6 +2083,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save Changes'**
   String get editProfile_button_saveChanges;
+
+  /// No description provided for @notifications_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifications_title;
+
+  /// No description provided for @notifications_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No new notifications'**
+  String get notifications_empty;
+
+  /// No description provided for @notifications_invite_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitation to join Family'**
+  String get notifications_invite_title;
+
+  /// No description provided for @notifications_invite_message.
+  ///
+  /// In en, this message translates to:
+  /// **'{inviterName} has invited you to join their family.'**
+  String notifications_invite_message(String inviterName);
+
+  /// No description provided for @notifications_invite_familyId.
+  ///
+  /// In en, this message translates to:
+  /// **'Family ID: {familyId}'**
+  String notifications_invite_familyId(String familyId);
+
+  /// No description provided for @notifications_action_accept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get notifications_action_accept;
+
+  /// No description provided for @notifications_action_reject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get notifications_action_reject;
+
+  /// No description provided for @notifications_success_joined.
+  ///
+  /// In en, this message translates to:
+  /// **'Joined family successfully!'**
+  String get notifications_success_joined;
+
+  /// No description provided for @notifications_success_rejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitation rejected.'**
+  String get notifications_success_rejected;
+
+  /// No description provided for @notifications_error_joining.
+  ///
+  /// In en, this message translates to:
+  /// **'Error joining family: {error}'**
+  String notifications_error_joining(String error);
+
+  /// No description provided for @notifications_error_rejecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Error rejecting invitation: {error}'**
+  String notifications_error_rejecting(String error);
 }
 
 class _AppLocalizationsDelegate

@@ -1110,4 +1110,45 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get editProfile_button_saveChanges => 'Enregistrer les modifications';
+
+  @override
+  String get notifications_title => 'Notifications';
+
+  @override
+  String get notifications_empty => 'Aucune nouvelle notification';
+
+  @override
+  String get notifications_invite_title => 'Invitation à rejoindre la famille';
+
+  @override
+  String notifications_invite_message(String inviterName) {
+    return '$inviterName vous a invité à rejoindre sa famille.';
+  }
+
+  @override
+  String notifications_invite_familyId(String familyId) {
+    return 'ID de famille : $familyId';
+  }
+
+  @override
+  String get notifications_action_accept => 'Accepter';
+
+  @override
+  String get notifications_action_reject => 'Refuser';
+
+  @override
+  String get notifications_success_joined => 'Famille rejointe avec succès !';
+
+  @override
+  String get notifications_success_rejected => 'Invitation refusée.';
+
+  @override
+  String notifications_error_joining(String error) {
+    return 'Erreur lors de l\'adhésion à la famille : $error';
+  }
+
+  @override
+  String notifications_error_rejecting(String error) {
+    return 'Erreur lors du refus de l\'invitation : $error';
+  }
 }
