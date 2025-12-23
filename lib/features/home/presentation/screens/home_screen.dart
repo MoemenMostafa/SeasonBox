@@ -122,78 +122,83 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Stats
-                      _buildStatsRow(context),
-                      const SizedBox(height: 24),
-
-                      // Search
-                      _buildSearchBar(context),
-                      const SizedBox(height: 24),
-
-                      // Quick Actions
-                      Text(
-                        AppLocalizations.of(context)!.home_section_quickActions,
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildQuickActions(context),
-                      const SizedBox(height: 24),
-
-                      // Family Members
-                      if (_members.isNotEmpty) ...[
-                        _buildSectionHeader(
-                            context,
-                            AppLocalizations.of(context)!
-                                .home_section_familyMembers,
-                            () => context.push('/members')),
-                        const SizedBox(height: 16),
-                        _buildFamilyMembersList(context),
+            : RefreshIndicator(
+                onRefresh: _loadData,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Stats
+                        _buildStatsRow(context),
                         const SizedBox(height: 24),
-                      ],
 
-                      // Recent Items
-                      if (_items.isNotEmpty) ...[
-                        _buildSectionHeader(
-                            context,
-                            AppLocalizations.of(context)!
-                                .home_section_recentItems,
-                            () => context.push('/items')),
-                        const SizedBox(height: 16),
-                        _buildRecentItemsList(context),
+                        // Search
+                        _buildSearchBar(context),
                         const SizedBox(height: 24),
-                      ],
 
-                      // Seasonal Reminders
-                      Text(
-                        AppLocalizations.of(context)!
-                            .home_section_seasonalReminders,
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildSeasonalReminder(context),
-                      const SizedBox(height: 24),
-
-                      // Storage Locations
-                      if (_locations.isNotEmpty) ...[
-                        _buildSectionHeader(
-                            context,
-                            AppLocalizations.of(context)!
-                                .home_section_storageLocations,
-                            () => context.push('/storage'),
-                            actionText: AppLocalizations.of(context)!
-                                .home_action_manage),
+                        // Quick Actions
+                        Text(
+                          AppLocalizations.of(context)!
+                              .home_section_quickActions,
+                          style: const TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
                         const SizedBox(height: 16),
-                        _buildStorageLocations(context),
+                        _buildQuickActions(context),
+                        const SizedBox(height: 24),
+
+                        // Family Members
+                        if (_members.isNotEmpty) ...[
+                          _buildSectionHeader(
+                              context,
+                              AppLocalizations.of(context)!
+                                  .home_section_familyMembers,
+                              () => context.push('/members')),
+                          const SizedBox(height: 16),
+                          _buildFamilyMembersList(context),
+                          const SizedBox(height: 24),
+                        ],
+
+                        // Recent Items
+                        if (_items.isNotEmpty) ...[
+                          _buildSectionHeader(
+                              context,
+                              AppLocalizations.of(context)!
+                                  .home_section_recentItems,
+                              () => context.push('/items')),
+                          const SizedBox(height: 16),
+                          _buildRecentItemsList(context),
+                          const SizedBox(height: 24),
+                        ],
+
+                        // Seasonal Reminders
+                        Text(
+                          AppLocalizations.of(context)!
+                              .home_section_seasonalReminders,
+                          style: const TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 16),
+                        _buildSeasonalReminder(context),
+                        const SizedBox(height: 24),
+
+                        // Storage Locations
+                        if (_locations.isNotEmpty) ...[
+                          _buildSectionHeader(
+                              context,
+                              AppLocalizations.of(context)!
+                                  .home_section_storageLocations,
+                              () => context.push('/storage'),
+                              actionText: AppLocalizations.of(context)!
+                                  .home_action_manage),
+                          const SizedBox(height: 16),
+                          _buildStorageLocations(context),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ),

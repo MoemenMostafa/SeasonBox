@@ -416,20 +416,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
       children: [
         _buildSectionTitle(
             AppLocalizations.of(context)!.profile_section_familyManagement),
-        _buildListTile(
-          context,
-          icon: Icons.people,
-          iconColor: Colors.blue,
-          iconBgColor: Colors.blue.shade50,
-          title: familyName != null
-              ? AppLocalizations.of(context)!.profile_family_name(familyName)
-              : AppLocalizations.of(context)!.profile_section_familyManagement,
-          // subtitle: AppLocalizations.of(context)!.profile_family_members(5), // TODO: Get actual count
-          subtitle: familyId ?? '',
-          onTap: () {
-            // TODO: Navigate to family details
-            _showComingSoon(context);
-          },
+        Card(
+          elevation: 0,
+          color: Theme.of(context).cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(
+              color: Colors.grey.withValues(alpha: 0.1),
+              width: 1,
+            ),
+          ),
+          margin: EdgeInsets.zero,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.blue.withValues(alpha: 0.2)
+                        : Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.people, color: Colors.blue, size: 24),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        familyName != null
+                            ? AppLocalizations.of(context)!
+                                .profile_family_name(familyName)
+                            : AppLocalizations.of(context)!
+                                .profile_section_familyManagement,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      Text(
+                        familyId ?? '',
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
         if (familyId != null)
           StreamBuilder<QuerySnapshot>(
@@ -729,7 +769,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   final authenticated = await biometricService.authenticate();
                   if (authenticated) {
                     if (context.mounted) {
-                      _showPasswordDialog(context, biometricService);
+                      final authService =
+                          Provider.of<AuthService>(context, listen: false);
+                      final user = authService.currentUser;
+                      final isGoogle = user?.providerData
+                              .any((info) => info.providerId == 'google.com') ??
+                          false;
+
+                      if (isGoogle && user?.email != null) {
+                        try {
+                          await biometricService.enableBiometricLogin(
+                            user!.email!,
+                            "N/A",
+                            provider: 'google',
+                          );
+                          setState(() {});
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error: $e')),
+                            );
+                          }
+                        }
+                      } else {
+                        _showPasswordDialog(context, biometricService);
+                      }
                     }
                   }
                 } else {

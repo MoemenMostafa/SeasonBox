@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.6+11
+- **Authentication**:
+    - **Biometric Social Login**: Enabled seamless biometric authentication for Google Sign-In, allowing users to re-authenticate without re-entering credentials.
+- **UI/UX Enhancements**:
+    - **Profile Screen**: Updated the Family Management section to display Family ID and Name strictly as informational text, removing the button interaction.
+    - **Web Landing**: Implemented path-based localization (e.g., `/en/home`) for better SEO and direct linking support.
+- **Backend**:
+    - **Cloud Functions**: Fully migrated the "Send Invitation" email logic to Firebase Cloud Functions triggered by Firestore writes, removing client-side dependencies.
+
 ## 1.1.5+10
 - **Family Management (Refined)**:
     - **Creator Rules**: Family creators (Admins) who have other members must now "Disband" (remove all members) their current family before they are allowed to join a new one.

@@ -103,6 +103,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           // Gradient Background
@@ -149,219 +150,224 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
 
           // Main Content
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Form(
-                key: _formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: () => context.pop(),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        AppLocalizations.of(context)!.register_title,
-                        style: GoogleFonts.poppins(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        AppLocalizations.of(context)!.register_subtitle,
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
-                          color: Colors.white70,
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-
-                      // Name Field
-                      TextFormField(
-                        controller: _nameController,
-                        decoration: InputDecoration(
-                          labelText:
-                              AppLocalizations.of(context)!.register_field_name,
-                          hintText:
-                              AppLocalizations.of(context)!.register_field_name,
-                          prefixIcon: const Icon(Icons.person_outline,
-                              color: Colors.white70),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.1),
-                          labelStyle: const TextStyle(color: Colors.white70),
-                          hintStyle: const TextStyle(color: Colors.white38),
-                        ),
-                        style: const TextStyle(color: Colors.white),
-                        textCapitalization: TextCapitalization.words,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return AppLocalizations.of(context)!
-                                .addMember_validation_nameRequired;
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Email Field
-                      TextFormField(
-                        controller: _emailController,
-                        decoration: InputDecoration(
-                          labelText: AppLocalizations.of(context)!
-                              .emailLogin_field_email,
-                          hintText: AppLocalizations.of(context)!
-                              .emailLogin_field_email,
-                          prefixIcon: const Icon(Icons.email_outlined,
-                              color: Colors.white70),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.1),
-                          labelStyle: const TextStyle(color: Colors.white70),
-                          hintStyle: const TextStyle(color: Colors.white38),
-                        ),
-                        style: const TextStyle(color: Colors.white),
-                        keyboardType: TextInputType.emailAddress,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return AppLocalizations.of(context)!
-                                .emailLogin_validation_emailRequired;
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Password Field
-                      TextFormField(
-                        controller: _passwordController,
-                        obscureText: !_isPasswordVisible,
-                        decoration: InputDecoration(
-                          labelText: AppLocalizations.of(context)!
-                              .emailLogin_field_password,
-                          hintText: AppLocalizations.of(context)!
-                              .emailLogin_field_password,
-                          prefixIcon: const Icon(Icons.lock_outline,
-                              color: Colors.white70),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _isPasswordVisible
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
-                              color: Colors.white70,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _isPasswordVisible = !_isPasswordVisible;
-                              });
-                            },
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.1),
-                          labelStyle: const TextStyle(color: Colors.white70),
-                          hintStyle: const TextStyle(color: Colors.white38),
-                        ),
-                        style: const TextStyle(color: Colors.white),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return AppLocalizations.of(context)!
-                                .emailLogin_validation_passwordRequired;
-                          }
-                          if (value.length < 6) {
-                            return AppLocalizations.of(context)!
-                                .register_validation_passwordLength;
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Family Code Field
-                      TextFormField(
-                        controller: _familyCodeController,
-                        decoration: InputDecoration(
-                          labelText: AppLocalizations.of(context)!
-                              .register_field_familyCode,
-                          hintText: AppLocalizations.of(context)!
-                              .register_field_familyCode,
-                          prefixIcon: const Icon(Icons.vpn_key_outlined,
-                              color: Colors.white70),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.1),
-                          labelStyle: const TextStyle(color: Colors.white70),
-                          hintStyle: const TextStyle(color: Colors.white38),
-                        ),
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      const SizedBox(height: 32),
-
-                      // Create Account Button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 56,
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : _register,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: Colors.black,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            elevation: 0,
-                          ),
-                          child: _isLoading
-                              ? const SizedBox(
-                                  height: 24,
-                                  width: 24,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.black),
-                                  ),
-                                )
-                              : Text(
-                                  AppLocalizations.of(context)!
-                                      .register_button_create,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Link to Login
-                      Center(
-                        child: TextButton(
+          Positioned.fill(
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Form(
+                  key: _formKey,
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).viewInsets.bottom),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        IconButton(
+                          icon:
+                              const Icon(Icons.arrow_back, color: Colors.white),
                           onPressed: () => context.pop(),
-                          child: Text(
-                            AppLocalizations.of(context)!.register_link_login,
-                            style: const TextStyle(color: Colors.white70),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          AppLocalizations.of(context)!.register_title,
+                          style: GoogleFonts.poppins(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                    ],
+                        const SizedBox(height: 8),
+                        Text(
+                          AppLocalizations.of(context)!.register_subtitle,
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            color: Colors.white70,
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+
+                        // Name Field
+                        TextFormField(
+                          controller: _nameController,
+                          decoration: InputDecoration(
+                            labelText: AppLocalizations.of(context)!
+                                .register_field_name,
+                            hintText: AppLocalizations.of(context)!
+                                .register_field_name,
+                            prefixIcon: const Icon(Icons.person_outline,
+                                color: Colors.white70),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide.none,
+                            ),
+                            filled: true,
+                            fillColor: Colors.white.withValues(alpha: 0.1),
+                            labelStyle: const TextStyle(color: Colors.white70),
+                            hintStyle: const TextStyle(color: Colors.white38),
+                          ),
+                          style: const TextStyle(color: Colors.white),
+                          textCapitalization: TextCapitalization.words,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return AppLocalizations.of(context)!
+                                  .addMember_validation_nameRequired;
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Email Field
+                        TextFormField(
+                          controller: _emailController,
+                          decoration: InputDecoration(
+                            labelText: AppLocalizations.of(context)!
+                                .emailLogin_field_email,
+                            hintText: AppLocalizations.of(context)!
+                                .emailLogin_field_email,
+                            prefixIcon: const Icon(Icons.email_outlined,
+                                color: Colors.white70),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide.none,
+                            ),
+                            filled: true,
+                            fillColor: Colors.white.withValues(alpha: 0.1),
+                            labelStyle: const TextStyle(color: Colors.white70),
+                            hintStyle: const TextStyle(color: Colors.white38),
+                          ),
+                          style: const TextStyle(color: Colors.white),
+                          keyboardType: TextInputType.emailAddress,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return AppLocalizations.of(context)!
+                                  .emailLogin_validation_emailRequired;
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Password Field
+                        TextFormField(
+                          controller: _passwordController,
+                          obscureText: !_isPasswordVisible,
+                          decoration: InputDecoration(
+                            labelText: AppLocalizations.of(context)!
+                                .emailLogin_field_password,
+                            hintText: AppLocalizations.of(context)!
+                                .emailLogin_field_password,
+                            prefixIcon: const Icon(Icons.lock_outline,
+                                color: Colors.white70),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isPasswordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                                color: Colors.white70,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isPasswordVisible = !_isPasswordVisible;
+                                });
+                              },
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide.none,
+                            ),
+                            filled: true,
+                            fillColor: Colors.white.withValues(alpha: 0.1),
+                            labelStyle: const TextStyle(color: Colors.white70),
+                            hintStyle: const TextStyle(color: Colors.white38),
+                          ),
+                          style: const TextStyle(color: Colors.white),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return AppLocalizations.of(context)!
+                                  .emailLogin_validation_passwordRequired;
+                            }
+                            if (value.length < 6) {
+                              return AppLocalizations.of(context)!
+                                  .register_validation_passwordLength;
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Family Code Field
+                        TextFormField(
+                          controller: _familyCodeController,
+                          decoration: InputDecoration(
+                            labelText: AppLocalizations.of(context)!
+                                .register_field_familyCode,
+                            hintText: AppLocalizations.of(context)!
+                                .register_field_familyCode,
+                            prefixIcon: const Icon(Icons.vpn_key_outlined,
+                                color: Colors.white70),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide.none,
+                            ),
+                            filled: true,
+                            fillColor: Colors.white.withValues(alpha: 0.1),
+                            labelStyle: const TextStyle(color: Colors.white70),
+                            hintStyle: const TextStyle(color: Colors.white38),
+                          ),
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        const SizedBox(height: 32),
+
+                        // Create Account Button
+                        SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: ElevatedButton(
+                            onPressed: _isLoading ? null : _register,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: Colors.black,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: _isLoading
+                                ? const SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          Colors.black),
+                                    ),
+                                  )
+                                : Text(
+                                    AppLocalizations.of(context)!
+                                        .register_button_create,
+                                    style: GoogleFonts.inter(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Link to Login
+                        Center(
+                          child: TextButton(
+                            onPressed: () => context.pop(),
+                            child: Text(
+                              AppLocalizations.of(context)!.register_link_login,
+                              style: const TextStyle(color: Colors.white70),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+                    ),
                   ),
                 ),
               ),

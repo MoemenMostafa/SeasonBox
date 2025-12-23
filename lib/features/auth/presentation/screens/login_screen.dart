@@ -317,13 +317,36 @@ class _LoginScreenState extends State<LoginScreen>
                                         final authService =
                                             Provider.of<AuthService>(context,
                                                 listen: false);
-                                        await authService
-                                            .signInWithEmailAndPassword(
-                                          creds['email']!,
-                                          creds['password']!,
-                                        );
-                                        if (context.mounted) {
-                                          context.go('/home');
+                                        final provider =
+                                            creds['provider'] ?? 'email';
+
+                                        if (provider == 'google') {
+                                          final user = await authService
+                                              .signInWithGoogle(
+                                                  trySilentFirst: true);
+                                          if (user != null && context.mounted) {
+                                            try {
+                                              await context
+                                                  .read<UserService>()
+                                                  .createUserAndLinkFamily(
+                                                      user);
+                                            } catch (e) {
+                                              debugPrint(
+                                                  'Error creating user/family: $e');
+                                            }
+                                            if (context.mounted) {
+                                              context.go('/home');
+                                            }
+                                          }
+                                        } else {
+                                          await authService
+                                              .signInWithEmailAndPassword(
+                                            creds['email']!,
+                                            creds['password']!,
+                                          );
+                                          if (context.mounted) {
+                                            context.go('/home');
+                                          }
                                         }
                                       } catch (e) {
                                         if (context.mounted) {

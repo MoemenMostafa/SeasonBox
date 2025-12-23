@@ -162,180 +162,188 @@ class _ItemsScreenState extends State<ItemsScreen> {
       ),
       body: _isLoading
           ? _buildLoadingSkeleton(theme)
-          : SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Filter Chips
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                    child: Row(
-                      children: [
-                        SeasonBoxFilterChip(
-                          label: AppLocalizations.of(context)!
-                              .items_filterAllItems,
-                          isSelected: _selectedFilter == 'All Items',
-                          onTap: () =>
-                              setState(() => _selectedFilter = 'All Items'),
-                        ),
-                        SeasonBoxFilterChip(
-                          label:
-                              AppLocalizations.of(context)!.items_filterInUse,
-                          isSelected: _selectedFilter == 'In Use',
-                          onTap: () =>
-                              setState(() => _selectedFilter = 'In Use'),
-                        ),
-                        SeasonBoxFilterChip(
-                          label:
-                              AppLocalizations.of(context)!.items_filterStored,
-                          isSelected: _selectedFilter == 'Stored',
-                          onTap: () =>
-                              setState(() => _selectedFilter = 'Stored'),
-                        ),
-                        SeasonBoxFilterChip(
-                          label:
-                              AppLocalizations.of(context)!.items_filterWinter,
-                          isSelected: _selectedFilter == 'Winter',
-                          onTap: () =>
-                              setState(() => _selectedFilter = 'Winter'),
-                        ),
-                        SeasonBoxFilterChip(
-                          label:
-                              AppLocalizations.of(context)!.items_filterSummer,
-                          isSelected: _selectedFilter == 'Summer',
-                          onTap: () =>
-                              setState(() => _selectedFilter = 'Summer'),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Quick Filters
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              AppLocalizations.of(context)!.items_quickFilters,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: _clearAllFilters,
-                              child: Text(
-                                  AppLocalizations.of(context)!.items_clearAll),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            _buildQuickFilterCard(
-                                AppLocalizations.of(context)!
-                                    .items_filterClothes,
-                                Icons.checkroom,
-                                theme,
-                                'Clothes'),
-                            const SizedBox(width: 12),
-                            _buildQuickFilterCard(
-                                AppLocalizations.of(context)!.items_filterShoes,
-                                Icons.do_not_step,
-                                theme,
-                                'Shoes'),
-                            const SizedBox(width: 12),
-                            _buildQuickFilterCard(
-                                AppLocalizations.of(context)!
-                                    .items_filterAccessories,
-                                Icons.style,
-                                theme,
-                                'Accessories'),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Items List
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: _filteredItems.length,
-                    itemBuilder: (context, index) {
-                      final item = _filteredItems[index];
-                      return Dismissible(
-                        key: Key(item.id),
-                        direction: DismissDirection.endToStart,
-                        background: Container(
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.only(right: 20),
-                          color: Colors.red,
-                          child: const Icon(
-                            Icons.delete,
-                            color: Colors.white,
+          : RefreshIndicator(
+              onRefresh: _loadItems,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Filter Chips
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      child: Row(
+                        children: [
+                          SeasonBoxFilterChip(
+                            label: AppLocalizations.of(context)!
+                                .items_filterAllItems,
+                            isSelected: _selectedFilter == 'All Items',
+                            onTap: () =>
+                                setState(() => _selectedFilter = 'All Items'),
                           ),
-                        ),
-                        confirmDismiss: (direction) async {
-                          return await showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title: const Text('Delete Item'),
-                                content: const Text(
-                                    'Are you sure you want to delete this item? This action cannot be undone.'),
-                                actions: <Widget>[
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(false),
-                                    child: const Text('Cancel'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(true),
-                                    child: const Text('Delete'),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                        },
-                        onDismissed: (direction) async {
-                          final itemRepository = context.read<ItemRepository>();
-                          // Optimistically remove from list
-                          setState(() {
-                            _items.removeWhere((i) => i.id == item.id);
-                          });
+                          SeasonBoxFilterChip(
+                            label:
+                                AppLocalizations.of(context)!.items_filterInUse,
+                            isSelected: _selectedFilter == 'In Use',
+                            onTap: () =>
+                                setState(() => _selectedFilter = 'In Use'),
+                          ),
+                          SeasonBoxFilterChip(
+                            label: AppLocalizations.of(context)!
+                                .items_filterStored,
+                            isSelected: _selectedFilter == 'Stored',
+                            onTap: () =>
+                                setState(() => _selectedFilter = 'Stored'),
+                          ),
+                          SeasonBoxFilterChip(
+                            label: AppLocalizations.of(context)!
+                                .items_filterWinter,
+                            isSelected: _selectedFilter == 'Winter',
+                            onTap: () =>
+                                setState(() => _selectedFilter = 'Winter'),
+                          ),
+                          SeasonBoxFilterChip(
+                            label: AppLocalizations.of(context)!
+                                .items_filterSummer,
+                            isSelected: _selectedFilter == 'Summer',
+                            onTap: () =>
+                                setState(() => _selectedFilter = 'Summer'),
+                          ),
+                        ],
+                      ),
+                    ),
 
-                          try {
-                            await itemRepository.deleteItem(
-                                item.familyId, item.id);
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Item deleted')),
-                              );
+                    // Quick Filters
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                AppLocalizations.of(context)!
+                                    .items_quickFilters,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: _clearAllFilters,
+                                child: Text(AppLocalizations.of(context)!
+                                    .items_clearAll),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              _buildQuickFilterCard(
+                                  AppLocalizations.of(context)!
+                                      .items_filterClothes,
+                                  Icons.checkroom,
+                                  theme,
+                                  'Clothes'),
+                              const SizedBox(width: 12),
+                              _buildQuickFilterCard(
+                                  AppLocalizations.of(context)!
+                                      .items_filterShoes,
+                                  Icons.do_not_step,
+                                  theme,
+                                  'Shoes'),
+                              const SizedBox(width: 12),
+                              _buildQuickFilterCard(
+                                  AppLocalizations.of(context)!
+                                      .items_filterAccessories,
+                                  Icons.style,
+                                  theme,
+                                  'Accessories'),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Items List
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: _filteredItems.length,
+                      itemBuilder: (context, index) {
+                        final item = _filteredItems[index];
+                        return Dismissible(
+                          key: Key(item.id),
+                          direction: DismissDirection.endToStart,
+                          background: Container(
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.only(right: 20),
+                            color: Colors.red,
+                            child: const Icon(
+                              Icons.delete,
+                              color: Colors.white,
+                            ),
+                          ),
+                          confirmDismiss: (direction) async {
+                            return await showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text('Delete Item'),
+                                  content: const Text(
+                                      'Are you sure you want to delete this item? This action cannot be undone.'),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(false),
+                                      child: const Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(true),
+                                      child: const Text('Delete'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                          onDismissed: (direction) async {
+                            final itemRepository =
+                                context.read<ItemRepository>();
+                            // Optimistically remove from list
+                            setState(() {
+                              _items.removeWhere((i) => i.id == item.id);
+                            });
+
+                            try {
+                              await itemRepository.deleteItem(
+                                  item.familyId, item.id);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Item deleted')),
+                                );
+                              }
+                            } catch (e) {
+                              // Revert if failed (requires reloading or manual insertion back, simplified to reload for now)
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content:
+                                          Text('Failed to delete item: $e')),
+                                );
+                                _loadItems();
+                              }
                             }
-                          } catch (e) {
-                            // Revert if failed (requires reloading or manual insertion back, simplified to reload for now)
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content: Text('Failed to delete item: $e')),
-                              );
-                              _loadItems();
-                            }
-                          }
-                        },
-                        child: _buildItemCard(item, theme, isDark),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 80), // Space for FAB
-                ],
+                          },
+                          child: _buildItemCard(item, theme, isDark),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 80), // Space for FAB
+                  ],
+                ),
               ),
             ),
       floatingActionButton: SeasonBoxAddButton(

@@ -301,74 +301,90 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
       ),
       body: _isLoading
           ? _buildLoadingSkeleton(theme)
-          : _members.isEmpty
-              ? Center(
-                  child: Text(AppLocalizations.of(context)!.members_empty),
-                )
-              : ListView(
-                  padding: const EdgeInsets.only(
-                      left: 16, right: 16, top: 16, bottom: 84),
-                  children: [
-                    // Summary Cards
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildSummaryCard(
-                              '${_members.length}',
-                              AppLocalizations.of(context)!
-                                  .members_summaryMembers,
-                              theme),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildSummaryCard(
-                              '${_items.length}',
-                              AppLocalizations.of(context)!
-                                  .members_summaryTotalItems,
-                              theme,
-                              color: Colors.teal),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildSummaryCard(
-                              '0',
-                              AppLocalizations.of(context)!
-                                  .members_summaryNeedCheck,
-                              theme,
-                              color: Colors.orange),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Header
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          AppLocalizations.of(context)!.members_title,
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
+          : RefreshIndicator(
+              onRefresh: _loadMembers,
+              child: _members.isEmpty
+                  ? LayoutBuilder(
+                      builder: (context, constraints) => SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight,
+                          ),
+                          child: Center(
+                            child: Text(
+                                AppLocalizations.of(context)!.members_empty),
                           ),
                         ),
-                        TextButton.icon(
-                          onPressed: () {},
-                          icon: Icon(Icons.filter_list,
-                              size: 18, color: theme.colorScheme.primary),
-                          label: Text(
-                            'Filter',
-                            style: TextStyle(color: theme.colorScheme.primary),
-                          ),
+                      ),
+                    )
+                  : ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.only(
+                          left: 16, right: 16, top: 16, bottom: 84),
+                      children: [
+                        // Summary Cards
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildSummaryCard(
+                                  '${_members.length}',
+                                  AppLocalizations.of(context)!
+                                      .members_summaryMembers,
+                                  theme),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildSummaryCard(
+                                  '${_items.length}',
+                                  AppLocalizations.of(context)!
+                                      .members_summaryTotalItems,
+                                  theme,
+                                  color: Colors.teal),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildSummaryCard(
+                                  '0',
+                                  AppLocalizations.of(context)!
+                                      .members_summaryNeedCheck,
+                                  theme,
+                                  color: Colors.orange),
+                            ),
+                          ],
                         ),
+                        const SizedBox(height: 24),
+
+                        // Header
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              AppLocalizations.of(context)!.members_title,
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            TextButton.icon(
+                              onPressed: () {},
+                              icon: Icon(Icons.filter_list,
+                                  size: 18, color: theme.colorScheme.primary),
+                              label: Text(
+                                'Filter',
+                                style:
+                                    TextStyle(color: theme.colorScheme.primary),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Members List
+                        ..._members
+                            .map((member) => _buildMemberCard(member, theme)),
                       ],
                     ),
-                    const SizedBox(height: 16),
-
-                    // Members List
-                    ..._members
-                        .map((member) => _buildMemberCard(member, theme)),
-                  ],
-                ),
+            ),
       floatingActionButton: SeasonBoxAddButton(
         onPressed: () =>
             context.push('/add-member').then((_) => _loadMembers()),

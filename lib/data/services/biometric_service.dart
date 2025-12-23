@@ -11,6 +11,8 @@ class BiometricService {
   static const String _passwordKey = 'biometric_password';
   static const String _enabledKey = 'biometric_enabled';
 
+  static const String _providerKey = 'biometric_provider';
+
   Future<bool> isBiometricsAvailable() async {
     try {
       final bool canAuthenticateWithBiometrics = await _auth.canCheckBiometrics;
@@ -34,10 +36,12 @@ class BiometricService {
     }
   }
 
-  Future<void> enableBiometricLogin(String email, String password) async {
+  Future<void> enableBiometricLogin(String email, String password,
+      {String provider = 'email'}) async {
     try {
       await _storage.write(key: _emailKey, value: email);
       await _storage.write(key: _passwordKey, value: password);
+      await _storage.write(key: _providerKey, value: provider);
       await _storage.write(key: _enabledKey, value: 'true');
     } catch (e) {
       debugPrint('Error enabling biometric login: $e');
@@ -49,6 +53,7 @@ class BiometricService {
     try {
       await _storage.delete(key: _emailKey);
       await _storage.delete(key: _passwordKey);
+      await _storage.delete(key: _providerKey);
       await _storage.write(key: _enabledKey, value: 'false');
     } catch (e) {
       debugPrint('Error disabling biometric login: $e');
@@ -70,9 +75,14 @@ class BiometricService {
     try {
       final String? email = await _storage.read(key: _emailKey);
       final String? password = await _storage.read(key: _passwordKey);
+      final String? provider = await _storage.read(key: _providerKey);
 
       if (email != null && password != null) {
-        return {'email': email, 'password': password};
+        return {
+          'email': email,
+          'password': password,
+          'provider': provider ?? 'email'
+        };
       }
       return null;
     } catch (e) {

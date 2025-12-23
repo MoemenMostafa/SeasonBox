@@ -51,9 +51,22 @@ class AuthService {
     }
   }
 
-  Future<User?> signInWithGoogle() async {
+  Future<User?> signInWithGoogle({bool trySilentFirst = false}) async {
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      GoogleSignInAccount? googleUser;
+      if (trySilentFirst) {
+        try {
+          googleUser = await _googleSignIn.signInSilently();
+        } catch (e) {
+          debugPrint('Silent sign-in error: $e');
+        }
+      }
+
+      // If silent failed or wasn't requested, try interactive
+      if (googleUser == null) {
+        googleUser = await _googleSignIn.signIn();
+      }
+
       if (googleUser == null) {
         // The user canceled the sign-in
         return null;
