@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.1.5+10
+- **Family Management (Refined)**:
+    - **Creator Rules**: Family creators (Admins) who have other members must now "Disband" (remove all members) their current family before they are allowed to join a new one.
+    - **Disband Warning**: Added a specific warning dialog when a creator attempts to leave their family, clarifying that the group will be deleted.
+    - **Invitation Security**: Enforced strict email matching. Users cannot join a family if their logged-in email does not match the invited email address.
+- **Documentation**:
+    - Added `docs/family_architecture.md` detailing the User-Family data model and secure invitation workflow.
+- **Bug Fixes**:
+    - **Profile Crash**: Fixed a "gray box" crash on the Profile screen for newly registered users (handled null family names).
+    - **Logout Error**: Fixed a crash on physical devices where `secure_storage` key invalidation (BadPaddingException) prevented users from logging out.
+    - **Biometric Robustness**: Added global error handling to `BiometricService` to prevent crashes when accessing corrupted secure storage.
+
 ## 1.1.4+9
 - **Item Management**:
     - Implemented **Swipe-to-Delete** for items in the main list, including undo/confirmation.
