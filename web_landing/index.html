@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="/">
+    <title>SeasonBox - Family Organization Made Easy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <a href="/home" class="logo" style="text-decoration: none;">
+                <img src="assets/images/logo.png" alt="SeasonBox Logo">
+                <span>SeasonBox</span>
+            </a>
+            <div class="language-selector">
+                <select id="languageSelect">
+                    <option value="en">English</option>
+                    <option value="de">Deutsch</option>
+                    <option value="es">Español</option>
+                    <option value="fr">Français</option>
+                    <option value="it">Italiano</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 data-i18n="appTitle">SeasonBox</h1>
+                    <p class="tagline" data-i18n="login_tagline">Organize seasonal items for your family with ease</p>
+                    <div class="cta-buttons">
+                        <a href="#" class="store-badge">
+                            <img id="googlePlayBadge" src="assets/images/google/badge_en.png"
+                                alt="Get it on Google Play">
+                        </a>
+                        <!-- Add App Store badge if available later -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="features">
+            <div class="container">
+                <div class="feature-card">
+                    <div class="icon">📸</div>
+                    <h3 data-i18n="login_featureCard_photoInventoryTitle">Photo Inventory</h3>
+                    <p data-i18n="login_featureCard_photoInventorySubtitle">Capture and organize with photos</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">👨‍👩‍👧‍👦</div>
+                    <h3 data-i18n="login_featureCard_familySharingTitle">Family Sharing</h3>
+                    <p data-i18n="login_featureCard_familySharingSubtitle">Sync across all family members</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔔</div>
+                    <h3 data-i18n="login_featureCard_smartRemindersTitle">Smart Reminders</h3>
+                    <p data-i18n="login_featureCard_smartRemindersSubtitle">Never miss seasonal changes</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="pricing">
+            <div class="container">
+                <h2 data-i18n="pricing_title">Pricing</h2>
+                <div class="pricing-cards">
+                    <div class="pricing-card free">
+                        <div class="card-header">
+                            <h3 data-i18n="pricing_free_title">SeasonBox</h3>
+                            <span class="price" data-i18n="pricing_free_price">Free</span>
+                        </div>
+                        <ul class="features-list">
+                            <li data-i18n="pricing_free_feature1">Basic Inventory</li>
+                            <li data-i18n="pricing_free_feature2">Local Storage</li>
+                            <!-- Placeholder features based on typical free tier restrictions if any -->
+                        </ul>
+                    </div>
+                    <div class="pricing-card premium">
+                        <div class="card-header">
+                            <h3 data-i18n="pricing_plus_title">SeasonBox Plus</h3>
+                            <span class="price" data-i18n="pricing_plus_price">1.99€</span>
+                        </div>
+                        <ul class="features-list">
+                            <li data-i18n="pricing_plus_feature1">Unlimited Items</li>
+                            <li data-i18n="pricing_plus_feature2">Cloud Sync</li>
+                            <li data-i18n="pricing_plus_feature3">Family Sharing</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="/terms" data-i18n="login_footer_termsOfService">Terms of Service</a>
+                <span data-i18n="login_footer_and">and</span>
+                <a href="/privacy" data-i18n="login_footer_privacyPolicy">Privacy Policy</a>
+            </div>
+            <p>&copy; 2025 SeasonBox</p>
+        </div>
+    </footer>
+
+    <script src="l10n.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

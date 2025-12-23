@@ -19,6 +19,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _isPasswordVisible = false;
 
   @override
   void dispose() {
@@ -217,9 +218,10 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
+                    // Password Field
                     TextFormField(
                       controller: _passwordController,
-                      obscureText: true,
+                      obscureText: !_isPasswordVisible,
                       decoration: InputDecoration(
                         labelText: AppLocalizations.of(context)!
                             .emailLogin_field_password,
@@ -227,6 +229,19 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                             .emailLogin_field_password,
                         prefixIcon: const Icon(Icons.lock_outline,
                             color: Colors.white70),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isPasswordVisible
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            color: Colors.white70,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isPasswordVisible = !_isPasswordVisible;
+                            });
+                          },
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
                           borderSide: BorderSide.none,

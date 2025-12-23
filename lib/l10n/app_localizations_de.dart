@@ -759,6 +759,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Warnung: Sie sind der Administrator. Wenn Sie gehen, werden alle Mitglieder entfernt und die Familiengruppe gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.';
 
   @override
+  String get register_validation_passwordLength =>
+      'Das Passwort muss mindestens 6 Zeichen lang sein';
+
+  @override
   String get error_no_invitation =>
       'Keine aktive Einladung für diese Familie gefunden.';
 

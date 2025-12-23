@@ -1454,6 +1454,12 @@ abstract class AppLocalizations {
   /// **'Warning: You are the admin. Leaving will remove all members and delete the family group. This action cannot be undone.'**
   String get profile_disbandFamily_confirm;
 
+  /// No description provided for @register_validation_passwordLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 6 characters'**
+  String get register_validation_passwordLength;
+
   /// No description provided for @error_no_invitation.
   ///
   /// In en, this message translates to:

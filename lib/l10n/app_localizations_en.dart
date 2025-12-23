@@ -742,6 +742,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Warning: You are the admin. Leaving will remove all members and delete the family group. This action cannot be undone.';
 
   @override
+  String get register_validation_passwordLength =>
+      'Password must be at least 6 characters';
+
+  @override
   String get error_no_invitation =>
       'No active invitation found for this family.';
 

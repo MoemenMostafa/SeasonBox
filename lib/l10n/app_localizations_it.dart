@@ -749,6 +749,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Attenzione: Sei l\'amministratore. Uscendo verranno rimossi tutti i membri ed eliminato il gruppo familiare. Questa azione non può essere annullata.';
 
   @override
+  String get register_validation_passwordLength =>
+      'La password deve contenere almeno 6 caratteri';
+
+  @override
   String get error_no_invitation =>
       'Nessun invito attivo trovato per questa famiglia.';
 

@@ -22,6 +22,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _familyCodeController = TextEditingController();
   bool _isLoading = false;
+  bool _isPasswordVisible = false;
 
   @override
   void dispose() {
@@ -245,7 +246,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       // Password Field
                       TextFormField(
                         controller: _passwordController,
-                        obscureText: true,
+                        obscureText: !_isPasswordVisible,
                         decoration: InputDecoration(
                           labelText: AppLocalizations.of(context)!
                               .emailLogin_field_password,
@@ -253,6 +254,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               .emailLogin_field_password,
                           prefixIcon: const Icon(Icons.lock_outline,
                               color: Colors.white70),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _isPasswordVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                              color: Colors.white70,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _isPasswordVisible = !_isPasswordVisible;
+                              });
+                            },
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
                             borderSide: BorderSide.none,
@@ -269,7 +283,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 .emailLogin_validation_passwordRequired;
                           }
                           if (value.length < 6) {
-                            return 'Password must be at least 6 characters'; // TODO: Localize
+                            return AppLocalizations.of(context)!
+                                .register_validation_passwordLength;
                           }
                           return null;
                         },

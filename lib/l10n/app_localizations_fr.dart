@@ -755,6 +755,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Attention : Vous êtes l\'administrateur. Quitter supprimera tous les membres et supprimera le groupe familial. Cette action est irréversible.';
 
   @override
+  String get register_validation_passwordLength =>
+      'Le mot de passe doit contenir au moins 6 caractères';
+
+  @override
   String get error_no_invitation =>
       'Aucune invitation active trouvée pour cette famille.';
 
