@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.9+14
+- **Notifications & Invitations**:
+    - **In-App Notifications**: Implemented a new Notifications screen to view and manage incoming family invitations.
+    - **Accept/Reject Actions**: Users can now accept or reject invitations directly within the app.
+    - **Localization**: Added full translation support for notification messages and actions.
+- **Backend & Security**:
+    - **Firestore Rules**: Updated security rules to allow secure "Collection Group Queries" for fetching user-specific pending invites.
+
 ## 1.1.8+13
 - **Help Center & Web Landing**:
     - **Contact Form Security**: Refactored the "Contact Us" form to use a secure JavaScript-based `mailto` generator, resolving "not secure" browser warnings.
