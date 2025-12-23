@@ -1,16 +1,32 @@
-# seasonbox
+# SeasonBox
 
-A new Flutter project.
+SeasonBox is a mobile application that helps families manage seasonal items (clothes, shoes, gear, boxes, etc.), track which child each item fits, store inventory with photos and storage locations, and receive reminders based on season changes and predicted child growth.
 
-## Getting Started
+The app solves problems such as:
+* Forgetting what is stored where
+* Seasonal clothing chaos
+* Clothes movement between siblings
+* Kids outgrowing items quickly
+* Purchasing duplicates due to lack of visibility
 
-This project is a starting point for a Flutter application.
+## Features
+* **User Accounts & Family Sharing**: Google Authentication and family groups to sync data across members.
+* **Children Management**: Track children details and size history.
+* **Items Management**: Add items with photos, categories, seasons, and sizes.
+* **Storage Management**: Organize items in storage locations with optional support for QR codes.
+* **Search & Filtering**: Comprehensive search and filtering options for easy item retrieval.
+* **Offline Support**: Full offline capabilities with background sync.
 
-A few resources to get you started if this is your first Flutter project:
+## Technology Stack
+* **Frontend:** Flutter (Android & iOS)
+* **Auth:** Google Authentication (via Firebase Auth)
+* **Backend:** Firebase (Firestore, Storage, Functions, Cloud Messaging)
+* **Local Storage:** Drift (SQLite) for offline-first support
+* **ML (future):** TensorFlow Lite or heuristic growth model
+* **Other Integrations:** QR Code generation, image compression
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Documentation
+For more detailed information about the project's architecture and permissions, please refer to the documentation in the `docs` folder:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+* [Family Architecture](docs/family_architecture.md): Overview of the user-family relationship and invitation system.
+* [Permissions & Roles](docs/PERMISSIONS.md): Details on user roles (Admin vs. Member) and access control.
