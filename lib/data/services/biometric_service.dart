@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -34,29 +35,49 @@ class BiometricService {
   }
 
   Future<void> enableBiometricLogin(String email, String password) async {
-    await _storage.write(key: _emailKey, value: email);
-    await _storage.write(key: _passwordKey, value: password);
-    await _storage.write(key: _enabledKey, value: 'true');
+    try {
+      await _storage.write(key: _emailKey, value: email);
+      await _storage.write(key: _passwordKey, value: password);
+      await _storage.write(key: _enabledKey, value: 'true');
+    } catch (e) {
+      debugPrint('Error enabling biometric login: $e');
+      throw Exception('Failed to enable biometric login');
+    }
   }
 
   Future<void> disableBiometricLogin() async {
-    await _storage.delete(key: _emailKey);
-    await _storage.delete(key: _passwordKey);
-    await _storage.write(key: _enabledKey, value: 'false');
+    try {
+      await _storage.delete(key: _emailKey);
+      await _storage.delete(key: _passwordKey);
+      await _storage.write(key: _enabledKey, value: 'false');
+    } catch (e) {
+      debugPrint('Error disabling biometric login: $e');
+      // We don't rethrow here because we want logout to succeed even if this fails
+    }
   }
 
   Future<bool> isBiometricLoginEnabled() async {
-    final String? enabled = await _storage.read(key: _enabledKey);
-    return enabled == 'true';
+    try {
+      final String? enabled = await _storage.read(key: _enabledKey);
+      return enabled == 'true';
+    } catch (e) {
+      debugPrint('Error reading biometric status: $e');
+      return false; // Return false on error (safe default)
+    }
   }
 
   Future<Map<String, String>?> getStoredCredentials() async {
-    final String? email = await _storage.read(key: _emailKey);
-    final String? password = await _storage.read(key: _passwordKey);
+    try {
+      final String? email = await _storage.read(key: _emailKey);
+      final String? password = await _storage.read(key: _passwordKey);
 
-    if (email != null && password != null) {
-      return {'email': email, 'password': password};
+      if (email != null && password != null) {
+        return {'email': email, 'password': password};
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error reading credentials: $e');
+      return null;
     }
-    return null;
   }
 }

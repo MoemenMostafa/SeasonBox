@@ -738,6 +738,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Are you sure you want to leave this family? You will be removed from the members list.';
 
   @override
+  String get profile_disbandFamily_confirm =>
+      'Warning: You are the admin. Leaving will remove all members and delete the family group. This action cannot be undone.';
+
+  @override
   String get error_no_invitation =>
       'No active invitation found for this family.';
 

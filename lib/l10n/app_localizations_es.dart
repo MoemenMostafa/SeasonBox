@@ -747,7 +747,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get profile_leaveFamily_confirm =>
-      '¿Estás seguro de que deseas dejar esta familia? Serás eliminado de la lista de miembros.';
+      '¿Está seguro de que desea abandonar esta familia? Será eliminado de la lista de miembros.';
+
+  @override
+  String get profile_disbandFamily_confirm =>
+      'Advertencia: Eres el administrador. Salir eliminará a todos los miembros y eliminará el grupo familiar. Esta acción no se puede deshacer.';
 
   @override
   String get error_no_invitation =>

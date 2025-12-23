@@ -145,13 +145,28 @@ class UserService {
 
   /// Helper to leave current family and revert to personal family
   Future<void> leaveFamily(String uid, String currentFamilyId) async {
-    if (uid == currentFamilyId) return; // Already in personal family
+    // If leaving own family (disbanding/resetting to solo)
+    if (uid == currentFamilyId) {
+      // Logic: "Leave" means reverting to a true solo state.
+      // If there are other members, we should remove them (Disband).
+      // Or we can just remove everyone including self, and then re-add self as solo.
 
-    // Remove from current family members
-    await _familyMemberRepository.deleteFamilyMember(currentFamilyId, uid);
+      final membersQuery =
+          await _firestoreService.familyMembers(currentFamilyId).get();
+      for (var doc in membersQuery.docs) {
+        await doc.reference.delete();
+      }
 
-    // Create/Switch to personal family
-    // Check if personal family exists (it should usually)
+      // We don't return here, we proceed to ensure personal family exists and user is added to it.
+      // Although personal family IS the currentFamilyId, so we just cleared it.
+      // Now we need to ensure the user is added back as admin.
+    } else {
+      // Regular leave
+      await _familyMemberRepository.deleteFamilyMember(currentFamilyId, uid);
+    }
+
+    // Create/Switch to personal family (if it was deleted or didn't exist)
+    // For creator disbanding, we just deleted everyone, so we need to recreate self.
     var personalFamily = await _familyRepository.getFamily(uid);
     if (personalFamily == null) {
       final family = Family(

@@ -121,10 +121,16 @@ class AuthService {
   Future<void> signOut() async {
     try {
       _cachedFamilyId = null; // Clear cache on sign out
-      await _googleSignIn.signOut();
+      try {
+        await _googleSignIn.signOut();
+      } catch (e) {
+        // Ignore Google Sign-In errors (e.g., if checking on non-Google user)
+        debugPrint('Google Sign-In signOut error: $e');
+      }
       await _auth.signOut();
     } catch (e) {
       // Ignore error
+      debugPrint('AuthService signOut error: $e');
     }
   }
 }

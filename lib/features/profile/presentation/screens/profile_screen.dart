@@ -249,10 +249,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       final biometricService = BiometricService();
 
                       // Disable biometric login if enabled
-                      final isBiometricEnabled =
-                          await biometricService.isBiometricLoginEnabled();
-                      if (isBiometricEnabled) {
-                        await biometricService.disableBiometricLogin();
+                      // Disable biometric login if enabled (best effort)
+                      try {
+                        final isBiometricEnabled =
+                            await biometricService.isBiometricLoginEnabled();
+                        if (isBiometricEnabled) {
+                          await biometricService.disableBiometricLogin();
+                        }
+                      } catch (e) {
+                        debugPrint('Error disabling biometric login: $e');
                       }
 
                       // Sign out from Firebase
@@ -416,7 +421,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           icon: Icons.people,
           iconColor: Colors.blue,
           iconBgColor: Colors.blue.shade50,
-          title: AppLocalizations.of(context)!.profile_family_name(familyName),
+          title: familyName != null
+              ? AppLocalizations.of(context)!.profile_family_name(familyName)
+              : AppLocalizations.of(context)!.profile_section_familyManagement,
           // subtitle: AppLocalizations.of(context)!.profile_family_members(5), // TODO: Get actual count
           subtitle: familyId ?? '',
           onTap: () {
@@ -424,28 +431,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _showComingSoon(context);
           },
         ),
-        const SizedBox(height: 12),
-        _buildListTile(
-          context,
-          icon: Icons.group_add,
-          iconColor: Colors.teal,
-          iconBgColor: Colors.teal.shade50,
-          title: AppLocalizations.of(context)!.profile_joinFamily_title,
-          subtitle: AppLocalizations.of(context)!.profile_joinFamily_input,
-          onTap: () => _showJoinFamilyDialog(context),
-        ),
-        if (!isSoloFamily) ...[
-          const SizedBox(height: 12),
-          _buildListTile(
-            context,
-            icon: Icons.exit_to_app,
-            iconColor: Colors.red,
-            iconBgColor: Colors.red.shade50,
-            title: AppLocalizations.of(context)!.profile_leaveFamily_title,
-            subtitle: AppLocalizations.of(context)!.profile_leaveFamily_title,
-            onTap: () => _showLeaveFamilyDialog(context, familyId!),
+        if (familyId != null)
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('families')
+                .doc(familyId)
+                .collection('members')
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) return const SizedBox.shrink();
+
+              final memberCount = snapshot.data!.docs.length;
+              // Can join if solo family AND no other members
+              final canJoin = isSoloFamily && memberCount <= 1;
+              // Can leave if NOT solo family OR (solo family AND has other members - i.e. disband)
+              final canLeave =
+                  !isSoloFamily || (isSoloFamily && memberCount > 1);
+
+              return Column(
+                children: [
+                  const SizedBox(height: 12),
+                  if (canJoin)
+                    _buildListTile(
+                      context,
+                      icon: Icons.group_add,
+                      iconColor: Colors.teal,
+                      iconBgColor: Colors.teal.shade50,
+                      title: AppLocalizations.of(context)!
+                          .profile_joinFamily_title,
+                      subtitle: AppLocalizations.of(context)!
+                          .profile_joinFamily_input,
+                      onTap: () => _showJoinFamilyDialog(context),
+                    ),
+                  if (canLeave) ...[
+                    if (canJoin)
+                      const SizedBox(
+                          height:
+                              12), // Spacing if both visible (rare/impossible with current logic)
+                    _buildListTile(
+                      context,
+                      icon: Icons.exit_to_app,
+                      iconColor: Colors.red,
+                      iconBgColor: Colors.red.shade50,
+                      title: AppLocalizations.of(context)!
+                          .profile_leaveFamily_title,
+                      subtitle: AppLocalizations.of(context)!
+                          .profile_leaveFamily_title,
+                      onTap: () => _showLeaveFamilyDialog(context, familyId,
+                          isDisbanding: isSoloFamily),
+                    ),
+                  ],
+                ],
+              );
+            },
           ),
-        ],
       ],
     );
   }
@@ -516,13 +555,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _showLeaveFamilyDialog(BuildContext context, String currentFamilyId) {
+  void _showLeaveFamilyDialog(BuildContext context, String currentFamilyId,
+      {bool isDisbanding = false}) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(AppLocalizations.of(context)!.profile_leaveFamily_title),
-        content:
-            Text(AppLocalizations.of(context)!.profile_leaveFamily_confirm),
+        content: Text(isDisbanding
+            ? AppLocalizations.of(context)!.profile_disbandFamily_confirm
+            : AppLocalizations.of(context)!.profile_leaveFamily_confirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),

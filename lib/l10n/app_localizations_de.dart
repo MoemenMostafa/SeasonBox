@@ -752,7 +752,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get profile_leaveFamily_confirm =>
-      'Sind Sie sicher, dass Sie diese Familie verlassen möchten? Sie werden von der Mitgliederliste entfernt.';
+      'Sind Sie sicher, dass Sie diese Familie verlassen möchten? Sie werden aus der Mitgliederliste entfernt.';
+
+  @override
+  String get profile_disbandFamily_confirm =>
+      'Warnung: Sie sind der Administrator. Wenn Sie gehen, werden alle Mitglieder entfernt und die Familiengruppe gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.';
 
   @override
   String get error_no_invitation =>

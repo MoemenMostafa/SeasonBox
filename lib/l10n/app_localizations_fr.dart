@@ -751,6 +751,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Êtes-vous sûr de vouloir quitter cette famille ? Vous serez retiré de la liste des membres.';
 
   @override
+  String get profile_disbandFamily_confirm =>
+      'Attention : Vous êtes l\'administrateur. Quitter supprimera tous les membres et supprimera le groupe familial. Cette action est irréversible.';
+
+  @override
   String get error_no_invitation =>
       'Aucune invitation active trouvée pour cette famille.';
 

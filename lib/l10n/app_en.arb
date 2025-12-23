@@ -362,6 +362,7 @@
   "profile_joinFamily_input": "Enter Family Code",
   "profile_leaveFamily_title": "Leave Family",
   "profile_leaveFamily_confirm": "Are you sure you want to leave this family? You will be removed from the members list.",
+  "profile_disbandFamily_confirm": "Warning: You are the admin. Leaving will remove all members and delete the family group. This action cannot be undone.",
   "error_no_invitation": "No active invitation found for this family.",
   "profile_joinFamily_success": "Successfully joined family",
   "profile_leaveFamily_success": "Successfully left family",

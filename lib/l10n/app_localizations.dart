@@ -1448,6 +1448,12 @@ abstract class AppLocalizations {
   /// **'Are you sure you want to leave this family? You will be removed from the members list.'**
   String get profile_leaveFamily_confirm;
 
+  /// No description provided for @profile_disbandFamily_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning: You are the admin. Leaving will remove all members and delete the family group. This action cannot be undone.'**
+  String get profile_disbandFamily_confirm;
+
   /// No description provided for @error_no_invitation.
   ///
   /// In en, this message translates to:

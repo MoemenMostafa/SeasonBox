@@ -225,6 +225,7 @@
   "profile_joinFamily_input": "Entrez le code famille",
   "profile_leaveFamily_title": "Quitter la famille",
   "profile_leaveFamily_confirm": "Êtes-vous sûr de vouloir quitter cette famille ? Vous serez retiré de la liste des membres.",
+  "profile_disbandFamily_confirm": "Attention : Vous êtes l'administrateur. Quitter supprimera tous les membres et supprimera le groupe familial. Cette action est irréversible.",
   "error_no_invitation": "Aucune invitation active trouvée pour cette famille.",
   "profile_joinFamily_success": "Vous avez rejoint la famille avec succès",
   "profile_leaveFamily_success": "Vous avez quitté la famille avec succès",
