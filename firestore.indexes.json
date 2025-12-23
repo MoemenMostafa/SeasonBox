@@ -7,6 +7,14 @@
       "indexes": [
         {
           "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "ASCENDING",
           "queryScope": "COLLECTION_GROUP"
         },
         {
@@ -19,6 +27,14 @@
       "collectionGroup": "members",
       "fieldPath": "inviteStatus",
       "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION"
+        },
         {
           "order": "ASCENDING",
           "queryScope": "COLLECTION_GROUP"
