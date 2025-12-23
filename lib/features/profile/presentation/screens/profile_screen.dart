@@ -172,119 +172,134 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (_userStream != null)
-                StreamBuilder<DocumentSnapshot>(
-                  stream: _userStream,
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
-                    }
+      body: RefreshIndicator(
+        onRefresh: () async {
+          final userService = Provider.of<UserService>(context, listen: false);
+          final authService = Provider.of<AuthService>(context, listen: false);
+          final user = authService.currentUser;
+          if (user != null) {
+            setState(() {
+              _userStream = userService.getUserStream(user.uid);
+            });
+          }
+          // Small delay to let the UI update or just for visual feedback since stream is instant
+          await Future.delayed(const Duration(milliseconds: 500));
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (_userStream != null)
+                  StreamBuilder<DocumentSnapshot>(
+                    stream: _userStream,
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      }
 
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      // Return a placeholder or the card with basic info if available
-                      // For now, indicator is fine, but since we cache stream it should only happen once.
-                      return const Center(child: CircularProgressIndicator());
-                    }
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        // Return a placeholder or the card with basic info if available
+                        // For now, indicator is fine, but since we cache stream it should only happen once.
+                        return const Center(child: CircularProgressIndicator());
+                      }
 
-                    final userData =
-                        snapshot.data?.data() as Map<String, dynamic>?;
+                      final userData =
+                          snapshot.data?.data() as Map<String, dynamic>?;
 
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildProfileCard(context, userData, user),
-                        const SizedBox(height: 24),
-                        _buildFamilyManagement(context, userData),
-                      ],
-                    );
-                  },
-                )
-              else
-                const Center(child: CircularProgressIndicator()),
-              const SizedBox(height: 24),
-              _buildAppSettings(context),
-              const SizedBox(height: 24),
-              _buildDataPrivacy(context),
-              const SizedBox(height: 24),
-              _buildSupport(context),
-              const SizedBox(height: 32),
-              AppFooter(
-                onSignOut: () async {
-                  // Show confirmation dialog
-                  final shouldLogout = await showDialog<bool>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text(AppLocalizations.of(context)!
-                          .profile_dialog_logout_title),
-                      content: Text(AppLocalizations.of(context)!
-                          .profile_dialog_logout_message),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, false),
-                          child: Text(AppLocalizations.of(context)!
-                              .profile_dialog_logout_cancel),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, true),
-                          style: TextButton.styleFrom(
-                            foregroundColor: Colors.red,
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildProfileCard(context, userData, user),
+                          const SizedBox(height: 24),
+                          _buildFamilyManagement(context, userData),
+                        ],
+                      );
+                    },
+                  )
+                else
+                  const Center(child: CircularProgressIndicator()),
+                const SizedBox(height: 24),
+                _buildAppSettings(context),
+                const SizedBox(height: 24),
+                _buildDataPrivacy(context),
+                const SizedBox(height: 24),
+                _buildSupport(context),
+                const SizedBox(height: 32),
+                AppFooter(
+                  onSignOut: () async {
+                    // Show confirmation dialog
+                    final shouldLogout = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text(AppLocalizations.of(context)!
+                            .profile_dialog_logout_title),
+                        content: Text(AppLocalizations.of(context)!
+                            .profile_dialog_logout_message),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: Text(AppLocalizations.of(context)!
+                                .profile_dialog_logout_cancel),
                           ),
-                          child: Text(AppLocalizations.of(context)!
-                              .profile_dialog_logout_confirm),
-                        ),
-                      ],
-                    ),
-                  );
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.red,
+                            ),
+                            child: Text(AppLocalizations.of(context)!
+                                .profile_dialog_logout_confirm),
+                          ),
+                        ],
+                      ),
+                    );
 
-                  if (shouldLogout == true && context.mounted) {
-                    try {
-                      // Get services before async operations
-                      final authService =
-                          Provider.of<AuthService>(context, listen: false);
-                      final biometricService = BiometricService();
-
-                      // Disable biometric login if enabled
-                      // Disable biometric login if enabled (best effort)
+                    if (shouldLogout == true && context.mounted) {
                       try {
-                        final isBiometricEnabled =
-                            await biometricService.isBiometricLoginEnabled();
-                        if (isBiometricEnabled) {
-                          await biometricService.disableBiometricLogin();
+                        // Get services before async operations
+                        final authService =
+                            Provider.of<AuthService>(context, listen: false);
+                        final biometricService = BiometricService();
+
+                        // Disable biometric login if enabled
+                        // Disable biometric login if enabled (best effort)
+                        try {
+                          final isBiometricEnabled =
+                              await biometricService.isBiometricLoginEnabled();
+                          if (isBiometricEnabled) {
+                            await biometricService.disableBiometricLogin();
+                          }
+                        } catch (e) {
+                          debugPrint('Error disabling biometric login: $e');
+                        }
+
+                        // Sign out from Firebase
+                        await authService.signOut();
+
+                        // Navigate to login screen
+                        if (context.mounted) {
+                          context.go('/login');
                         }
                       } catch (e) {
-                        debugPrint('Error disabling biometric login: $e');
-                      }
-
-                      // Sign out from Firebase
-                      await authService.signOut();
-
-                      // Navigate to login screen
-                      if (context.mounted) {
-                        context.go('/login');
-                      }
-                    } catch (e) {
-                      // Show error message if logout fails
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(AppLocalizations.of(context)!
-                                .profile_error_logoutFailed(e.toString())),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
+                        // Show error message if logout fails
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(AppLocalizations.of(context)!
+                                  .profile_error_logoutFailed(e.toString())),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
                       }
                     }
-                  }
-                },
-              ),
-              const SizedBox(height: 32),
-            ],
+                  },
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
           ),
         ),
       ),

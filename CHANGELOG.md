@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.12+17
+- **UI Improvements**:
+    - **Pull to Refresh**: Added pull-to-refresh functionality to both the **Profile Screen** and **Storage Screen**. Users can now manually reload their data by pulling down on these screens.
+
 ## 1.1.11+16
 - **Bug Fixes & Stability**:
     - **Registration Flow**: Fixed a critical issue where registering with a Family ID created a duplicate member instead of linking to the invited profile. Logic now correctly "claims" pending invitations.

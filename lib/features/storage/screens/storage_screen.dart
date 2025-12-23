@@ -128,23 +128,27 @@ class _StorageScreenState extends State<StorageScreen> {
       ),
       body: _isLoading
           ? _buildLoadingSkeleton()
-          : CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildStats(theme),
-                      _buildSearchAndFilter(theme, isDark),
-                    ],
+          : RefreshIndicator(
+              onRefresh: _loadLocations,
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildStats(theme),
+                        _buildSearchAndFilter(theme, isDark),
+                      ],
+                    ),
                   ),
-                ),
-                _buildStorageList(theme, isDark),
-                SliverToBoxAdapter(
-                  child: _buildQuickActions(theme),
-                ),
-                const SliverPadding(padding: EdgeInsets.only(bottom: 80)),
-              ],
+                  _buildStorageList(theme, isDark),
+                  SliverToBoxAdapter(
+                    child: _buildQuickActions(theme),
+                  ),
+                  const SliverPadding(padding: EdgeInsets.only(bottom: 80)),
+                ],
+              ),
             ),
       floatingActionButton: SeasonBoxAddButton(
         onPressed: () =>
