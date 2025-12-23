@@ -105,6 +105,12 @@ class _HomeScreenState extends State<HomeScreen> {
         title: AppLocalizations.of(context)!.appTitle,
         subtitle: AppLocalizations.of(context)!
             .home_appBar_subtitle(_familyName ?? ''),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications),
+            onPressed: () => context.push('/notifications'),
+          ),
+        ],
         leading: _userPhotoURL != null
             ? Padding(
                 padding: const EdgeInsets.all(8.0),

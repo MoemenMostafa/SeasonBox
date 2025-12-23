@@ -353,6 +353,17 @@
   "editProfile_field_measurementSystem": "Maßsystem",
   "editProfile_option_imperial": "Imperial (US)",
   "editProfile_option_metric": "Metrisch",
-  "editProfile_button_saveChanges": "Änderungen speichern"
-
+  "editProfile_button_saveChanges": "Änderungen speichern",
+  
+  "notifications_title": "Benachrichtigungen",
+  "notifications_empty": "Keine neuen Benachrichtigungen",
+  "notifications_invite_title": "Einladung zum Familienbeitritt",
+  "notifications_invite_message": "{inviterName} hat dich eingeladen, der Familie beizutreten.",
+  "notifications_invite_familyId": "Familien-ID: {familyId}",
+  "notifications_action_accept": "Annehmen",
+  "notifications_action_reject": "Ablehnen",
+  "notifications_success_joined": "Familie erfolgreich beigetreten!",
+  "notifications_success_rejected": "Einladung abgelehnt.",
+  "notifications_error_joining": "Fehler beim Beitreten der Familie: {error}",
+  "notifications_error_rejecting": "Fehler beim Ablehnen der Einladung: {error}"
 }

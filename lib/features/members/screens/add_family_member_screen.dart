@@ -84,6 +84,9 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
         throw Exception('User not authenticated');
       }
 
+      final currentUser = context.read<AuthService>().currentUser;
+      final inviterName = currentUser?.displayName ?? 'Admin';
+
       final member = FamilyMember(
         id: widget.member?.id ?? const Uuid().v4(),
         familyId: familyId,
@@ -100,6 +103,10 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
         inviteStatus: _inviteStatus,
         lastInviteSent:
             resendingInvite ? DateTime.now() : widget.member?.lastInviteSent,
+        inviterName: resendingInvite
+            ? inviterName
+            : (widget.member?.inviterName ??
+                (_inviteStatus == 'pending' ? inviterName : null)),
       );
 
       if (!mounted) return;

@@ -5,98 +5,81 @@ service cloud.firestore {
 
     // --- Helper Functions ---
 
-    // Check if the user is signed in
     function isSignedIn() {
       return request.auth != null;
     }
 
-    // Check if the signed-in user matches the requested userId
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // Check if the user is a member of the family
-    // This relies on the 'members' subcollection in the family document
+    // Check if user is member via 'members' subcollection OR if it's their own personal family (familyId == uid)
     function isFamilyMember(familyId) {
-      return isSignedIn() && exists(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid));
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)) ||
+        familyId == request.auth.uid
+      );
     }
 
-    // Check if the user is an Admin of the family
-    // Checks the 'role' field in the member document
+    // Check if user is admin via 'members' subcollection role OR if it's their own personal family
     function isFamilyAdmin(familyId) {
-      return isFamilyMember(familyId) && 
-             get(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)).data.role == 'admin';
+      return isSignedIn() && (
+        (isFamilyMember(familyId) && get(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)).data.role == 'admin') ||
+        familyId == request.auth.uid
+      );
     }
 
     // --- Collection Rules ---
 
     // 1. Users Collection
-    // Users can only read/write their own user profile
     match /users/{userId} {
       allow read, write: if isOwner(userId);
     }
 
     // 2. Families Collection
     match /families/{familyId} {
-      // Allow reading the family document if you are a member
-      allow read: if isFamilyMember(familyId);
+      // Allow getting a specific family document (needed for "Join Family" existence checks)
+      allow get: if isSignedIn();
       
-      // Allow creation of a new family (e.g., during signup/onboarding)
-      // Note: Strict validation of initial data could be added here
+      // Allow listing families only if you are a member (though usually you list via your user profile)
+      allow list: if isFamilyMember(familyId);
+      
       allow create: if isSignedIn();
-
-      // Only Admins can update family details (e.g., name)
       allow update: if isFamilyAdmin(familyId);
-      
-      // Only Admins can delete the family
       allow delete: if isFamilyAdmin(familyId);
-
 
       // 2a. Members Subcollection
       match /members/{memberId} {
-        // Members can view other members in the same family
-        allow read: if isFamilyMember(familyId);
-
-        // ONLY Admins can add, update, or remove members
-        // Exception: A user creates their own member entry when creating the family? 
-        // Based on typical flows, initial family creation creates the admin member.
-        // We allow write if Admin OR checks for special case of creating new family (handled by batch usually but rules apply individually).
-        // Let's stick to Requirements: "Only family admin who can add members"
-        allow create, update, delete: if isFamilyAdmin(familyId);
+        allow read: if isFamilyMember(familyId) || resource.data.inviteEmail == request.auth.token.email;
         
-        // Allow a user to add THEMSELVES as the first member (admin) when creating a family
-        // This is a common pattern: if the family is being created, the creator can add themselves.
-        // Or if the batch write happens. For simplicity and requirements: Admin only. 
-        // NOTE: Initial family creation usually involves creating the family doc AND the first member doc.
-        // If done in a batch, rules are checked per op. 
-        // The first member is the one creating the family. 
-        // Check if I am writing MY OWN member doc AND I am creating it with role 'admin' (bootstrapping)
-        // AND the family didn't exist before (or I'm the one creating it).
-        // For now, let's strictly follow requirements: Admin controls members. 
-        // Bootstrap issue: checks specific to new family creation might be needed.
-        // Allowing write if request.auth.uid == memberId might be needed for initial setup.
+        // Admins can manage members. 
+        // Also allow a user to remove THEMSELVES (Leave Family)
+        // AND allow a user to delete a pending invite sent to them (Join/Reject flow)
+        allow create, update: if isFamilyAdmin(familyId);
+        allow delete: if isFamilyAdmin(familyId) || 
+                      request.auth.uid == memberId || 
+                      resource.data.inviteEmail == request.auth.token.email;
       }
 
       // 2b. Items Subcollection
       match /items/{itemId} {
-        // All family members can view items
         allow read: if isFamilyMember(familyId);
-
-        // Family members can add new items
-        // "allow family members only to change control their items or add new items"
         allow create: if isFamilyMember(familyId) && request.resource.data.ownerId == request.auth.uid;
-
-        // "change control their items" -> Update/Delete own items
-        // "Only family admin... add or remove items for any members" -> Admin deals with all
         allow update, delete: if isFamilyAdmin(familyId) || 
                               (isFamilyMember(familyId) && resource.data.ownerId == request.auth.uid);
       }
       
-      // 2c. Locations Subcollection (Assuming needed based on code seen earlier)
+      // 2c. Locations Subcollection
       match /locations/{locationId} {
          allow read: if isFamilyMember(familyId);
-         allow write: if isFamilyAdmin(familyId); // Assuming admins manage locations
+         allow write: if isFamilyAdmin(familyId);
       }
+    }
+
+    // 3. Collection Group Queries
+    // explicit match for collection group queries on 'members' to find invites
+    match /{path=**}/members/{memberId} {
+      allow read: if isSignedIn() && resource.data.inviteEmail == request.auth.token.email;
     }
   }
 }

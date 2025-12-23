@@ -40,7 +40,8 @@ exports.sendFamilyInvitation = onDocumentWritten(
 
     if (isPending && inviteEmail && (!wasPending || emailChanged || lastInviteSentChanged)) {
       const familyId = event.params.familyId;
-      return sendInvitationEmail(inviteEmail, familyId);
+      const inviterName = newData.inviterName || 'A family member';
+      return sendInvitationEmail(inviteEmail, familyId, inviterName);
     }
 
     return null;
@@ -50,7 +51,7 @@ exports.sendFamilyInvitation = onDocumentWritten(
 /**
  * Sends an invitation email.
  */
-async function sendInvitationEmail(email, familyId) {
+async function sendInvitationEmail(email, familyId, inviterName) {
   const gmailEmail = gmailConfig.value().gmail.email;
   const gmailPassword = gmailConfig.value().gmail.password;
 
@@ -68,7 +69,7 @@ async function sendInvitationEmail(email, familyId) {
     subject: `You have been invited to join ${APP_NAME}!`,
     html: `
       <h2>Welcome to ${APP_NAME}!</h2>
-      <p>You have been invited to join a family on ${APP_NAME}.</p>
+      <p><strong>${inviterName}</strong> has invited you to join their family on ${APP_NAME}.</p>
       <p>To join, please use the following Family ID when signing up or linking your account:</p>
       <h3>${familyId}</h3>
       <br>

@@ -354,6 +354,17 @@
   "editProfile_field_measurementSystem": "Sistema di Misurazione",
   "editProfile_option_imperial": "Imperiale (USA)",
   "editProfile_option_metric": "Metrico",
-  "editProfile_button_saveChanges": "Salva Modifiche"
-
+  "editProfile_button_saveChanges": "Salva Modifiche",
+  
+  "notifications_title": "Notifiche",
+  "notifications_empty": "Nessuna nuova notifica",
+  "notifications_invite_title": "Invito a unirsi alla famiglia",
+  "notifications_invite_message": "{inviterName} ti ha invitato a unirti alla sua famiglia.",
+  "notifications_invite_familyId": "ID Famiglia: {familyId}",
+  "notifications_action_accept": "Accetta",
+  "notifications_action_reject": "Rifiuta",
+  "notifications_success_joined": "Unito alla famiglia con successo!",
+  "notifications_success_rejected": "Invito rifiutato.",
+  "notifications_error_joining": "Errore durante l'adesione alla famiglia: {error}",
+  "notifications_error_rejecting": "Errore durante il rifiuto dell'invito: {error}"
 }

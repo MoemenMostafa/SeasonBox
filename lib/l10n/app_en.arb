@@ -548,5 +548,37 @@
   "editProfile_field_measurementSystem": "Measurement System",
   "editProfile_option_imperial": "Imperial (US)",
   "editProfile_option_metric": "Metric",
-  "editProfile_button_saveChanges": "Save Changes"
+  "editProfile_button_saveChanges": "Save Changes",
+  
+  "notifications_title": "Notifications",
+  "notifications_empty": "No new notifications",
+  "notifications_invite_title": "Invitation to join Family",
+  "notifications_invite_message": "{inviterName} has invited you to join their family.",
+  "@notifications_invite_message": {
+    "placeholders": {
+      "inviterName": {"type": "String"}
+    }
+  },
+  "notifications_invite_familyId": "Family ID: {familyId}",
+  "@notifications_invite_familyId": {
+     "placeholders": {
+      "familyId": {"type": "String"}
+    }
+  },
+  "notifications_action_accept": "Accept",
+  "notifications_action_reject": "Reject",
+  "notifications_success_joined": "Joined family successfully!",
+  "notifications_success_rejected": "Invitation rejected.",
+  "notifications_error_joining": "Error joining family: {error}",
+    "@notifications_error_joining": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "notifications_error_rejecting": "Error rejecting invitation: {error}",
+  "@notifications_error_rejecting": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  }
 }

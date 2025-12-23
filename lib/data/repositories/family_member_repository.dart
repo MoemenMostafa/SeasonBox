@@ -37,6 +37,29 @@ class FamilyMemberRepository {
   Future<void> deleteFamilyMember(String familyId, String memberId) async {
     await _firestoreService.familyMembers(familyId).doc(memberId).delete();
   }
+
+  Future<List<FamilyMember>> getPendingInvites(String email) async {
+    // Collection Group Query to find invites across all families
+    final snapshot = await _firestoreService.instance
+        .collectionGroup('members')
+        .where('inviteEmail', isEqualTo: email)
+        .where('inviteStatus', isEqualTo: 'pending')
+        .get();
+
+    return compute(
+        _parseFamilyMembers,
+        snapshot.docs.map((doc) {
+          final data = doc.data();
+          data['id'] = doc.id;
+          // We need the familyId, which is usually in the data, but if not,
+          // we can extract it from the reference path: families/{familyId}/members/{memberId}
+          // The model expects familyId in the map.
+          if (data['familyId'] == null) {
+            data['familyId'] = doc.reference.parent.parent!.id;
+          }
+          return data;
+        }).toList());
+  }
 }
 
 // Top-level function for compute

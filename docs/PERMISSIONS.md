@@ -28,6 +28,8 @@ There are two primary roles within a family:
 | | Add Item | ✅ | ✅ | Members can only add items with `ownerId == auth.uid`. |
 | | Edit/Delete Own Item | ✅ | ✅ | |
 | | Edit/Delete Others' Item | ✅ | ❌ | Admins can moderate all items. Members cannot touch others' items. |
+| **Storage Locations** | View Locations | ✅ | ✅ | Everyone sees all locations. |
+| | Add/Edit/Delete Location | ✅ | ❌ | Only Admins manage storage maps. |
 
 ## Security Rules Implementation
 

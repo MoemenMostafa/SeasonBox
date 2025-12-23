@@ -14,6 +14,7 @@ import 'package:seasonbox/data/models/item.dart';
 import 'package:seasonbox/data/models/family_member.dart';
 import 'package:seasonbox/data/models/storage_location.dart';
 import 'package:seasonbox/features/qr_scanner/screens/qr_scanner_screen.dart';
+import 'package:seasonbox/features/notifications/screens/notifications_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -66,6 +67,9 @@ class AppRouter {
       GoRoute(
           path: '/qr-scanner',
           builder: (context, state) => const QRScannerScreen()),
+      GoRoute(
+          path: '/notifications',
+          builder: (context, state) => const NotificationsScreen()),
     ],
   );
 }

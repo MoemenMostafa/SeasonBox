@@ -15,6 +15,7 @@ class FamilyMember {
   final String? inviteStatus; // 'pending', 'accepted', 'none'
   final DateTime? lastInviteSent;
   final String role; // 'admin', 'member', 'child'
+  final String? inviterName;
 
   FamilyMember({
     required this.id,
@@ -31,6 +32,7 @@ class FamilyMember {
     this.inviteStatus,
     this.lastInviteSent,
     this.role = 'member',
+    this.inviterName,
   });
 
   Map<String, dynamic> toMap() {
@@ -49,6 +51,7 @@ class FamilyMember {
       'lastInviteSent':
           lastInviteSent != null ? Timestamp.fromDate(lastInviteSent!) : null,
       'role': role,
+      'inviterName': inviterName,
     };
   }
 
@@ -71,6 +74,7 @@ class FamilyMember {
           ? (map['lastInviteSent'] as Timestamp).toDate()
           : null,
       role: map['role'] ?? 'member',
+      inviterName: map['inviterName'],
     );
   }
 }
