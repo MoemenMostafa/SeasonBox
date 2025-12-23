@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.11+16
+- **Bug Fixes & Stability**:
+    - **Registration Flow**: Fixed a critical issue where registering with a Family ID created a duplicate member instead of linking to the invited profile. Logic now correctly "claims" pending invitations.
+    - **Notifications**: Fixed missing Firestore indexes that prevented in-app invitation notifications from loading.
+
 ## 1.1.10+15
 - **Bug Fixes & Stability**:
     - **Permissions Fix**: Resolved a critical race condition when joining families that caused "Permission Denied" errors and invisibility of family members/locations. Family transitions are now atomic.

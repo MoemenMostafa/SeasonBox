@@ -84,6 +84,26 @@ class UserService {
       }
     } else {
       // Joining Existing Family
+
+      // Check for pending invite to "claim"
+      QuerySnapshot? pendingInvite;
+      if (firebaseUser.email != null) {
+        pendingInvite = await _firestoreService
+            .familyMembers(targetFamilyId)
+            .where('inviteEmail', isEqualTo: firebaseUser.email)
+            .where('inviteStatus', isEqualTo: 'pending')
+            .limit(1)
+            .get();
+      }
+
+      final batch = _firestoreService.instance.batch();
+
+      // If we found a pending invite, delete it
+      if (pendingInvite != null && pendingInvite.docs.isNotEmpty) {
+        batch.delete(pendingInvite.docs.first.reference);
+      }
+
+      // Create new member doc with User's UID
       final member = FamilyMember(
         id: firebaseUser.uid,
         familyId: targetFamilyId,
@@ -92,7 +112,17 @@ class UserService {
         birthdate: DateTime.now(),
         gender: 'Unisex',
       );
-      await _familyMemberRepository.addFamilyMember(member);
+
+      // Add member to batch
+      batch.set(
+        _firestoreService.familyMembers(targetFamilyId).doc(firebaseUser.uid),
+        member.toMap(),
+      );
+
+      // If we didn't use batch for user doc above (lines 50-58), we should reconsider.
+      // But user doc is already set. We just need to ensure member doc is created.
+      // Actually, to be safe, we should commit this batch.
+      await batch.commit();
     }
   }
 
