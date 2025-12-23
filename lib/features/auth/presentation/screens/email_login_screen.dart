@@ -105,7 +105,6 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           // Gradient Background
@@ -142,7 +141,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
             ),
           ),
           const Positioned(
-            top: 250,
+            top: 300,
             left: 50,
             child: AnimatedBackgroundIcon(
               icon: Icons.umbrella,
@@ -151,7 +150,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
             ),
           ),
           const Positioned(
-            bottom: 300,
+            top: 500,
             right: 30,
             child: AnimatedBackgroundIcon(
               icon: Icons.beach_access,
@@ -165,8 +164,6 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: SingleChildScrollView(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom),
                   child: Form(
                     key: _formKey,
                     child: Column(

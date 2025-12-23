@@ -55,7 +55,19 @@ service cloud.firestore {
         // Admins can manage members. 
         // Also allow a user to remove THEMSELVES (Leave Family)
         // AND allow a user to delete a pending invite sent to them (Join/Reject flow)
-        allow create, update: if isFamilyAdmin(familyId);
+        
+        // Revised CREATE:
+        // 1. Admin can create.
+        // 2. User can create their OWN member doc (join family) IF they set role to 'member'.
+        allow create: if isFamilyAdmin(familyId) || 
+                      (request.auth.uid == memberId && request.resource.data.role == 'member');
+
+        // Revised UPDATE:
+        // 1. Admin can update.
+        // 2. User can update their OWN member doc IF they DO NOT change the role.
+        allow update: if isFamilyAdmin(familyId) || 
+                      (request.auth.uid == memberId && request.resource.data.role == resource.data.role);
+
         allow delete: if isFamilyAdmin(familyId) || 
                       request.auth.uid == memberId || 
                       resource.data.inviteEmail == request.auth.token.email;

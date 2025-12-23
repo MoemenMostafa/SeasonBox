@@ -121,12 +121,13 @@ class UserService {
     }
 
     // Clean up pending invite
-    await invitedMemberQuery.docs.first.reference.delete();
+    // Start a batch
+    final batch = _firestoreService.instance.batch();
 
-    // Update User
-    await _firestoreService.users.doc(uid).update({'familyId': familyCode});
+    // 1. Delete the pending invite
+    batch.delete(invitedMemberQuery.docs.first.reference);
 
-    // Add to Family Members
+    // 2. Add to Family Members
     // Fetch current user display name for the member name
     final userDoc = await _firestoreService.users.doc(uid).get();
     final displayName =
@@ -140,65 +141,73 @@ class UserService {
       birthdate: DateTime.now(),
       gender: 'Unisex',
     );
-    await _familyMemberRepository.addFamilyMember(member);
+
+    // Manual set to include in batch (bypassing repo for atomicity)
+    batch.set(
+      _firestoreService.familyMembers(familyCode).doc(uid),
+      member.toMap(),
+    );
+
+    // 3. Update User's familyId
+    batch.update(_firestoreService.users.doc(uid), {'familyId': familyCode});
+
+    // Commit all changes atomically
+    await batch.commit();
   }
 
   /// Helper to leave current family and revert to personal family
   Future<void> leaveFamily(String uid, String currentFamilyId) async {
+    final batch = _firestoreService.instance.batch();
+
     // If leaving own family (disbanding/resetting to solo)
     if (uid == currentFamilyId) {
       // Logic: "Leave" means reverting to a true solo state.
       // If there are other members, we should remove them (Disband).
-      // Or we can just remove everyone including self, and then re-add self as solo.
-
       final membersQuery =
           await _firestoreService.familyMembers(currentFamilyId).get();
       for (var doc in membersQuery.docs) {
-        await doc.reference.delete();
+        batch.delete(doc.reference);
       }
-
-      // We don't return here, we proceed to ensure personal family exists and user is added to it.
-      // Although personal family IS the currentFamilyId, so we just cleared it.
-      // Now we need to ensure the user is added back as admin.
     } else {
-      // Regular leave
-      await _familyMemberRepository.deleteFamilyMember(currentFamilyId, uid);
+      // Regular leave: Remove self from old family
+      batch.delete(_firestoreService.familyMembers(currentFamilyId).doc(uid));
     }
 
-    // Create/Switch to personal family (if it was deleted or didn't exist)
-    // For creator disbanding, we just deleted everyone, so we need to recreate self.
+    // Ensure personal family exists
     var personalFamily = await _familyRepository.getFamily(uid);
     if (personalFamily == null) {
       final family = Family(
         id: uid,
         settings: const {},
       );
-      await _familyRepository.createFamily(family);
+      // Manually set in batch to ensure atomicity
+      batch.set(_firestoreService.families.doc(uid), family.toMap());
     }
 
-    // Update User
-    await _firestoreService.users.doc(uid).update({'familyId': uid});
+    // Ensure they are a member of their personal family (as Admin)
+    // We will blindly overwrite/set the user as admin in personal family to ensure they are there.
+    // This avoids the 'exists' check which might be stale or slow.
 
-    // Ensure they are a member of their personal family
-    final members = await _familyMemberRepository.getFamilyMembers(uid);
-    final exists = members.any((m) => m.id == uid);
+    // Fetch current user display name (if needed) - read before batch
+    final userDoc = await _firestoreService.users.doc(uid).get();
+    final displayName =
+        (userDoc.data() as Map<String, dynamic>?)?['displayName'] ?? 'Admin';
 
-    if (!exists) {
-      // Fetch current user display name
-      final userDoc = await _firestoreService.users.doc(uid).get();
-      final displayName =
-          (userDoc.data() as Map<String, dynamic>?)?['displayName'] ?? 'Admin';
+    final member = FamilyMember(
+      id: uid,
+      familyId: uid,
+      name: displayName,
+      role: 'admin',
+      birthdate: DateTime.now(),
+      gender: 'Unisex',
+    );
 
-      final member = FamilyMember(
-        id: uid,
-        familyId: uid,
-        name: displayName,
-        role: 'admin',
-        birthdate: DateTime.now(),
-        gender: 'Unisex',
-      );
-      await _familyMemberRepository.addFamilyMember(member);
-    }
+    batch.set(_firestoreService.familyMembers(uid).doc(uid), member.toMap());
+
+    // Update User to point to personal family
+    batch.update(_firestoreService.users.doc(uid), {'familyId': uid});
+
+    await batch.commit();
   }
 
   /// Updates the user's profile information in Firestore.

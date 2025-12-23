@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.10+15
+- **Bug Fixes & Stability**:
+    - **Permissions Fix**: Resolved a critical race condition when joining families that caused "Permission Denied" errors and invisibility of family members/locations. Family transitions are now atomic.
+- **UI Improvements**:
+    - **Login Screen**: Adjusted background icon positioning for better layout on authentication screens.
+
 ## 1.1.9+14
 - **Notifications & Invitations**:
     - **In-App Notifications**: Implemented a new Notifications screen to view and manage incoming family invitations.

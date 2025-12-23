@@ -95,8 +95,8 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
           const Positioned(
-            bottom: 300,
-            left: 30,
+            top: 400,
+            left: 130,
             child: AnimatedBackgroundIcon(
               icon: Icons.beach_access,
               size: 40,
@@ -104,8 +104,8 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
           const Positioned(
-            bottom: 230,
-            right: 50,
+            top: 530,
+            right: 100,
             child: AnimatedBackgroundIcon(
               icon: Icons.shopping_bag,
               size: 48,
