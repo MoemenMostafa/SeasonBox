@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.8+13
+- **Help Center & Web Landing**:
+    - **Contact Form Security**: Refactored the "Contact Us" form to use a secure JavaScript-based `mailto` generator, resolving "not secure" browser warnings.
+    - **Scroll Positioning**: Added a smart scroll buffer to the "Contact Us" anchor (`#contact`) so the section title is no longer hidden behind the fixed header.
+    - **Invitation Tutorial**: Corrected the "Sending Family Invitations" tutorial guide to match the actual app workflow (Member View -> Edit Member -> Invitation).
+    - **Localization**: Cleaned up duplicate translation keys and ensured consistent messaging across all 5 languages.
+    - **Profile Screen**: Updated the "Help Center" and "Contact Support" links to point to the production domain (`seasonbox.app`) instead of the staging URL.
+
 ## 1.1.7+12
 - **Help Center**:
     - **New Help Page**: Created a comprehensive Help Center (`/help.html`) with FAQs and Tutorials in an accordion layout.

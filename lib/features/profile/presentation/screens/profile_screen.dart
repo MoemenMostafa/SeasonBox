@@ -814,7 +814,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final langCode = themeProvider.locale.languageCode;
     // user might be on emulator, but we want to open real browser
     // Assuming standard firebase hosting url
-    final Uri url = Uri.parse('https://seasonbox-f4b24.web.app/$langCode$path');
+    final Uri url = Uri.parse('https://seasonbox.app/$langCode$path');
 
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);

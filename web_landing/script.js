@@ -59,6 +59,23 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 100);
     }
+
+    // Handle Contact Form Submission
+    const contactForm = document.getElementById('contactForm');
+    if (contactForm) {
+        contactForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const typeSelect = document.getElementById('type');
+            const type = typeSelect.options[typeSelect.selectedIndex].text; // Use localized text
+            const message = document.getElementById('message').value;
+
+            const subject = `SeasonBox Contact: ${type}`;
+            const body = `Name: ${name}\nType: ${type}\n\nMessage:\n${message}`;
+
+            window.location.href = `mailto:support@seasonbox.app?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        });
+    }
 });
 
 function updateUrl(lang, replace = false) {
