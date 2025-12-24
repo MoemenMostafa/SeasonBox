@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.18+23
+- **Web Analytics & Enhancements**:
+    - **PostHog for Web**: Integrated PostHog JS snippets into Flutter Web (`index.html`) and all landing pages (`web_landing/`).
+    - **Unified Web Tracking**: Enabled seamless session replay and analytics tracking across the landing page and main web app.
+    - **Web Console Recording**: Enabled `enable_recording_console_log` to capture browser console logs in web session replays.
+    - **Optimization**: Disabled `AUTO_INIT` in Android configuration to ensure controlled initialization via `PostHogService`.
+
 ## 1.1.17+22
 - **Analytics & Monitoring Refactor**:
     - **Explicit Logging**: Replaced all `debugPrint` calls throughout the app with `PostHogService.log()` for consistent production monitoring.
