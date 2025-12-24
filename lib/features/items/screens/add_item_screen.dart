@@ -983,17 +983,22 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                       borderRadius:
                                           BorderRadius.all(Radius.circular(4)))
                                   : DropdownButtonFormField<String>(
-                                      initialValue: _storageLocationId,
+                                      value: _locations.isEmpty
+                                          ? null
+                                          : _storageLocationId,
                                       decoration: const InputDecoration(
                                         hintText: 'Select location',
                                         border: OutlineInputBorder(),
                                         contentPadding: EdgeInsets.symmetric(
                                             horizontal: 12, vertical: 12),
                                       ),
-                                      items: _locations
-                                          .map((l) => DropdownMenuItem(
-                                              value: l.id, child: Text(l.name)))
-                                          .toList(),
+                                      items: _locations.isEmpty
+                                          ? null
+                                          : _locations
+                                              .map((l) => DropdownMenuItem(
+                                                  value: l.id,
+                                                  child: Text(l.name)))
+                                              .toList(),
                                       onChanged: (v) => setState(
                                           () => _storageLocationId = v),
                                       validator: (v) => v == null

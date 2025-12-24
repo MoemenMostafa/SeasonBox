@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.15+20
+- **Bug Fixes**:
+    - **Dropdown Validation**: Fixed a critical error in the Add Item screen where the storage location dropdown would crash when the items list was empty. The dropdown now properly handles empty states by setting both value and items to null when no locations are available.
+
 ## 1.1.14+19
 - **Analytics & Monitoring**:
     - **PostHog Integration**: Integrated PostHog for comprehensive analytics, session replay, and live debugging.

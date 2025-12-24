@@ -26,14 +26,35 @@ class PostHogService {
       await Posthog().setup(config);
 
       _initialized = true;
-      debugPrint('PostHog initialized successfully');
+      debugPrint('✅ PostHog initialized successfully');
+      debugPrint('📊 PostHog Host: $_host');
+      debugPrint('📊 PostHog API Key: ${_apiKey.substring(0, 10)}...');
 
       // Log initialization event
       await captureEvent('posthog_initialized');
+
+      // Send a test event to verify connectivity
+      await sendTestEvent();
     } catch (e) {
-      debugPrint('Error initializing PostHog: $e');
+      debugPrint('❌ Error initializing PostHog: $e');
       logError('posthog_initialization_failed', e);
     }
+  }
+
+  /// Log Flutter framework errors
+  void logFlutterError(FlutterErrorDetails details) {
+    final properties = <String, Object>{
+      'error': details.exception.toString(),
+      'error_type': details.exception.runtimeType.toString(),
+      'stack_trace': details.stack?.toString() ?? 'No stack trace',
+      'library': details.library ?? 'unknown',
+      'context': details.context?.toString() ?? 'No context',
+      'timestamp': DateTime.now().toIso8601String(),
+      'is_fatal': !details.silent,
+    };
+
+    captureEvent('flutter_error', properties: properties);
+    debugPrint('🔴 FLUTTER ERROR: ${details.exception}');
   }
 
   /// Identify a user with PostHog
@@ -58,13 +79,24 @@ class PostHogService {
     }
   }
 
+  /// Send a test event to verify PostHog is working
+  Future<void> sendTestEvent() async {
+    debugPrint('📊 Sending test event to PostHog...');
+    await captureEvent('posthog_test_event', properties: {
+      'timestamp': DateTime.now().toIso8601String(),
+      'test_message': 'PostHog is working!',
+      'platform': 'flutter',
+    });
+    debugPrint('📊 Test event sent! Check PostHog dashboard.');
+  }
+
   /// Capture a custom event
   Future<void> captureEvent(
     String eventName, {
     Map<String, Object>? properties,
   }) async {
     if (!_initialized) {
-      debugPrint('PostHog not initialized, skipping event: $eventName');
+      debugPrint('⚠️ PostHog not initialized, skipping event: $eventName');
       return;
     }
 
@@ -73,9 +105,10 @@ class PostHogService {
         eventName: eventName,
         properties: properties,
       );
-      debugPrint('Event captured: $eventName');
+      debugPrint(
+          '✅ Event captured: $eventName ${properties != null ? "with ${properties.length} properties" : ""}');
     } catch (e) {
-      debugPrint('Error capturing event $eventName: $e');
+      debugPrint('❌ Error capturing event $eventName: $e');
     }
   }
 

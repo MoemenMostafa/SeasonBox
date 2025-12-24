@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -21,16 +23,48 @@ import 'package:seasonbox/data/repositories/storage_location_repository.dart';
 import 'package:seasonbox/data/services/storage_service.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  // Run app in error-catching zone
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    // Initialize Firebase
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform);
 
-  // Initialize PostHog
-  final postHogService = PostHogService();
-  await postHogService.initialize();
+    // Initialize PostHog
+    final postHogService = PostHogService();
+    await postHogService.initialize();
 
-  runApp(SeasonBox(postHogService: postHogService));
+    // Set up global error handlers
+    FlutterError.onError = (FlutterErrorDetails details) {
+      // Log Flutter framework errors to PostHog
+      postHogService.logFlutterError(details);
+
+      // Also print to console in debug mode
+      FlutterError.presentError(details);
+    };
+
+    runApp(SeasonBox(postHogService: postHogService));
+  }, (error, stackTrace) {
+    // Catch errors that occur outside of Flutter framework
+    // This includes async errors, platform errors, etc.
+    debugPrint('Uncaught error: $error');
+    debugPrint('Stack trace: $stackTrace');
+
+    // Try to log to PostHog if possible
+    // Note: PostHog might not be initialized if error occurs during startup
+    try {
+      final postHog = PostHogService();
+      postHog.logError(
+        'uncaught_zone_error',
+        error,
+        stackTrace: stackTrace,
+        context: {'error_source': 'runZonedGuarded'},
+      );
+    } catch (e) {
+      debugPrint('Failed to log error to PostHog: $e');
+    }
+  });
 }
 
 class SeasonBox extends StatelessWidget {
