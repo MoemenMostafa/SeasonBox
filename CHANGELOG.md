@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.16+21
+- **Analytics & Monitoring**:
+    - **Session Replay**: Enabled screen recording for all builds (debug and release) to capture user interactions and debug issues.
+    - **Production Logging**: Implemented `logToPostHog()` method to send logs to PostHog dashboard instead of device console in release builds.
+    - **Global Exception Capture**: Added automatic capture of all Flutter errors and async exceptions to PostHog.
+
 ## 1.1.15+20
 - **Bug Fixes**:
     - **Dropdown Validation**: Fixed a critical error in the Add Item screen where the storage location dropdown would crash when the items list was empty. The dropdown now properly handles empty states by setting both value and items to null when no locations are available.

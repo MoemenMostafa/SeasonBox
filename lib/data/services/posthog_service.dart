@@ -21,7 +21,20 @@ class PostHogService {
       final config = PostHogConfig(_apiKey);
       config.host = _host;
       config.captureApplicationLifecycleEvents = true;
+      // Debug console logging only in debug mode
+      // In release, logs will be sent to PostHog as events instead
       config.debug = kDebugMode;
+
+      // Enable session replay for ALL builds (debug and release)
+      config.sessionReplay = true;
+
+      // Configure session replay settings
+      config.sessionReplayConfig.maskAllTexts =
+          false; // Set to true to mask sensitive text
+      config.sessionReplayConfig.maskAllImages =
+          false; // Set to true to mask images
+      config.sessionReplayConfig.throttleDelay =
+          const Duration(milliseconds: 1000);
 
       await Posthog().setup(config);
 
@@ -35,6 +48,13 @@ class PostHogService {
 
       // Send a test event to verify connectivity
       await sendTestEvent();
+
+      // Log that we're in production mode
+      if (!kDebugMode) {
+        await captureEvent('app_running_in_production', properties: {
+          'timestamp': DateTime.now().toIso8601String(),
+        });
+      }
     } catch (e) {
       debugPrint('❌ Error initializing PostHog: $e');
       logError('posthog_initialization_failed', e);
@@ -54,7 +74,40 @@ class PostHogService {
     };
 
     captureEvent('flutter_error', properties: properties);
-    debugPrint('🔴 FLUTTER ERROR: ${details.exception}');
+
+    // In debug mode, also print to console
+    if (kDebugMode) {
+      debugPrint('🔴 FLUTTER ERROR: ${details.exception}');
+    }
+  }
+
+  /// Custom log method that sends logs to PostHog (visible in dashboard)
+  /// In debug mode: prints to console AND sends to PostHog
+  /// In release mode: ONLY sends to PostHog (no console output)
+  Future<void> logToPostHog(
+    String level, // 'debug', 'info', 'warning', 'error'
+    String message, {
+    Map<String, dynamic>? context,
+  }) async {
+    // Always send to PostHog
+    await captureEvent('app_log_$level', properties: {
+      'level': level,
+      'message': message,
+      'timestamp': DateTime.now().toIso8601String(),
+      if (context != null) ...context.map((k, v) => MapEntry(k, v.toString())),
+    });
+
+    // Only print to console in debug mode
+    if (kDebugMode) {
+      final emoji = {
+            'debug': '🔍',
+            'info': 'ℹ️',
+            'warning': '⚠️',
+            'error': '❌',
+          }[level] ??
+          '📝';
+      debugPrint('$emoji [$level] $message');
+    }
   }
 
   /// Identify a user with PostHog
