@@ -30,7 +30,7 @@ android {
         applicationId = "io.mos.seasonbox"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        minSdk = 26  // Required for PostHog session replay (was flutter.minSdkVersion = 21)
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

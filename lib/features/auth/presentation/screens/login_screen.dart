@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:seasonbox/features/auth/data/auth_service.dart';
 import 'package:seasonbox/data/services/user_service.dart';
+import 'package:seasonbox/data/services/posthog_service.dart';
 import 'package:seasonbox/app/theme/theme.dart';
 import 'package:seasonbox/features/auth/presentation/widgets/animated_background_icon.dart';
 import 'package:seasonbox/data/services/biometric_service.dart';
@@ -218,8 +219,9 @@ class _LoginScreenState extends State<LoginScreen>
                                         .read<UserService>()
                                         .createUserAndLinkFamily(user);
                                   } catch (e) {
-                                    debugPrint(
-                                        'Error creating user/family: $e');
+                                    PostHogService.log(
+                                        'Error creating user/family: $e',
+                                        level: LogLevel.error);
                                   }
                                   if (context.mounted) {
                                     context.go('/home');
@@ -331,8 +333,9 @@ class _LoginScreenState extends State<LoginScreen>
                                                   .createUserAndLinkFamily(
                                                       user);
                                             } catch (e) {
-                                              debugPrint(
-                                                  'Error creating user/family: $e');
+                                              PostHogService.log(
+                                                  'Error creating user/family: $e',
+                                                  level: LogLevel.error);
                                             }
                                             if (context.mounted) {
                                               context.go('/home');

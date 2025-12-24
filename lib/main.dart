@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
@@ -48,8 +49,8 @@ void main() async {
   }, (error, stackTrace) {
     // Catch errors that occur outside of Flutter framework
     // This includes async errors, platform errors, etc.
-    debugPrint('Uncaught error: $error');
-    debugPrint('Stack trace: $stackTrace');
+    PostHogService.log('Uncaught error: $error', level: LogLevel.error);
+    PostHogService.log('Stack trace: $stackTrace', level: LogLevel.error);
 
     // Try to log to PostHog if possible
     // Note: PostHog might not be initialized if error occurs during startup
@@ -62,7 +63,8 @@ void main() async {
         context: {'error_source': 'runZonedGuarded'},
       );
     } catch (e) {
-      debugPrint('Failed to log error to PostHog: $e');
+      // ignore: avoid_print
+      print('Failed to log error to PostHog: $e');
     }
   });
 }

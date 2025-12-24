@@ -1,7 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:seasonbox/data/services/posthog_service.dart';
 
 class BiometricService {
   final LocalAuthentication _auth = LocalAuthentication();
@@ -44,7 +44,8 @@ class BiometricService {
       await _storage.write(key: _providerKey, value: provider);
       await _storage.write(key: _enabledKey, value: 'true');
     } catch (e) {
-      debugPrint('Error enabling biometric login: $e');
+      PostHogService.log('Error enabling biometric login: $e',
+          level: LogLevel.error);
       throw Exception('Failed to enable biometric login');
     }
   }
@@ -56,7 +57,8 @@ class BiometricService {
       await _storage.delete(key: _providerKey);
       await _storage.write(key: _enabledKey, value: 'false');
     } catch (e) {
-      debugPrint('Error disabling biometric login: $e');
+      PostHogService.log('Error disabling biometric login: $e',
+          level: LogLevel.error);
       // We don't rethrow here because we want logout to succeed even if this fails
     }
   }
@@ -66,7 +68,8 @@ class BiometricService {
       final String? enabled = await _storage.read(key: _enabledKey);
       return enabled == 'true';
     } catch (e) {
-      debugPrint('Error reading biometric status: $e');
+      PostHogService.log('Error reading biometric status: $e',
+          level: LogLevel.error);
       return false; // Return false on error (safe default)
     }
   }
@@ -86,7 +89,8 @@ class BiometricService {
       }
       return null;
     } catch (e) {
-      debugPrint('Error reading credentials: $e');
+      PostHogService.log('Error reading credentials: $e',
+          level: LogLevel.error);
       return null;
     }
   }

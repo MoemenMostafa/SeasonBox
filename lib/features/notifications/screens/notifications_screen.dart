@@ -4,6 +4,7 @@ import 'package:seasonbox/data/models/family_member.dart';
 import 'package:seasonbox/data/repositories/family_member_repository.dart';
 import 'package:seasonbox/features/auth/data/auth_service.dart';
 import 'package:seasonbox/data/services/user_service.dart';
+import 'package:seasonbox/data/services/posthog_service.dart';
 import 'package:seasonbox/widgets/app_card.dart';
 import 'package:seasonbox/widgets/season_box_app_bar.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
@@ -43,7 +44,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         });
       }
     } catch (e) {
-      debugPrint('Error loading invites: $e');
+      PostHogService.log('Error loading invites: $e', level: LogLevel.error);
       if (mounted) {
         setState(() => _isLoading = false);
       }

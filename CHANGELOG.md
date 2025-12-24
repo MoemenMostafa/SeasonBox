@@ -1,10 +1,20 @@
 # Changelog
 
+## 1.1.17+22
+- **Analytics & Monitoring Refactor**:
+    - **Explicit Logging**: Replaced all `debugPrint` calls throughout the app with `PostHogService.log()` for consistent production monitoring.
+    - **Clean Logging API**: Simplified `PostHogService` with a singleton pattern and a single `log()` method.
+    - **Type-Safe Log Levels**: Refactored logging levels to use a `LogLevel` enum for better consistency and error prevention.
+    - **Removed debugPrint Redirection**: Reverted global `debugPrint` redirection to avoid recursion and allow standard console behavior in debug builds.
+    - **Session Replay Maintenance**: Ensured session replay remains functional with improved logging.
+
 ## 1.1.16+21
 - **Analytics & Monitoring**:
     - **Session Replay**: Enabled screen recording for all builds (debug and release) to capture user interactions and debug issues.
     - **Production Logging**: Implemented `logToPostHog()` method to send logs to PostHog dashboard instead of device console in release builds.
     - **Global Exception Capture**: Added automatic capture of all Flutter errors and async exceptions to PostHog.
+    - **Android API Fix**: Updated minSdkVersion to 26 (required for PostHog session replay).
+    - **Test Logging**: Added automatic test logs on app startup to verify PostHog integration.
 
 ## 1.1.15+20
 - **Bug Fixes**:

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:seasonbox/app/theme/theme.dart';
+import 'package:seasonbox/data/services/posthog_service.dart';
 
 class QRScannerScreen extends StatefulWidget {
   const QRScannerScreen({super.key});
@@ -38,7 +39,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     // Assuming storage location IDs might have a prefix or just be the ID
     // For now, we assume the code IS the storage location ID
 
-    debugPrint('Scanned QR Code: $code');
+    PostHogService.log('Scanned QR Code: $code');
 
     // Navigate to storage details
     // Using simple ID check - in production you might want to validate format

@@ -1,9 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:seasonbox/data/services/posthog_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -58,7 +58,7 @@ class AuthService {
         try {
           googleUser = await _googleSignIn.signInSilently();
         } catch (e) {
-          debugPrint('Silent sign-in error: $e');
+          PostHogService.log('Silent sign-in error: $e', level: LogLevel.error);
         }
       }
 
@@ -136,12 +136,14 @@ class AuthService {
         await _googleSignIn.signOut();
       } catch (e) {
         // Ignore Google Sign-In errors (e.g., if checking on non-Google user)
-        debugPrint('Google Sign-In signOut error: $e');
+        PostHogService.log('Google Sign-In signOut error: $e',
+            level: LogLevel.error);
       }
       await _auth.signOut();
     } catch (e) {
       // Ignore error
-      debugPrint('AuthService signOut error: $e');
+      PostHogService.log('AuthService signOut error: $e',
+          level: LogLevel.error);
     }
   }
 }

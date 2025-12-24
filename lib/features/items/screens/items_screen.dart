@@ -16,6 +16,7 @@ import 'package:seasonbox/widgets/season_box_filter_chip.dart';
 import 'package:seasonbox/widgets/skeleton_container.dart';
 import 'package:seasonbox/widgets/image_gallery_viewer.dart';
 import 'package:seasonbox/core/services/permission_service.dart';
+import 'package:seasonbox/data/services/posthog_service.dart';
 
 class ItemsScreen extends StatefulWidget {
   final String? initialMemberId;
@@ -66,7 +67,8 @@ class _ItemsScreenState extends State<ItemsScreen> {
             .getFamilyMembers(familyId);
       } catch (e) {
         // Fallback: If permission denied (likely data inconsistent), switch to personal family
-        debugPrint('Error fetching members for $familyId: $e');
+        PostHogService.log('Error fetching members for $familyId: $e',
+            level: LogLevel.error);
         if (familyId != userId) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(

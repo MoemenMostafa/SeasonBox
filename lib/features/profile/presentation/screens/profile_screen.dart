@@ -13,6 +13,7 @@ import 'package:seasonbox/data/services/user_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:seasonbox/core/enums/user_role.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:seasonbox/data/services/posthog_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -272,7 +273,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             await biometricService.disableBiometricLogin();
                           }
                         } catch (e) {
-                          debugPrint('Error disabling biometric login: $e');
+                          PostHogService.log(
+                              'Error disabling biometric login: $e',
+                              level: LogLevel.error);
                         }
 
                         // Sign out from Firebase
