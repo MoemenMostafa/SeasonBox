@@ -12,6 +12,7 @@ import 'package:seasonbox/widgets/action_buttons.dart';
 import 'package:seasonbox/core/enums/user_role.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/services.dart';
+import 'package:seasonbox/core/services/permission_service.dart';
 
 class AddFamilyMemberScreen extends StatefulWidget {
   final FamilyMember? member;
@@ -40,10 +41,14 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
 
   String? _inviteStatus;
   bool _isLoading = false;
+  List<FamilyMember> _allMembers = [];
+  String? _currentUserId;
+  String? _familyId;
 
   @override
   void initState() {
     super.initState();
+    _loadData();
     if (widget.member != null) {
       _nameController.text = widget.member!.name;
       _notesController.text = widget.member!.notes ?? '';
@@ -56,6 +61,31 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
       _inviteStatus = widget.member!.inviteStatus;
       _inviteEmailController.text = widget.member!.inviteEmail ?? '';
       _role = widget.member!.role;
+    }
+  }
+
+  Future<void> _loadData() async {
+    try {
+      final authService = context.read<AuthService>();
+      final familyId = await authService.getCurrentUserFamilyId();
+      final userId = authService.currentUser?.uid;
+      
+      if (familyId == null || userId == null) return;
+
+      if (!mounted) return;
+      final members = await context
+          .read<FamilyMemberRepository>()
+          .getFamilyMembers(familyId);
+
+      if (mounted) {
+        setState(() {
+          _currentUserId = userId;
+          _familyId = familyId;
+          _allMembers = members;
+        });
+      }
+    } catch (e) {
+      // Silently handle error - permissions will default to restricted
     }
   }
 
@@ -478,7 +508,13 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                       onSecondaryPressed: () => context.pop(),
                       isLoading: _isLoading,
                     ),
-                    if (widget.member != null) ...[
+                    if (widget.member != null &&
+                        PermissionService.canDeleteMember(
+                          _currentUserId,
+                          widget.member!,
+                          _familyId,
+                          _allMembers,
+                        )) ...[
                       const SizedBox(height: 16),
                       SizedBox(
                         width: double.infinity,
@@ -725,12 +761,20 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
             );
           }).toList(),
           onChanged: (value) {
-            if (value != null) {
+            if (value != null && PermissionService.canChangeRole(
+              _currentUserId,
+              _familyId,
+              _allMembers,
+            )) {
               setState(() {
                 _role = value;
               });
             }
           },
+          disabledHint: Text(
+            UserRole.fromString(_role).getLocalizedName(context),
+            style: TextStyle(color: Colors.grey.shade600),
+          ),
         ),
       ],
     );

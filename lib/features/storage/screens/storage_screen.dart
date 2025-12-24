@@ -3,8 +3,10 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../data/models/storage_location.dart';
 import '../../../data/models/item.dart';
+import '../../../data/models/family_member.dart';
 import '../../../data/repositories/storage_location_repository.dart';
 import '../../../data/repositories/item_repository.dart';
+import '../../../data/repositories/family_member_repository.dart';
 import '../../../features/auth/data/auth_service.dart';
 import '../../../widgets/season_box_app_bar.dart';
 import '../../../widgets/app_card.dart';
@@ -12,6 +14,7 @@ import '../../../widgets/season_box_add_button.dart';
 import '../../../widgets/season_box_filter_chip.dart';
 import '../../../widgets/skeleton_container.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
+import '../../../core/services/permission_service.dart';
 
 class StorageScreen extends StatefulWidget {
   const StorageScreen({super.key});
@@ -23,9 +26,12 @@ class StorageScreen extends StatefulWidget {
 class _StorageScreenState extends State<StorageScreen> {
   List<StorageLocation> _locations = [];
   List<Item> _items = [];
+  List<FamilyMember> _members = [];
   bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
   String _selectedFilter = 'All';
+  String? _currentUserId;
+  String? _familyId;
 
   @override
   void initState() {
@@ -41,22 +47,28 @@ class _StorageScreenState extends State<StorageScreen> {
 
   Future<void> _loadLocations() async {
     try {
-      final familyId =
-          await context.read<AuthService>().getCurrentUserFamilyId();
-      if (familyId == null) {
+      final authService = context.read<AuthService>();
+      final familyId = await authService.getCurrentUserFamilyId();
+      final userId = authService.currentUser?.uid;
+
+      if (familyId == null || userId == null) {
         throw Exception('User not authenticated');
       }
 
-      // Load both locations and items in parallel
+      // Load locations, items, and members in parallel
       if (mounted) {
         final results = await Future.wait([
           context.read<StorageLocationRepository>().getLocations(familyId),
           context.read<ItemRepository>().getItems(familyId),
+          context.read<FamilyMemberRepository>().getFamilyMembers(familyId),
         ]).timeout(const Duration(seconds: 5));
 
         setState(() {
+          _currentUserId = userId;
+          _familyId = familyId;
           _locations = results[0] as List<StorageLocation>;
           _items = results[1] as List<Item>;
+          _members = results[2] as List<FamilyMember>;
           _isLoading = false;
         });
       }
@@ -150,10 +162,17 @@ class _StorageScreenState extends State<StorageScreen> {
                 ],
               ),
             ),
-      floatingActionButton: SeasonBoxAddButton(
-        onPressed: () =>
-            context.push('/add-storage-location').then((_) => _loadLocations()),
-      ),
+      floatingActionButton: PermissionService.canManageStorage(
+        _currentUserId,
+        _familyId,
+        _members,
+      )
+          ? SeasonBoxAddButton(
+              onPressed: () => context
+                  .push('/add-storage-location')
+                  .then((_) => _loadLocations()),
+            )
+          : null,
     );
   }
 
@@ -482,11 +501,17 @@ class _StorageScreenState extends State<StorageScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: AppCard(
-        onTap: () {
-          context
-              .push('/add-storage-location', extra: location)
-              .then((_) => _loadLocations());
-        },
+        onTap: PermissionService.canManageStorage(
+          _currentUserId,
+          _familyId,
+          _members,
+        )
+            ? () {
+                context
+                    .push('/add-storage-location', extra: location)
+                    .then((_) => _loadLocations());
+              }
+            : null,
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [

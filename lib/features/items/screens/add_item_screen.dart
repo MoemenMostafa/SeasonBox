@@ -17,6 +17,7 @@ import 'package:seasonbox/widgets/season_box_app_bar.dart';
 import 'package:seasonbox/widgets/skeleton_container.dart';
 import 'package:seasonbox/widgets/image_gallery_viewer.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
+import 'package:seasonbox/core/services/permission_service.dart';
 
 class AddItemScreen extends StatefulWidget {
   final Item? item; // Optional item for editing
@@ -51,6 +52,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
   bool _isLoadingData = true;
   bool _isTransitionComplete = false;
   bool _isSaving = false;
+  String? _currentUserId;
+  String? _familyId;
 
   final List<String> _categories = [
     'Clothes',
@@ -218,7 +221,10 @@ class _AddItemScreenState extends State<AddItemScreen> {
       final locationRepository = context.read<StorageLocationRepository>();
 
       final familyId = await authService.getCurrentUserFamilyId();
-      if (familyId == null) throw Exception('User not authenticated');
+      final userId = authService.currentUser?.uid;
+
+      if (familyId == null || userId == null)
+        throw Exception('User not authenticated');
 
       final members = await memberRepository
           .getFamilyMembers(familyId)
@@ -231,9 +237,17 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
       if (mounted) {
         setState(() {
+          _currentUserId = userId;
+          _familyId = familyId;
           _members = members;
           _locations = locations;
           _isLoadingData = false;
+
+          // Auto-assign to current user if they're a member (not admin) and creating a new item
+          if (widget.item == null &&
+              !PermissionService.isAdmin(userId, familyId, members)) {
+            _assignedChildId = userId;
+          }
         });
 
         if (widget.item != null) {
@@ -927,9 +941,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                       decoration: const InputDecoration(
                                         hintText: 'Select member',
                                         border: OutlineInputBorder(),
-                                        contentPadding:
-                                            EdgeInsets.symmetric(
-                                                horizontal: 12, vertical: 12),
+                                        contentPadding: EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 12),
                                       ),
                                       items: [
                                         DropdownMenuItem(
@@ -961,7 +974,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                             children: [
                               Text(
                                   AppLocalizations.of(context)!
-                                      .addItem_field_size,
+                                      .addItem_section_storageLocation,
                                   style: const TextStyle(fontSize: 14)),
                               const SizedBox(height: 8),
                               _isLoadingData
@@ -974,9 +987,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                       decoration: const InputDecoration(
                                         hintText: 'Select location',
                                         border: OutlineInputBorder(),
-                                        contentPadding:
-                                            EdgeInsets.symmetric(
-                                                horizontal: 12, vertical: 12),
+                                        contentPadding: EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 12),
                                       ),
                                       items: _locations
                                           .map((l) => DropdownMenuItem(

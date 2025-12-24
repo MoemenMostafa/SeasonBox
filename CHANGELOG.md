@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.14+19
+- **Analytics & Monitoring**:
+    - **PostHog Integration**: Integrated PostHog for comprehensive analytics, session replay, and live debugging.
+    - **Event Tracking**: Implemented automatic tracking for user actions, screen views, and app lifecycle events.
+    - **Debug Logging**: Added extensive logging capabilities for errors, warnings, network calls, permissions, and Firestore operations.
+    - **Session Replay**: Enabled session recording for debugging live user sessions and identifying issues.
+
 ## 1.1.13+18
 - **Security & Performance**:
     - **Cloud Functions Registration**: Migrated user registration and family joining logic to Cloud Functions, eliminating client-side permission issues and improving security.

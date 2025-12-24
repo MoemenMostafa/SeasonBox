@@ -1,0 +1,573 @@
+# PostHog Analytics Integration
+
+## Overview
+
+SeasonBox uses [PostHog](https://posthog.com) for analytics, session replay, and comprehensive debug logging. This document explains the integration architecture, how to use it, and best practices.
+
+## Configuration
+
+### Credentials
+
+- **API Key**: `phc_U0I4o4YSC2QCcOKDp7TCjYpxmixIZc16vLSSwGEQ7m`
+- **Host**: `https://eu.i.posthog.com` (EU Cloud)
+- **Dashboard**: https://eu.i.posthog.com
+
+### Platform Configuration
+
+#### Flutter (Dart)
+
+Configuration is in [`lib/data/services/posthog_service.dart`](file:///Users/m.mostafa/Workspace/code/SeasonBox/lib/data/services/posthog_service.dart):
+
+```dart
+static const String _apiKey = 'phc_U0I4o4YSC2QCcOKDp7TCjYpxmixIZc16vLSSwGEQ7m';
+static const String _host = 'https://eu.i.posthog.com';
+```
+
+#### Android
+
+Configuration is in [`android/app/src/main/AndroidManifest.xml`](file:///Users/m.mostafa/Workspace/code/SeasonBox/android/app/src/main/AndroidManifest.xml):
+
+```xml
+<meta-data android:name="com.posthog.posthog.API_KEY" android:value="phc_U0I4o4YSC2QCcOKDp7TCjYpxmixIZc16vLSSwGEQ7m" />
+<meta-data android:name="com.posthog.posthog.POSTHOG_HOST" android:value="https://eu.i.posthog.com" />
+<meta-data android:name="com.posthog.posthog.TRACK_APPLICATION_LIFECYCLE_EVENTS" android:value="true" />
+<meta-data android:name="com.posthog.posthog.DEBUG" android:value="true" />
+```
+
+## Architecture
+
+### Service Layer
+
+The `PostHogService` class provides a centralized interface for all analytics and logging:
+
+**Location**: [`lib/data/services/posthog_service.dart`](file:///Users/m.mostafa/Workspace/code/SeasonBox/lib/data/services/posthog_service.dart)
+
+**Initialization**: Happens in [`lib/main.dart`](file:///Users/m.mostafa/Workspace/code/SeasonBox/lib/main.dart) before app startup:
+
+```dart
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  
+  final postHogService = PostHogService();
+  await postHogService.initialize();
+  
+  runApp(SeasonBox(postHogService: postHogService));
+}
+```
+
+**Dependency Injection**: Available app-wide via Provider:
+
+```dart
+Provider<PostHogService>.value(value: postHogService)
+```
+
+### Features
+
+#### 1. Core Analytics
+- User identification
+- Event tracking
+- Screen view tracking
+- User properties
+- Session management
+
+#### 2. Session Replay
+- Automatic session recording
+- Visual playback of user interactions
+- Helps identify UX issues and bugs
+
+#### 3. Debug Logging
+Comprehensive logging for production debugging:
+- Error tracking with stack traces
+- Warning logging
+- Network call monitoring
+- Permission tracking
+- Firestore operation logging
+- Authentication events
+- User action tracking
+- Performance metrics
+
+## Usage Guide
+
+### Accessing PostHogService
+
+In any widget or service:
+
+```dart
+import 'package:provider/provider.dart';
+import 'package:seasonbox/data/services/posthog_service.dart';
+
+// In a widget
+final postHog = Provider.of<PostHogService>(context, listen: false);
+
+// Or using context.read
+final postHog = context.read<PostHogService>();
+```
+
+### Common Patterns
+
+#### User Identification
+
+Identify users after successful authentication:
+
+```dart
+await postHog.identify(
+  userId: user.uid,
+  userProperties: {
+    'email': user.email ?? '',
+    'display_name': user.displayName ?? '',
+    'family_id': familyId,
+    'role': userRole,
+    'created_at': user.metadata.creationTime?.toIso8601String() ?? '',
+  },
+);
+```
+
+#### Authentication Events
+
+```dart
+// Successful login
+await postHog.logAuth(
+  action: 'login',
+  method: 'email', // or 'google', 'biometric'
+);
+
+// Failed login
+await postHog.logAuth(
+  action: 'login_failed',
+  method: 'email',
+  error: e.toString(),
+);
+
+// Registration
+await postHog.logAuth(
+  action: 'register',
+  method: 'email',
+  context: {'has_family_code': familyCode != null},
+);
+
+// Logout (also resets PostHog session)
+await postHog.reset();
+```
+
+#### Error Logging
+
+```dart
+try {
+  // Critical operation
+  await someOperation();
+} catch (e, stackTrace) {
+  await postHog.logError(
+    'operation_name_failed',
+    e,
+    stackTrace: stackTrace,
+    context: {
+      'user_id': userId,
+      'family_id': familyId,
+      'additional_context': 'any relevant data',
+    },
+  );
+  rethrow; // or handle appropriately
+}
+```
+
+#### Firestore Operations
+
+Track database operations to debug permission issues:
+
+```dart
+try {
+  await firestoreService.items(familyId).doc(itemId).set(data);
+  
+  await postHog.logFirestoreOperation(
+    operation: 'write',
+    collection: 'items',
+    documentId: itemId,
+    success: true,
+  );
+} catch (e) {
+  await postHog.logFirestoreOperation(
+    operation: 'write',
+    collection: 'items',
+    documentId: itemId,
+    success: false,
+    error: e.toString(),
+  );
+  rethrow;
+}
+```
+
+#### Permission Tracking
+
+```dart
+// Camera permission
+final status = await Permission.camera.request();
+await postHog.logPermission(
+  permissionType: 'camera',
+  status: status.isGranted ? 'granted' : 'denied',
+);
+
+// Biometric permission
+await postHog.logPermission(
+  permissionType: 'biometric',
+  status: canAuthenticate ? 'granted' : 'denied',
+  context: {'device_supports_biometric': deviceSupports},
+);
+```
+
+#### User Actions
+
+Track important user interactions:
+
+```dart
+// Item created
+await postHog.logUserAction(
+  action: 'item_created',
+  target: itemName,
+  context: {
+    'category': category,
+    'location_id': locationId,
+    'has_image': hasImage,
+  },
+);
+
+// Family joined
+await postHog.logUserAction(
+  action: 'family_joined',
+  target: familyId,
+  context: {'member_count': memberCount},
+);
+
+// Profile updated
+await postHog.logUserAction(
+  action: 'profile_updated',
+  context: {'fields_changed': ['displayName', 'phoneNumber']},
+);
+```
+
+#### Screen Tracking
+
+```dart
+// Manual screen tracking
+await postHog.screen(
+  'ItemDetailsScreen',
+  properties: {
+    'item_id': itemId,
+    'category': category,
+  },
+);
+```
+
+#### Performance Metrics
+
+```dart
+final startTime = DateTime.now();
+// Perform operation
+final duration = DateTime.now().difference(startTime);
+
+await postHog.logPerformance(
+  metric: 'image_upload_time',
+  value: duration.inMilliseconds,
+  unit: 'ms',
+  context: {
+    'image_size_kb': fileSizeKb,
+    'compression_used': true,
+  },
+);
+```
+
+#### Warnings
+
+```dart
+if (potentialIssue) {
+  await postHog.logWarning(
+    'data_inconsistency',
+    'User has items but no storage locations',
+    context: {
+      'user_id': userId,
+      'item_count': itemCount,
+    },
+  );
+}
+```
+
+## API Reference
+
+### Core Methods
+
+| Method | Description | Parameters |
+|--------|-------------|------------|
+| `initialize()` | Initialize PostHog SDK | None |
+| `identify()` | Identify a user | `userId`, `userProperties` |
+| `captureEvent()` | Track a custom event | `eventName`, `properties` |
+| `screen()` | Track screen view | `screenName`, `properties` |
+| `setUserProperties()` | Update user properties | `properties` |
+| `reset()` | Reset session (on logout) | None |
+
+### Debug Logging Methods
+
+| Method | Description | Use Case |
+|--------|-------------|----------|
+| `logError()` | Log errors with stack traces | Production error tracking |
+| `logWarning()` | Log warnings | Potential issues |
+| `logNetworkCall()` | Track HTTP requests | API debugging |
+| `logPermission()` | Track permission requests | Permission debugging |
+| `logFirestoreOperation()` | Track database operations | Firestore permission issues |
+| `logAuth()` | Track authentication events | Login/logout monitoring |
+| `logUserAction()` | Track user interactions | User behavior analytics |
+| `logAppLifecycle()` | Track app state changes | App lifecycle monitoring |
+| `logPerformance()` | Measure performance | Performance optimization |
+
+## Best Practices
+
+### 1. Always Log Errors
+
+Wrap critical operations in try-catch blocks and log errors with context:
+
+```dart
+try {
+  await criticalOperation();
+} catch (e, stackTrace) {
+  await postHog.logError('operation_failed', e, stackTrace: stackTrace);
+  // Handle error appropriately
+}
+```
+
+### 2. Use Consistent Naming
+
+- Use `snake_case` for event names: `item_created`, `family_joined`
+- Use descriptive names that clearly indicate the action
+- Group related events with prefixes: `auth_login`, `auth_logout`, `auth_register`
+
+### 3. Include Relevant Context
+
+Always include context that helps debug issues:
+
+```dart
+await postHog.logError(
+  'item_creation_failed',
+  e,
+  context: {
+    'user_id': userId,
+    'family_id': familyId,
+    'item_name': itemName,
+    'has_image': hasImage,
+  },
+);
+```
+
+### 4. Don't Log Sensitive Data
+
+Never log:
+- Passwords
+- Authentication tokens
+- Credit card numbers
+- Personal identification numbers
+- Any PII that shouldn't be in analytics
+
+### 5. Track Important User Actions
+
+Focus on actions that help understand user behavior:
+- Feature usage
+- User flows
+- Error encounters
+- Performance bottlenecks
+
+### 6. Log Firestore Operations
+
+Especially important for debugging permission issues:
+
+```dart
+await postHog.logFirestoreOperation(
+  operation: 'read',
+  collection: 'items',
+  success: false,
+  error: 'permission-denied',
+);
+```
+
+## Viewing Data
+
+### PostHog Dashboard
+
+Access the dashboard at: https://eu.i.posthog.com
+
+### Key Features
+
+1. **Live Events**
+   - Navigate to "Activity" → "Live Events"
+   - See events in real-time as they happen
+   - Filter by event type, user, or properties
+
+2. **Session Replay**
+   - Navigate to "Session Replay"
+   - Watch recordings of user sessions
+   - Identify UX issues and bugs visually
+
+3. **Persons**
+   - View identified users
+   - See user properties and event history
+   - Track user journeys
+
+4. **Insights**
+   - Create custom dashboards
+   - Analyze trends and patterns
+   - Track KPIs
+
+5. **Errors**
+   - Filter for `error_*` events
+   - Group by error type
+   - Track error frequency and impact
+
+## Debug Mode
+
+PostHog runs in debug mode when the app is in debug mode (`kDebugMode`). This provides:
+- Verbose console logging
+- Immediate event sending
+- Detailed error messages
+
+In production, debug mode is automatically disabled for better performance.
+
+## Troubleshooting
+
+### Events Not Appearing
+
+1. Check console for initialization message: "PostHog initialized successfully"
+2. Verify API key and host are correct
+3. Check network connectivity
+4. Look for error messages in console
+
+### Session Replay Not Working
+
+1. Ensure app is running on a physical device or emulator (not web)
+2. Check that session replay is enabled in PostHog project settings
+3. Verify Android manifest has correct configuration
+
+### Missing User Properties
+
+1. Ensure `identify()` is called after successful authentication
+2. Check that properties are being passed correctly
+3. Verify user is logged in when properties are set
+
+## Integration Examples
+
+### Auth Service Integration
+
+```dart
+class AuthService {
+  final PostHogService _postHog;
+  
+  AuthService(this._postHog);
+  
+  Future<User?> signInWithGoogle() async {
+    try {
+      final user = await _performGoogleSignIn();
+      
+      await _postHog.logAuth(action: 'login', method: 'google');
+      await _postHog.identify(
+        userId: user.uid,
+        userProperties: {
+          'email': user.email ?? '',
+          'display_name': user.displayName ?? '',
+        },
+      );
+      
+      return user;
+    } catch (e, stackTrace) {
+      await _postHog.logAuth(
+        action: 'login_failed',
+        method: 'google',
+        error: e.toString(),
+      );
+      await _postHog.logError('google_signin_failed', e, stackTrace: stackTrace);
+      rethrow;
+    }
+  }
+}
+```
+
+### Firestore Service Integration
+
+```dart
+class FirestoreService {
+  final PostHogService _postHog;
+  
+  Future<void> createItem(String familyId, Item item) async {
+    try {
+      await items(familyId).doc(item.id).set(item.toMap());
+      
+      await _postHog.logFirestoreOperation(
+        operation: 'write',
+        collection: 'items',
+        documentId: item.id,
+        success: true,
+      );
+    } catch (e) {
+      await _postHog.logFirestoreOperation(
+        operation: 'write',
+        collection: 'items',
+        documentId: item.id,
+        success: false,
+        error: e.toString(),
+      );
+      rethrow;
+    }
+  }
+}
+```
+
+## Privacy Considerations
+
+### Data Collection
+
+PostHog collects:
+- User identifiers (UIDs)
+- Event data and properties
+- Screen recordings (session replay)
+- Device information
+- App version and platform
+
+### User Privacy
+
+- Session replay can be disabled per user if needed
+- Sensitive text fields can be masked in session replay
+- Users should be informed about analytics in your privacy policy
+- Consider GDPR compliance for EU users
+
+### Configuration Options
+
+To mask sensitive data in session replay:
+
+```dart
+final config = PostHogConfig(_apiKey);
+config.sessionReplayConfig = PosthogSessionReplayConfig(
+  maskAllTexts: true,  // Mask all text
+  maskAllImages: true, // Mask all images
+);
+```
+
+## Maintenance
+
+### Updating PostHog
+
+To update to the latest version:
+
+```bash
+flutter pub upgrade posthog_flutter
+```
+
+Check the [changelog](https://pub.dev/packages/posthog_flutter/changelog) for breaking changes.
+
+### Monitoring Usage
+
+Regularly check PostHog dashboard for:
+- Error rates
+- User engagement
+- Feature adoption
+- Performance metrics
+
+## Support
+
+- **PostHog Docs**: https://posthog.com/docs
+- **PostHog Community**: https://posthog.com/questions
+- **Package Issues**: https://github.com/PostHog/posthog-flutter/issues

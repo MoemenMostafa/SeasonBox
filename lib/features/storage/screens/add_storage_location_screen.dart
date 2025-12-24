@@ -3,11 +3,14 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:seasonbox/data/models/storage_location.dart';
+import 'package:seasonbox/data/models/family_member.dart';
 import 'package:seasonbox/data/repositories/storage_location_repository.dart';
+import 'package:seasonbox/data/repositories/family_member_repository.dart';
 import 'package:seasonbox/features/auth/data/auth_service.dart';
 import 'package:seasonbox/widgets/app_card.dart';
 import 'package:seasonbox/widgets/season_box_app_bar.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
+import 'package:seasonbox/core/services/permission_service.dart';
 
 class AddStorageLocationScreen extends StatefulWidget {
   final StorageLocation? location;
@@ -29,10 +32,14 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
 
   bool _isLoading = false;
   List<StorageLocation> _potentialParents = [];
+  List<FamilyMember> _allMembers = [];
+  String? _currentUserId;
+  String? _familyId;
 
   @override
   void initState() {
     super.initState();
+    _loadData();
     if (widget.location != null) {
       _nameController.text = widget.location!.name;
       _descriptionController.text = widget.location!.description;
@@ -41,23 +48,28 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
       // Note: isClimateControlled and isAccessible are not in the model yet
       // If you add them later, initialize them here
     }
-    _loadParents();
   }
 
-  Future<void> _loadParents() async {
+  Future<void> _loadData() async {
     try {
-      final familyId =
-          await context.read<AuthService>().getCurrentUserFamilyId();
-      if (!mounted) return;
+      final authService = context.read<AuthService>();
+      final familyId = await authService.getCurrentUserFamilyId();
+      final userId = authService.currentUser?.uid;
 
-      if (familyId == null) {
-        throw Exception('User not authenticated');
-      }
-      final locations = await context
-          .read<StorageLocationRepository>()
-          .getLocations(familyId);
+      if (familyId == null || userId == null) return;
+
+      if (!mounted) return;
+      final results = await Future.wait([
+        context.read<StorageLocationRepository>().getLocations(familyId),
+        context.read<FamilyMemberRepository>().getFamilyMembers(familyId),
+      ]);
+
       if (mounted) {
         setState(() {
+          _currentUserId = userId;
+          _familyId = familyId;
+          final locations = results[0] as List<StorageLocation>;
+          _allMembers = results[1] as List<FamilyMember>;
           // Filter out the current location if editing (can't be its own parent)
           _potentialParents = locations
               .where(
@@ -66,7 +78,7 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
         });
       }
     } catch (e) {
-      // Handle error silently or show a message
+      // Silently handle error - permissions will default to restricted
     }
   }
 
@@ -341,7 +353,13 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: _saveLocation,
+                            onPressed: PermissionService.canManageStorage(
+                              _currentUserId,
+                              _familyId,
+                              _allMembers,
+                            )
+                                ? _saveLocation
+                                : null,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: theme.colorScheme.primary,
                               foregroundColor: Colors.white,
@@ -366,7 +384,12 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
                         ),
                       ],
                     ),
-                    if (widget.location != null) ...[
+                    if (widget.location != null &&
+                        PermissionService.canManageStorage(
+                          _currentUserId,
+                          _familyId,
+                          _allMembers,
+                        )) ...[
                       const SizedBox(height: 16),
                       SizedBox(
                         width: double.infinity,

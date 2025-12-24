@@ -15,6 +15,7 @@ import 'package:seasonbox/widgets/season_box_add_button.dart';
 import 'package:seasonbox/widgets/season_box_filter_chip.dart';
 import 'package:seasonbox/widgets/skeleton_container.dart';
 import 'package:seasonbox/widgets/image_gallery_viewer.dart';
+import 'package:seasonbox/core/services/permission_service.dart';
 
 class ItemsScreen extends StatefulWidget {
   final String? initialMemberId;
@@ -321,70 +322,89 @@ class _ItemsScreenState extends State<ItemsScreen> {
                       itemCount: _filteredItems.length,
                       itemBuilder: (context, index) {
                         final item = _filteredItems[index];
+                        final canDelete = PermissionService.canDeleteItem(
+                          context.read<AuthService>().currentUser?.uid,
+                          item,
+                          context.read<AuthService>().currentUser?.uid,
+                          _members,
+                        );
+
                         return Dismissible(
                           key: Key(item.id),
-                          direction: DismissDirection.endToStart,
-                          background: Container(
-                            alignment: Alignment.centerRight,
-                            padding: const EdgeInsets.only(right: 20),
-                            color: Colors.red,
-                            child: const Icon(
-                              Icons.delete,
-                              color: Colors.white,
-                            ),
-                          ),
-                          confirmDismiss: (direction) async {
-                            return await showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: const Text('Delete Item'),
-                                  content: const Text(
-                                      'Are you sure you want to delete this item? This action cannot be undone.'),
-                                  actions: <Widget>[
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(false),
-                                      child: const Text('Cancel'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(true),
-                                      child: const Text('Delete'),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                          onDismissed: (direction) async {
-                            final itemRepository =
-                                context.read<ItemRepository>();
-                            // Optimistically remove from list
-                            setState(() {
-                              _items.removeWhere((i) => i.id == item.id);
-                            });
+                          direction: canDelete
+                              ? DismissDirection.endToStart
+                              : DismissDirection.none,
+                          background: canDelete
+                              ? Container(
+                                  alignment: Alignment.centerRight,
+                                  padding: const EdgeInsets.only(right: 20),
+                                  color: Colors.red,
+                                  child: const Icon(
+                                    Icons.delete,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : null,
+                          confirmDismiss: canDelete
+                              ? (direction) async {
+                                  return await showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: const Text('Delete Item'),
+                                        content: const Text(
+                                            'Are you sure you want to delete this item? This action cannot be undone.'),
+                                        actions: <Widget>[
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.of(context)
+                                                    .pop(false),
+                                            child: const Text('Cancel'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.of(context).pop(true),
+                                            child: const Text('Delete'),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                }
+                              : null,
+                          onDismissed: canDelete
+                              ? (direction) async {
+                                  final itemRepository =
+                                      context.read<ItemRepository>();
+                                  // Optimistically remove from list
+                                  setState(() {
+                                    _items.removeWhere((i) => i.id == item.id);
+                                  });
 
-                            try {
-                              await itemRepository.deleteItem(
-                                  item.familyId, item.id);
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Item deleted')),
-                                );
-                              }
-                            } catch (e) {
-                              // Revert if failed (requires reloading or manual insertion back, simplified to reload for now)
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                      content:
-                                          Text('Failed to delete item: $e')),
-                                );
-                                _loadItems();
-                              }
-                            }
-                          },
+                                  try {
+                                    await itemRepository.deleteItem(
+                                        item.familyId, item.id);
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                            content: Text('Item deleted')),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    // Revert if failed (requires reloading or manual insertion back, simplified to reload for now)
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                            content: Text(
+                                                'Failed to delete item: $e')),
+                                      );
+                                      _loadItems();
+                                    }
+                                  }
+                                }
+                              : null,
                           child: _buildItemCard(item, theme, isDark),
                         );
                       },

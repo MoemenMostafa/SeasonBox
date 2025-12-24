@@ -11,6 +11,7 @@ import '../../../widgets/season_box_add_button.dart';
 import '../../../widgets/app_card.dart';
 import '../../../widgets/skeleton_container.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
+import '../../../core/services/permission_service.dart';
 
 class FamilyMembersScreen extends StatefulWidget {
   const FamilyMembersScreen({super.key});
@@ -23,6 +24,8 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
   List<FamilyMember> _members = [];
   List<Item> _items = [];
   bool _isLoading = true;
+  String? _currentUserId;
+  String? _familyId;
 
   @override
   void initState() {
@@ -32,9 +35,11 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
 
   Future<void> _loadMembers() async {
     try {
-      final familyId =
-          await context.read<AuthService>().getCurrentUserFamilyId();
-      if (familyId == null) {
+      final authService = context.read<AuthService>();
+      final familyId = await authService.getCurrentUserFamilyId();
+      final userId = authService.currentUser?.uid;
+
+      if (familyId == null || userId == null) {
         throw Exception('User not authenticated');
       }
 
@@ -54,6 +59,8 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
 
       if (mounted) {
         setState(() {
+          _currentUserId = userId;
+          _familyId = familyId;
           _members = members;
           _items = items;
           _isLoading = false;
@@ -267,13 +274,37 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: IconButton(
-                  onPressed: () {
-                    context
-                        .push('/add-member', extra: member)
-                        .then((_) => _loadMembers());
-                  },
-                  icon: Icon(Icons.edit, color: theme.iconTheme.color),
-                  tooltip: AppLocalizations.of(context)!.members_tooltipEdit,
+                  onPressed: PermissionService.canManageMember(
+                    _currentUserId,
+                    member,
+                    _familyId,
+                    _members,
+                  )
+                      ? () {
+                          context
+                              .push('/add-member', extra: member)
+                              .then((_) => _loadMembers());
+                        }
+                      : null,
+                  icon: Icon(
+                    Icons.edit,
+                    color: PermissionService.canManageMember(
+                      _currentUserId,
+                      member,
+                      _familyId,
+                      _members,
+                    )
+                        ? theme.iconTheme.color
+                        : theme.disabledColor,
+                  ),
+                  tooltip: PermissionService.canManageMember(
+                    _currentUserId,
+                    member,
+                    _familyId,
+                    _members,
+                  )
+                      ? AppLocalizations.of(context)!.members_tooltipEdit
+                      : 'Only admins can edit other members',
                 ),
               ),
             ],
@@ -385,10 +416,16 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                       ],
                     ),
             ),
-      floatingActionButton: SeasonBoxAddButton(
-        onPressed: () =>
-            context.push('/add-member').then((_) => _loadMembers()),
-      ),
+      floatingActionButton: PermissionService.canAddMember(
+        _currentUserId,
+        _familyId,
+        _members,
+      )
+          ? SeasonBoxAddButton(
+              onPressed: () =>
+                  context.push('/add-member').then((_) => _loadMembers()),
+            )
+          : null,
     );
   }
 

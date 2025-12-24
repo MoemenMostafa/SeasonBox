@@ -8,6 +8,7 @@ import 'package:seasonbox/firebase_options.dart';
 import 'package:seasonbox/features/auth/data/auth_service.dart';
 import 'package:seasonbox/data/services/user_service.dart';
 import 'package:seasonbox/data/services/biometric_service.dart';
+import 'package:seasonbox/data/services/posthog_service.dart';
 import 'package:seasonbox/app/routes/router.dart';
 import 'package:seasonbox/app/theme/theme.dart';
 import 'package:seasonbox/app/providers/navigation_provider.dart';
@@ -21,12 +22,21 @@ import 'package:seasonbox/data/services/storage_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const SeasonBox());
+
+  // Initialize PostHog
+  final postHogService = PostHogService();
+  await postHogService.initialize();
+
+  runApp(SeasonBox(postHogService: postHogService));
 }
 
 class SeasonBox extends StatelessWidget {
-  const SeasonBox({super.key});
+  final PostHogService postHogService;
+
+  const SeasonBox({super.key, required this.postHogService});
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +49,7 @@ class SeasonBox extends StatelessWidget {
         Provider<FirestoreService>(create: (_) => FirestoreService()),
         Provider<BiometricService>(create: (_) => BiometricService()),
         Provider<StorageService>(create: (_) => StorageService()),
+        Provider<PostHogService>.value(value: postHogService),
         ProxyProvider<FirestoreService, FamilyRepository>(
           update: (_, firestoreService, __) =>
               FamilyRepository(firestoreService),
