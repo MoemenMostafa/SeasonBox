@@ -665,6 +665,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get addMember_role_admin => 'Admin';
 
   @override
+  String get addMember_role_coAdmin => 'Co-Amministratore';
+
+  @override
   String get addMember_role_member => 'Membro';
 
   @override

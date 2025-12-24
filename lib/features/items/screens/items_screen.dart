@@ -47,26 +47,74 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
   Future<void> _loadItems() async {
     try {
-      final familyId =
-          await context.read<AuthService>().getCurrentUserFamilyId();
-      if (familyId == null) {
+      final authService = context.read<AuthService>();
+      String? familyId = await authService.getCurrentUserFamilyId();
+      final userId = authService.currentUser?.uid;
+
+      if (familyId == null || userId == null) {
         throw Exception('User not authenticated');
       }
 
       if (!mounted) return;
 
-      // Load items, storage locations, and family members in parallel
+      // 1. Fetch Family Members first to check role
+      List<FamilyMember> members;
+      try {
+        members = await context
+            .read<FamilyMemberRepository>()
+            .getFamilyMembers(familyId);
+      } catch (e) {
+        // Fallback: If permission denied (likely data inconsistent), switch to personal family
+        debugPrint('Error fetching members for $familyId: $e');
+        if (familyId != userId) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                    'Access to family denied. Switching to personal workspace.'),
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+          familyId = userId; // Fallback to personal
+          members = await context
+              .read<FamilyMemberRepository>()
+              .getFamilyMembers(familyId);
+        } else {
+          rethrow;
+        }
+      }
+
+      // 2. Identify current user's role
+      // Default to 'member' if not found (safe fallback)
+      final currentUserMember = members.firstWhere(
+        (m) => m.id == userId,
+        orElse: () => FamilyMember(
+          id: userId,
+          familyId: familyId!,
+          name: 'Me',
+          role: familyId == userId ? 'admin' : 'member', // Owner is admin
+          birthdate: DateTime.now(),
+          gender: 'Unisex',
+        ),
+      );
+
+      final isRestrictedMember = currentUserMember.role == 'member';
+
+      // 3. Load items (filtered if member) and locations in parallel
       final results = await Future.wait([
-        context.read<ItemRepository>().getItems(familyId),
+        context.read<ItemRepository>().getItems(
+              familyId,
+              ownerId: isRestrictedMember ? userId : null,
+            ),
         context.read<StorageLocationRepository>().getLocations(familyId),
-        context.read<FamilyMemberRepository>().getFamilyMembers(familyId),
       ]).timeout(const Duration(seconds: 5));
 
       if (mounted) {
         setState(() {
+          _members = members;
           _items = results[0] as List<Item>;
           _locations = results[1] as List<StorageLocation>;
-          _members = results[2] as List<FamilyMember>;
           _isLoading = false;
         });
       }

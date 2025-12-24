@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FamilyMember {
   final String id;
+  final String?
+      userId; // Firebase Auth UID - links member to authenticated user
   final String familyId;
   final String name;
   final DateTime birthdate;
@@ -19,6 +21,7 @@ class FamilyMember {
 
   FamilyMember({
     required this.id,
+    this.userId,
     required this.familyId,
     required this.name,
     required this.birthdate,
@@ -37,6 +40,7 @@ class FamilyMember {
 
   Map<String, dynamic> toMap() {
     return {
+      'userId': userId,
       'familyId': familyId,
       'name': name,
       'birthdate': Timestamp.fromDate(birthdate),
@@ -58,6 +62,7 @@ class FamilyMember {
   factory FamilyMember.fromMap(Map<String, dynamic> map, String id) {
     return FamilyMember(
       id: id,
+      userId: map['userId'],
       familyId: map['familyId'] ?? '',
       name: map['name'] ?? '',
       birthdate: (map['birthdate'] as Timestamp).toDate(),

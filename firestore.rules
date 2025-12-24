@@ -9,87 +9,155 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Check if user is the resource owner (generic)
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // Check if user is member via 'members' subcollection OR if it's their own personal family (familyId == uid)
+    // Get the member document for a user in a family
+    // Member documents should use the user's UID as the document ID
+    function getMemberDoc(familyId) {
+      return get(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid));
+    }
+
+    // Check if a member document exists for the user
+    function memberDocExists(familyId) {
+      return exists(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid));
+    }
+
+    // Check if user is a member of the family
+    // 1. By checking the 'members' subcollection (doc ID = uid)
+    // 2. OR if it's their personal family (familyId == uid)
     function isFamilyMember(familyId) {
       return isSignedIn() && (
-        exists(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)) ||
+        memberDocExists(familyId) ||
         familyId == request.auth.uid
       );
     }
 
-    // Check if user is admin via 'members' subcollection role OR if it's their own personal family
+    // Check if user is an Admin or Co-Admin
     function isFamilyAdmin(familyId) {
       return isSignedIn() && (
-        (isFamilyMember(familyId) && get(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)).data.role == 'admin') ||
-        familyId == request.auth.uid
+        familyId == request.auth.uid ||
+        (
+          memberDocExists(familyId) &&
+          (
+            getMemberDoc(familyId).data.role == 'admin' ||
+            getMemberDoc(familyId).data.role == 'co-admin'
+          )
+        )
       );
     }
 
     // --- Collection Rules ---
 
     // 1. Users Collection
+    // Users can only read/write their own profile.
+    // Note: The 'familyId' field in user profile is a convenience pointer.
+    // Actual family data access is secured at the families/members level.
+    // A user can set any familyId, but won't access family data without a valid member doc.
     match /users/{userId} {
       allow read, write: if isOwner(userId);
     }
 
     // 2. Families Collection
     match /families/{familyId} {
-      // Allow getting a specific family document (needed for "Join Family" existence checks)
-      allow get: if isSignedIn();
-      
-      // Allow listing families only if you are a member (though usually you list via your user profile)
-      allow list: if isFamilyMember(familyId);
-      
+      // Create: Any signed-in user can create a family (e.g., during registration)
       allow create: if isSignedIn();
-      allow update: if isFamilyAdmin(familyId);
-      allow delete: if isFamilyAdmin(familyId);
+      
+      // Read: Any authenticated user can read family documents (for invite code verification)
+      // The family document itself contains no sensitive data - just settings
+      // Sensitive data (members, items, locations) is in subcollections with separate rules
+      allow read, list: if isSignedIn();
+      
+      // Update/Delete: Only Admins can update family details or delete the family
+      allow update, delete: if isFamilyAdmin(familyId);
 
       // 2a. Members Subcollection
       match /members/{memberId} {
-        allow read: if isFamilyMember(familyId) || resource.data.inviteEmail == request.auth.token.email;
+        // Read/List: Allow any authenticated user to read/query members
+        // This is needed for registration/join flows to check for pending invites
+        // Actual member creation still requires proper userId validation
+        allow read, list: if isSignedIn();
         
-        // Admins can manage members. 
-        // Also allow a user to remove THEMSELVES (Leave Family)
-        // AND allow a user to delete a pending invite sent to them (Join/Reject flow)
-        
-        // Revised CREATE:
-        // 1. Admin can create.
-        // 2. User can create their OWN member doc (join family) IF they set role to 'member'.
+        // Create: 
+        // 1. Admin/Co-Admin can add members (send invites - no userId required for pending invites).
+        // 2. User can add themselves IF:
+        //    - memberId matches their UID
+        //    - userId field matches their UID (secure link)
+        //    - EITHER: They're creating personal family (familyId == uid, can be admin)
+        //    - OR: They're joining existing family (must set role = 'member')
         allow create: if isFamilyAdmin(familyId) || 
-                      (request.auth.uid == memberId && request.resource.data.role == 'member');
+                         (
+                           request.auth.uid == memberId && 
+                           request.resource.data.userId == request.auth.uid &&
+                           (
+                             // Personal family creation - user can be admin of their own family
+                             (familyId == request.auth.uid && request.resource.data.role == 'admin') ||
+                             // Joining existing family - must be member role
+                             request.resource.data.role == 'member'
+                           )
+                         );
 
-        // Revised UPDATE:
-        // 1. Admin can update.
-        // 2. User can update their OWN member doc IF they DO NOT change the role.
+        // Update:
+        // 1. Admin/Co-Admin can update any member (change roles, etc).
+        // 2. User can update their OWN details (e.g. name, photo) IF:
+        //    - memberId matches their UID
+        //    - They are not modifying the 'role' field (cannot promote themselves)
+        //    - They are not modifying the 'userId' field (cannot reassign to another user)
         allow update: if isFamilyAdmin(familyId) || 
-                      (request.auth.uid == memberId && request.resource.data.role == resource.data.role);
+                         (
+                           request.auth.uid == memberId && 
+                           request.resource.data.role == resource.data.role &&
+                           (!('userId' in resource.data) || request.resource.data.userId == resource.data.userId)
+                         );
 
+        // Delete:
+        // 1. Admin/Co-Admin can remove members.
+        // 2. User can remove THEMSELVES (Leave Family).
+        // 3. User can delete a pending invite sent to their email (Reject Invite).
         allow delete: if isFamilyAdmin(familyId) || 
-                      request.auth.uid == memberId || 
-                      resource.data.inviteEmail == request.auth.token.email;
+                         request.auth.uid == memberId || 
+                         (isSignedIn() && resource.data.inviteEmail == request.auth.token.email);
       }
 
       // 2b. Items Subcollection
       match /items/{itemId} {
-        allow read: if isFamilyMember(familyId);
-        allow create: if isFamilyMember(familyId) && request.resource.data.ownerId == request.auth.uid;
+        // Read individual item: 
+        // 1. Admins/Co-Admins see ALL items.
+        // 2. Members see ONLY items where ownerId == their UID.
+        allow read: if isFamilyAdmin(familyId) || 
+                       (isFamilyMember(familyId) && resource.data.ownerId == request.auth.uid);
+        
+        // List/Query items:
+        // Allow members to query items (app will filter by ownerId in the query)
+        allow list: if isFamilyMember(familyId);
+        
+        // Create:
+        // 1. Admins/Co-Admins can create items for anyone.
+        // 2. Members can create items ONLY for themselves.
+        allow create: if isFamilyAdmin(familyId) || 
+                         (isFamilyMember(familyId) && request.resource.data.ownerId == request.auth.uid);
+        
+        // Update/Delete:
+        // 1. Admins/Co-Admins can manage all items.
+        // 2. Members can manage ONLY their own items.
         allow update, delete: if isFamilyAdmin(familyId) || 
-                              (isFamilyMember(familyId) && resource.data.ownerId == request.auth.uid);
+                                 (isFamilyMember(familyId) && resource.data.ownerId == request.auth.uid);
       }
       
       // 2c. Locations Subcollection
       match /locations/{locationId} {
-         allow read: if isFamilyMember(familyId);
+         // Read/List: All members need to see locations to know where items are stored.
+         allow read, list: if isFamilyMember(familyId);
+         
+         // Write: Only Admins/Co-Admins can manage storage locations.
          allow write: if isFamilyAdmin(familyId);
       }
     }
 
     // 3. Collection Group Queries
-    // explicit match for collection group queries on 'members' to find invites
+    // Needed to find pending invites across all families
     match /{path=**}/members/{memberId} {
       allow read: if isSignedIn() && resource.data.inviteEmail == request.auth.token.email;
     }

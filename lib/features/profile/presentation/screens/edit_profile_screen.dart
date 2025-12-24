@@ -8,7 +8,7 @@ import 'package:seasonbox/data/services/storage_service.dart';
 import 'package:seasonbox/data/services/user_service.dart';
 import 'package:seasonbox/features/auth/data/auth_service.dart';
 import 'package:seasonbox/widgets/action_buttons.dart';
-import 'package:seasonbox/core/enums/user_role.dart';
+
 import 'package:seasonbox/widgets/app_card.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -24,13 +24,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _nameController;
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
-  late UserRole _role;
   File? _imageFile;
   bool _isLoading = false;
 
   // Preferences State
-  bool _emailNotifications = true;
-  bool _pushNotifications = true;
+  // Notifications are hidden from UI, but we preserve them during save if needed,
+  // or we assume they are managed elsewhere.
+  // For now, we'll read them from widget.userData during save to avoid overwriting with null/false if we built a new map.
 
   // Dropdown Values
   String _measurementSystem = 'imperial'; // imperial, metric
@@ -46,15 +46,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _phoneController =
         TextEditingController(text: widget.userData?['phoneNumber'] ?? '');
 
-    _role = UserRole.fromString(widget.userData?['role'] ?? 'member');
-
     // Initialize preferences if they exist in userData
     if (widget.userData?['preferences'] != null) {
       final prefs = widget.userData!['preferences'] as Map<String, dynamic>;
-      _emailNotifications = prefs['emailNotifications'] ?? true;
-      _pushNotifications = prefs['pushNotifications'] ?? true;
       _measurementSystem = prefs['measurementSystem'] ?? 'imperial';
-      // Language is handled globally by ThemeProvider, typically
     }
   }
 
@@ -117,18 +112,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         familyName = parts.length > 1 ? parts.last : displayName;
       }
 
+      // Reconstruct preferences map, preserving existing notification settings if possible
+      final Map<String, dynamic> currentPrefs =
+          widget.userData?['preferences'] is Map<String, dynamic>
+              ? widget.userData!['preferences']
+              : {};
+
+      final newPreferences = {
+        ...currentPrefs, // Keep existing values
+        'measurementSystem': _measurementSystem, // Update only this
+      };
+
       await userService.updateUserProfile(
         uid: user.uid,
         displayName: displayName,
         familyName: familyName,
         phoneNumber: _phoneController.text.trim(),
         photoURL: photoURL,
-        role: _role.toShortString(),
-        preferences: {
-          'emailNotifications': _emailNotifications,
-          'pushNotifications': _pushNotifications,
-          'measurementSystem': _measurementSystem,
-        },
+        // Role is not editable here
+        preferences: newPreferences,
       );
 
       if (mounted) {
@@ -184,12 +186,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       .editProfile_section_personalInfo),
               _buildPersonalInfoForm(context),
               const SizedBox(height: 24),
-              _buildSectionTitle(
-                  context,
-                  AppLocalizations.of(context)!
-                      .editProfile_section_preferences),
-              _buildPreferences(context),
-              const SizedBox(height: 24),
+              // Preferences (Notifications) removed per request
+
               _buildSectionTitle(
                   context,
                   AppLocalizations.of(context)!
@@ -318,49 +316,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             controller: _phoneController,
             keyboardType: TextInputType.phone,
           ),
-          const SizedBox(height: 16),
-          _buildDropdownField(
-            label: AppLocalizations.of(context)!.editProfile_field_role,
-            value: _role.toShortString(),
-            items: UserRole.values.map((e) => e.toShortString()).toList(),
-            itemLabelBuilder: (value) =>
-                UserRole.fromString(value).getLocalizedName(context),
-            onChanged: (val) {
-              if (val != null) {
-                setState(() => _role = UserRole.fromString(val));
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPreferences(BuildContext context) {
-    return AppCard(
-      child: Column(
-        children: [
-          _buildSwitchTile(
-            title: AppLocalizations.of(context)!
-                .editProfile_pref_emailNotifications,
-            subtitle: AppLocalizations.of(context)!
-                .editProfile_pref_emailNotificationsSubtitle,
-            value: _emailNotifications,
-            onChanged: (val) => setState(() => _emailNotifications = val),
-          ),
-          Divider(
-              height: 1,
-              indent: 20,
-              endIndent: 20,
-              color: Colors.grey.withValues(alpha: 0.2)),
-          _buildSwitchTile(
-            title: AppLocalizations.of(context)!
-                .editProfile_pref_pushNotifications,
-            subtitle: AppLocalizations.of(context)!
-                .editProfile_pref_pushNotificationsSubtitle,
-            value: _pushNotifications,
-            onChanged: (val) => setState(() => _pushNotifications = val),
-          ),
         ],
       ),
     );
@@ -477,35 +432,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildSwitchTile({
-    required String title,
-    required String subtitle,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-  }) {
-    final theme = Theme.of(context);
-    return SwitchListTile(
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 15,
-        ),
-      ),
-      subtitle: Text(
-        subtitle,
-        style: TextStyle(
-          fontSize: 13,
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-        ),
-      ),
-      value: value,
-      onChanged: onChanged,
-      activeThumbColor: theme.colorScheme.primary,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
     );
   }
 }

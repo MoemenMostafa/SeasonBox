@@ -1298,6 +1298,12 @@ abstract class AppLocalizations {
   /// **'Admin'**
   String get addMember_role_admin;
 
+  /// No description provided for @addMember_role_coAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Co-Admin'**
+  String get addMember_role_coAdmin;
+
   /// No description provided for @addMember_role_member.
   ///
   /// In en, this message translates to:

@@ -58,13 +58,17 @@ Stores the list of people in a family, their roles, and invitation status.
 ```json
 families/{familyId}/members/{memberId}
 {
-  "id": "user123",           // Matches user.uid
+  "id": "user123",           // Document ID (matches user.uid for linked users)
+  "userId": "user123",       // Firebase Auth UID - secure link to user
   "name": "John Doe",
   "role": "admin",           // "admin", "member", "child"
   "inviteStatus": "accepted", // "pending", "accepted", "none"
   "inviteEmail": "user@example.com" // For pending invites
 }
 ```
+
+> [!IMPORTANT]
+> The `userId` field is **required** for security. It links the member document to the Firebase Auth user and is validated by Firestore rules. Members cannot change their own `userId` field.
 
 ---
 
@@ -102,6 +106,12 @@ The system enforces a strict email match.
 - If a user is invited as `alice@work.com` but logs in with `alice@gmail.com`, **they cannot join**.
 - The `inviteEmail` in the pending member record MUST match the `auth.token.email` of the user attempting to join.
 - This prevents unauthorized users from joining if they simply guess a Family ID.
+
+### Security Note: familyId in User Profile
+The `familyId` field in the user profile is a **convenience pointer** for the app to know which family to load.
+- Users have full read/write access to their own profile, including `familyId`
+- **The real security is at the family level**: users can only access family data if they have a valid member document
+- Setting `familyId` to a random value won't grant access to that family's data
 
 ---
 

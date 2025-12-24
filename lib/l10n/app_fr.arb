@@ -242,6 +242,7 @@
   "addMember_error_invalidEmail": "Veuillez entrer un email valide",
   "addMember_field_role": "Rôle du Membre",
   "addMember_role_admin": "Admin",
+  "addMember_role_coAdmin": "Co-Administrateur",
   "addMember_role_member": "Membre",
   "addMember_role_child": "Enfant",
   "addMember_invite_description": "Invitez des membres de la famille à rejoindre votre famille SeasonBox. Ils pourront voir et gérer les articles selon leur rôle.",

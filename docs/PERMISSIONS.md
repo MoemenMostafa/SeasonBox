@@ -39,14 +39,23 @@ These permissions are enforced at the database level using `firestore.rules`.
 *   **Isolation**: Users can *only* access data within families they are a member of. Attempting to read another family's data results in `PERMISSION_DENIED`.
 *   **Member Validation**: Membership is verified by checking for the existence of a document in `families/{familyId}/members/{auth.uid}`.
 *   **Admin Check**: Admin privileges are verified by checking the `role` field on the user's member document.
+*   **userId Requirement**: When users create their own member docs (joining a family), they must include a `userId` field matching their UID.
+*   **User Profile**: Users have full read/write access to their own profile. The `familyId` field is a convenience pointer - actual data access is secured at the family level.
 
 ### Rule Snippets
 ```javascript
 // Check if user is an Admin
 function isFamilyAdmin(familyId) {
-  return isFamilyMember(familyId) && 
-         get(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)).data.role == 'admin';
+  return memberDocExists(familyId) && 
+         (getMemberDoc(familyId).data.role == 'admin' ||
+          getMemberDoc(familyId).data.role == 'co-admin');
 }
+
+// Member creation - requires userId when self-joining
+allow create: if isFamilyAdmin(familyId) || 
+                 (request.auth.uid == memberId && 
+                  request.resource.data.userId == request.auth.uid &&
+                  request.resource.data.role == 'member');
 
 // Item Creation Restriction
 allow create: if isFamilyMember(familyId) && request.resource.data.ownerId == request.auth.uid;

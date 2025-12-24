@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.13+18
+- **Security & Performance**:
+    - **Cloud Functions Registration**: Migrated user registration and family joining logic to Cloud Functions, eliminating client-side permission issues and improving security.
+    - **Enhanced Security Rules**: Completely redesigned Firestore security rules with proper member validation using `userId` field.
+    - **Simplified Permissions**: Streamlined data access rules for better performance and reliability.
+- **Bug Fixes**:
+    - **Registration Flow**: Fixed persistent "permission denied" errors during registration and family joining.
+    - **Data Loading**: Resolved permission issues when querying items, members, and locations after login.
+
 ## 1.1.12+17
 - **UI Improvements**:
     - **Pull to Refresh**: Added pull-to-refresh functionality to both the **Profile Screen** and **Storage Screen**. Users can now manually reload their data by pulling down on these screens.

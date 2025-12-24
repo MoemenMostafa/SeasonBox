@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:flutter/foundation.dart';
 
 import '../models/family.dart';
 import '../models/family_member.dart';
@@ -7,8 +9,8 @@ import '../repositories/family_repository.dart';
 import '../repositories/family_member_repository.dart';
 import 'firestore_service.dart';
 
-/// Service responsible for creating a user record in Firestore and
-/// ensuring a corresponding family document exists.
+/// Service responsible for user and family management.
+/// Uses Cloud Functions for registration to bypass permission issues.
 class UserService {
   final FirestoreService _firestoreService;
   final FamilyRepository _familyRepository;
@@ -19,110 +21,23 @@ class UserService {
 
   Future<void> createUserAndLinkFamily(User firebaseUser,
       {String? familyId, String? inviteCode}) async {
-    String? targetFamilyId = familyId;
+    // Call Cloud Function instead of client-side Firestore operations
+    // This bypasses permission issues by using admin SDK
+    final functions = FirebaseFunctions.instance;
 
-    // If an invite code (familyId) is provided, verify it exists
-    if (inviteCode != null && inviteCode.isNotEmpty) {
-      final familyDoc = await _firestoreService.families.doc(inviteCode).get();
-      if (familyDoc.exists) {
-        targetFamilyId = inviteCode;
-      } else {
-        // If invalid code, we could throw, or fall back.
-        // For better UX, let's assume validation happened before,
-        // or we fallback to creating a new one but maybe that's confusing.
-        // Let's rely on UI validation for existence?? No, UI can't check easily without auth.
-        // Actually, if we are here, USER IS AUTHENTICATED (firebaseUser exists).
-        // So we can check.
-        // But let's assume if provided functionality is "Join Family", we try to join.
-        // If it fails, maybe we should error out?
-        // For now, let's implement the logic: if code provided & valid -> join. Else -> create new.
-        if (targetFamilyId == null) {
-          // if familyId param wasn't set directly
-          throw Exception('Invalid Family Code');
-        }
-      }
-    }
+    try {
+      final result =
+          await functions.httpsCallable('createUserAndJoinFamily').call({
+        'uid': firebaseUser.uid,
+        'email': firebaseUser.email,
+        'displayName': firebaseUser.displayName,
+        'familyCode': inviteCode,
+      });
 
-    // Default to user's UID if no valid family found/provided
-    targetFamilyId ??= firebaseUser.uid;
-
-    // Create / update the user document.
-    await _firestoreService.users.doc(firebaseUser.uid).set({
-      'uid': firebaseUser.uid,
-      'email': firebaseUser.email,
-      'displayName': firebaseUser.displayName,
-      'familyId': targetFamilyId,
-      'photoURL': firebaseUser.photoURL,
-      'phoneNumber': firebaseUser.phoneNumber,
-      'role': 'member', // Default role
-    }, SetOptions(merge: true));
-
-    // Ensure a family exists for this user (if creating new) OR add to existing (logic handled by FamilyMemberRepository separately or implicitly by just setting ID here?)
-    // Wait, if joining, we just set familyId. The FamilyMember object needs to be created in the family's members subcollection.
-
-    if (targetFamilyId == firebaseUser.uid) {
-      // New Family Case
-      final existingFamily =
-          await _familyRepository.getFamily(firebaseUser.uid);
-      if (existingFamily == null) {
-        final family = Family(
-          id: firebaseUser.uid,
-          settings: const {},
-        );
-        await _familyRepository.createFamily(family);
-
-        // Add user as Admin of their own new family
-        final member = FamilyMember(
-          id: firebaseUser.uid,
-          familyId: firebaseUser.uid,
-          name: firebaseUser.displayName ?? 'Admin',
-          role: 'admin',
-          birthdate: DateTime.now(),
-          gender: 'Unisex',
-        );
-        await _familyMemberRepository.addFamilyMember(member);
-      }
-    } else {
-      // Joining Existing Family
-
-      // Check for pending invite to "claim"
-      QuerySnapshot? pendingInvite;
-      if (firebaseUser.email != null) {
-        pendingInvite = await _firestoreService
-            .familyMembers(targetFamilyId)
-            .where('inviteEmail', isEqualTo: firebaseUser.email)
-            .where('inviteStatus', isEqualTo: 'pending')
-            .limit(1)
-            .get();
-      }
-
-      final batch = _firestoreService.instance.batch();
-
-      // If we found a pending invite, delete it
-      if (pendingInvite != null && pendingInvite.docs.isNotEmpty) {
-        batch.delete(pendingInvite.docs.first.reference);
-      }
-
-      // Create new member doc with User's UID
-      final member = FamilyMember(
-        id: firebaseUser.uid,
-        familyId: targetFamilyId,
-        name: firebaseUser.displayName ?? 'New Member',
-        role: 'member',
-        birthdate: DateTime.now(),
-        gender: 'Unisex',
-      );
-
-      // Add member to batch
-      batch.set(
-        _firestoreService.familyMembers(targetFamilyId).doc(firebaseUser.uid),
-        member.toMap(),
-      );
-
-      // If we didn't use batch for user doc above (lines 50-58), we should reconsider.
-      // But user doc is already set. We just need to ensure member doc is created.
-      // Actually, to be safe, we should commit this batch.
-      await batch.commit();
+      debugPrint('User created successfully: ${result.data}');
+    } catch (e) {
+      debugPrint('Error calling createUserAndJoinFamily: $e');
+      rethrow;
     }
   }
 
@@ -165,6 +80,7 @@ class UserService {
 
     final member = FamilyMember(
       id: uid,
+      userId: uid,
       familyId: familyCode,
       name: displayName,
       role: 'member',
@@ -225,6 +141,7 @@ class UserService {
 
     final member = FamilyMember(
       id: uid,
+      userId: uid,
       familyId: uid,
       name: displayName,
       role: 'admin',

@@ -63,9 +63,7 @@ class AuthService {
       }
 
       // If silent failed or wasn't requested, try interactive
-      if (googleUser == null) {
-        googleUser = await _googleSignIn.signIn();
-      }
+      googleUser ??= await _googleSignIn.signIn();
 
       if (googleUser == null) {
         // The user canceled the sign-in
