@@ -80,7 +80,19 @@ class AuthService {
 
       final UserCredential userCredential =
           await _auth.signInWithCredential(credential);
-      return userCredential.user;
+      final user = userCredential.user;
+
+      if (user != null && user.email != null) {
+        await PostHogService().identify(
+          userId: user.uid,
+          userProperties: {
+            'email': user.email!,
+            'sign_in_method': 'google',
+          },
+        );
+      }
+
+      return user;
     } on FirebaseAuthException catch (e) {
       // Throw Firebase auth errors with details
       throw Exception('Firebase Auth Error: ${e.code} - ${e.message}');
@@ -101,7 +113,19 @@ class AuthService {
         email: email,
         password: password,
       );
-      return userCredential.user;
+      final user = userCredential.user;
+
+      if (user != null && user.email != null) {
+        await PostHogService().identify(
+          userId: user.uid,
+          userProperties: {
+            'email': user.email!,
+            'sign_in_method': 'email',
+          },
+        );
+      }
+
+      return user;
     } catch (e) {
       rethrow;
     }
@@ -115,7 +139,19 @@ class AuthService {
         email: email,
         password: password,
       );
-      return userCredential.user;
+      final user = userCredential.user;
+
+      if (user != null && user.email != null) {
+        await PostHogService().identify(
+          userId: user.uid,
+          userProperties: {
+            'email': user.email!,
+            'sign_in_method': 'email_create',
+          },
+        );
+      }
+
+      return user;
     } catch (e) {
       rethrow;
     }
@@ -140,6 +176,7 @@ class AuthService {
             level: LogLevel.error);
       }
       await _auth.signOut();
+      await PostHogService().reset();
     } catch (e) {
       // Ignore error
       PostHogService.log('AuthService signOut error: $e',

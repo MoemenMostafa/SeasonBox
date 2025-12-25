@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.19+24
+- **PostHog Enhancements**:
+    - **PostHog Session Replay**: Fixed blank recordings by wrapping `MaterialApp` with `PostHogWidget`.
+    - **User Identification**: Enhanced analytics by linking PostHog sessions with user email addresses upon login and registration.
+
 ## 1.1.18+23
 - **Web Analytics & Enhancements**:
     - **PostHog for Web**: Integrated PostHog JS snippets into Flutter Web (`index.html`) and all landing pages (`web_landing/`).
