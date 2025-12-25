@@ -25,42 +25,54 @@ class BiometricService {
   }
 
   Future<bool> authenticate() async {
-    try {
-      return await _auth.authenticate(
-        localizedReason: 'Please authenticate to login',
-        persistAcrossBackgrounding: true,
-        biometricOnly: true,
-      );
-    } on PlatformException {
-      return false;
-    }
+    return await PostHogService().trackLatency('biometric_authenticate',
+        () async {
+      try {
+        final result = await _auth.authenticate(
+          localizedReason: 'Please authenticate to login',
+          persistAcrossBackgrounding: true,
+          biometricOnly: true,
+        );
+        await PostHogService.log('Biometric authentication result: $result',
+            level: LogLevel.info);
+        return result;
+      } on PlatformException catch (e) {
+        PostHogService().logError('biometric_auth_platform_error', e);
+        return false;
+      }
+    });
   }
 
   Future<void> enableBiometricLogin(String email, String password,
       {String provider = 'email'}) async {
-    try {
-      await _storage.write(key: _emailKey, value: email);
-      await _storage.write(key: _passwordKey, value: password);
-      await _storage.write(key: _providerKey, value: provider);
-      await _storage.write(key: _enabledKey, value: 'true');
-    } catch (e) {
-      PostHogService.log('Error enabling biometric login: $e',
-          level: LogLevel.error);
-      throw Exception('Failed to enable biometric login');
-    }
+    await PostHogService().trackLatency('biometric_enable', () async {
+      try {
+        await _storage.write(key: _emailKey, value: email);
+        await _storage.write(key: _passwordKey, value: password);
+        await _storage.write(key: _providerKey, value: provider);
+        await _storage.write(key: _enabledKey, value: 'true');
+        await PostHogService.log('Biometric login enabled for: $email',
+            level: LogLevel.info);
+      } catch (e) {
+        PostHogService().logError('biometric_enable_failed', e);
+        throw Exception('Failed to enable biometric login');
+      }
+    });
   }
 
   Future<void> disableBiometricLogin() async {
-    try {
-      await _storage.delete(key: _emailKey);
-      await _storage.delete(key: _passwordKey);
-      await _storage.delete(key: _providerKey);
-      await _storage.write(key: _enabledKey, value: 'false');
-    } catch (e) {
-      PostHogService.log('Error disabling biometric login: $e',
-          level: LogLevel.error);
-      // We don't rethrow here because we want logout to succeed even if this fails
-    }
+    await PostHogService().trackLatency('biometric_disable', () async {
+      try {
+        await _storage.delete(key: _emailKey);
+        await _storage.delete(key: _passwordKey);
+        await _storage.delete(key: _providerKey);
+        await _storage.write(key: _enabledKey, value: 'false');
+        await PostHogService.log('Biometric login disabled',
+            level: LogLevel.info);
+      } catch (e) {
+        PostHogService().logError('biometric_disable_failed', e);
+      }
+    });
   }
 
   Future<bool> isBiometricLoginEnabled() async {

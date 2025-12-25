@@ -52,83 +52,102 @@ class AuthService {
   }
 
   Future<User?> signInWithGoogle({bool trySilentFirst = false}) async {
-    try {
-      GoogleSignInAccount? googleUser;
-      if (trySilentFirst) {
-        try {
-          googleUser = await _googleSignIn.signInSilently();
-        } catch (e) {
-          PostHogService.log('Silent sign-in error: $e', level: LogLevel.error);
+    return await PostHogService().trackLatency('google_sign_in', () async {
+      try {
+        GoogleSignInAccount? googleUser;
+        if (trySilentFirst) {
+          try {
+            await PostHogService.log('Attempting silent sign-in',
+                level: LogLevel.info);
+            googleUser = await _googleSignIn.signInSilently();
+          } catch (e) {
+            PostHogService.log('Silent sign-in error: $e',
+                level: LogLevel.error);
+          }
         }
-      }
 
-      // If silent failed or wasn't requested, try interactive
-      googleUser ??= await _googleSignIn.signIn();
+        // If silent failed or wasn't requested, try interactive
+        if (googleUser == null) {
+          await PostHogService.log('Attempting interactive Google sign-in',
+              level: LogLevel.info);
+          googleUser = await _googleSignIn.signIn();
+        }
 
-      if (googleUser == null) {
-        // The user canceled the sign-in
-        return null;
-      }
+        if (googleUser == null) {
+          await PostHogService.log('Google sign-in canceled by user',
+              level: LogLevel.info);
+          return null;
+        }
 
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+        final GoogleSignInAuthentication googleAuth =
+            await googleUser.authentication;
 
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      final UserCredential userCredential =
-          await _auth.signInWithCredential(credential);
-      final user = userCredential.user;
-
-      if (user != null && user.email != null) {
-        await PostHogService().identify(
-          userId: user.uid,
-          userProperties: {
-            'email': user.email!,
-            'sign_in_method': 'google',
-          },
+        final AuthCredential credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
         );
-      }
 
-      return user;
-    } on FirebaseAuthException catch (e) {
-      // Throw Firebase auth errors with details
-      throw Exception('Firebase Auth Error: ${e.code} - ${e.message}');
-    } on PlatformException catch (e) {
-      // Handle platform-specific errors (e.g., Google Sign-In issues)
-      throw Exception('Platform Error: ${e.code} - ${e.message}');
-    } catch (e) {
-      // Handle any other errors
-      throw Exception('Google Sign-In failed: ${e.toString()}');
-    }
+        final UserCredential userCredential =
+            await _auth.signInWithCredential(credential);
+        final user = userCredential.user;
+
+        if (user != null && user.email != null) {
+          await PostHogService().identify(
+            userId: user.uid,
+            userProperties: {
+              'email': user.email!,
+              'sign_in_method': 'google',
+            },
+          );
+          await PostHogService.log('Google sign-in successful: ${user.uid}',
+              level: LogLevel.info);
+        }
+
+        return user;
+      } on FirebaseAuthException catch (e) {
+        PostHogService().logError('google_sign_in_auth_failed', e);
+        throw Exception('Firebase Auth Error: ${e.code} - ${e.message}');
+      } on PlatformException catch (e) {
+        PostHogService().logError('google_sign_in_platform_failed', e);
+        throw Exception('Platform Error: ${e.code} - ${e.message}');
+      } catch (e) {
+        PostHogService().logError('google_sign_in_failed', e);
+        throw Exception('Google Sign-In failed: ${e.toString()}');
+      }
+    });
   }
 
   Future<User?> signInWithEmailAndPassword(
       String email, String password) async {
-    try {
-      final UserCredential userCredential =
-          await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      final user = userCredential.user;
-
-      if (user != null && user.email != null) {
-        await PostHogService().identify(
-          userId: user.uid,
-          userProperties: {
-            'email': user.email!,
-            'sign_in_method': 'email',
-          },
+    return await PostHogService().trackLatency('email_sign_in', () async {
+      try {
+        await PostHogService.log('Attempting email sign-in',
+            level: LogLevel.info);
+        final UserCredential userCredential =
+            await _auth.signInWithEmailAndPassword(
+          email: email,
+          password: password,
         );
-      }
+        final user = userCredential.user;
 
-      return user;
-    } catch (e) {
-      rethrow;
-    }
+        if (user != null && user.email != null) {
+          await PostHogService().identify(
+            userId: user.uid,
+            userProperties: {
+              'email': user.email!,
+              'sign_in_method': 'email',
+            },
+          );
+          await PostHogService.log('Email sign-in successful: ${user.uid}',
+              level: LogLevel.info);
+        }
+
+        return user;
+      } catch (e) {
+        PostHogService().logError('email_sign_in_failed', e);
+        rethrow;
+      }
+    }, context: {'email': email});
   }
 
   Future<User?> createUserWithEmailAndPassword(
@@ -166,21 +185,23 @@ class AuthService {
   }
 
   Future<void> signOut() async {
-    try {
-      _cachedFamilyId = null; // Clear cache on sign out
+    await PostHogService().trackLatency('sign_out', () async {
       try {
-        await _googleSignIn.signOut();
+        _cachedFamilyId = null; // Clear cache on sign out
+        await PostHogService.log('Signing out', level: LogLevel.info);
+        try {
+          await _googleSignIn.signOut();
+        } catch (e) {
+          // Ignore Google Sign-In errors (e.g., if checking on non-Google user)
+          PostHogService.log('Google Sign-In signOut error: $e',
+              level: LogLevel.error);
+        }
+        await _auth.signOut();
+        await PostHogService().reset();
+        await PostHogService.log('Sign out successful', level: LogLevel.info);
       } catch (e) {
-        // Ignore Google Sign-In errors (e.g., if checking on non-Google user)
-        PostHogService.log('Google Sign-In signOut error: $e',
-            level: LogLevel.error);
+        PostHogService().logError('sign_out_failed', e);
       }
-      await _auth.signOut();
-      await PostHogService().reset();
-    } catch (e) {
-      // Ignore error
-      PostHogService.log('AuthService signOut error: $e',
-          level: LogLevel.error);
-    }
+    });
   }
 }

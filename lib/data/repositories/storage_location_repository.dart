@@ -8,14 +8,15 @@ class StorageLocationRepository {
   StorageLocationRepository(this._firestoreService);
 
   Future<void> addLocation(StorageLocation location) async {
-    await _firestoreService
-        .locations(location.familyId)
-        .doc(location.id)
-        .set(location.toMap());
+    await _firestoreService.setDocument(
+      docRef: _firestoreService.locations(location.familyId).doc(location.id),
+      data: location.toMap(),
+    );
   }
 
   Future<List<StorageLocation>> getLocations(String familyId) async {
-    final snapshot = await _firestoreService.locations(familyId).get();
+    final snapshot = await _firestoreService.getCollection(
+        query: _firestoreService.locations(familyId));
 
     // Offload parsing to a background isolate
     return compute(
@@ -36,14 +37,16 @@ class StorageLocationRepository {
   }
 
   Future<void> updateLocation(StorageLocation location) async {
-    await _firestoreService
-        .locations(location.familyId)
-        .doc(location.id)
-        .update(location.toMap());
+    await _firestoreService.updateDocument(
+      docRef: _firestoreService.locations(location.familyId).doc(location.id),
+      data: location.toMap(),
+    );
   }
 
   Future<void> deleteLocation(String familyId, String locationId) async {
-    await _firestoreService.locations(familyId).doc(locationId).delete();
+    await _firestoreService.deleteDocument(
+      docRef: _firestoreService.locations(familyId).doc(locationId),
+    );
   }
 }
 

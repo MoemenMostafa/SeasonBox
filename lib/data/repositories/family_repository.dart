@@ -7,11 +7,16 @@ class FamilyRepository {
   FamilyRepository(this._firestoreService);
 
   Future<void> createFamily(Family family) async {
-    await _firestoreService.families.doc(family.id).set(family.toMap());
+    await _firestoreService.setDocument(
+      docRef: _firestoreService.families.doc(family.id),
+      data: family.toMap(),
+    );
   }
 
   Future<Family?> getFamily(String id) async {
-    final doc = await _firestoreService.families.doc(id).get();
+    final doc = await _firestoreService.getDocument(
+      docRef: _firestoreService.families.doc(id),
+    );
     if (doc.exists) {
       return Family.fromMap(doc.data() as Map<String, dynamic>);
     }
@@ -19,6 +24,9 @@ class FamilyRepository {
   }
 
   Future<void> updateFamily(Family family) async {
-    await _firestoreService.families.doc(family.id).update(family.toMap());
+    await _firestoreService.updateDocument(
+      docRef: _firestoreService.families.doc(family.id),
+      data: family.toMap(),
+    );
   }
 }

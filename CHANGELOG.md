@@ -1,4 +1,13 @@
 # Changelog
+ 
+## 1.4.0+29
+- **Logging & Monitoring Architecture**:
+    - **Service Wrappers**: Implemented consistent logging for all core services (`FirestoreService`, `StorageService`, `AuthService`, `BiometricService`, `UserService`).
+    - **Latency Tracking**: Added `trackLatency` to key operations (Firestore reads, image processing, sign-in) for production performance monitoring.
+    - **UI Abandonment**: Introduced form drop detection for `AddItem` and `AddFamilyMember` screens to identify UX friction points.
+    - **Enhanced Error Context**: Standardized error logging with document paths, collection names, and user state to accelerate debugging.
+- **Documentation**:
+    - **Integrated PostHog Docs**: Updated `docs/posthog_integration.md` with the new standardized logging patterns and performance monitoring guide.
 
 ## 1.3.0+28
 - **Navigation Redesign**:

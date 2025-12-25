@@ -17,6 +17,7 @@ import 'package:seasonbox/core/services/permission_service.dart';
 import 'package:seasonbox/core/constants/size_constants.dart';
 import 'package:seasonbox/app/providers/user_profile_provider.dart';
 import 'package:seasonbox/core/enums/gender.dart';
+import 'package:seasonbox/data/services/posthog_service.dart';
 
 class AddFamilyMemberScreen extends StatefulWidget {
   final FamilyMember? member;
@@ -45,6 +46,7 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
 
   String? _inviteStatus;
   bool _isLoading = false;
+  bool _isDirty = false;
   List<FamilyMember> _allMembers = [];
   String? _currentUserId;
   String? _familyId;
@@ -66,6 +68,12 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
       _inviteEmailController.text = widget.member!.inviteEmail ?? '';
       _role = widget.member!.role;
     }
+
+    _nameController.addListener(() => _isDirty = true);
+    _notesController.addListener(() => _isDirty = true);
+    _clothingSizeController.addListener(() => _isDirty = true);
+    _shoeSizeController.addListener(() => _isDirty = true);
+    _inviteEmailController.addListener(() => _isDirty = true);
   }
 
   Future<void> _loadData() async {
@@ -374,229 +382,244 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
     final theme = Theme.of(context);
     final isMetric = context.watch<UserProfileProvider>().isMetric;
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: SeasonBoxAppBar(
-        title: widget.member != null
-            ? AppLocalizations.of(context)!.addMember_title_edit
-            : AppLocalizations.of(context)!.addMember_title_add,
-        actions: widget.member != null
-            ? [
-                IconButton(
-                  icon: const Icon(Icons.help_outline),
-                  onPressed: () {},
-                ),
-              ]
-            : null,
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Basic Information Section
-                    Text(
-                        AppLocalizations.of(context)!
-                            .addMember_section_basicInfo,
-                        style: theme.textTheme.titleMedium),
-                    const SizedBox(height: 8),
-                    AppCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                              AppLocalizations.of(context)!
-                                  .addMember_field_name,
-                              style: const TextStyle(fontSize: 14)),
-                          const SizedBox(height: 8),
-                          TextFormField(
-                            controller: _nameController,
-                            decoration: InputDecoration(
-                              hintText: AppLocalizations.of(context)!
-                                  .addMember_field_nameHint,
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return AppLocalizations.of(context)!
-                                    .addMember_validation_nameRequired;
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                              AppLocalizations.of(context)!
-                                  .addMember_field_gender,
-                              style: const TextStyle(fontSize: 14)),
-                          const SizedBox(height: 8),
-                          _buildGenderSelector(theme),
-                          const SizedBox(height: 16),
-                          Text(
-                              AppLocalizations.of(context)!
-                                  .addMember_field_birthdate,
-                              style: const TextStyle(fontSize: 14)),
-                          const SizedBox(height: 8),
-                          InkWell(
-                            onTap: () => _selectDate(context),
-                            child: InputDecorator(
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (didPop && _isDirty && !_isLoading) {
+          PostHogService.log('ui_abandonment', level: LogLevel.info, context: {
+            'screen': 'AddFamilyMemberScreen',
+            'name_length': _nameController.text.length,
+            'has_email': _inviteEmailController.text.isNotEmpty,
+          });
+        }
+      },
+      child: Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: SeasonBoxAppBar(
+          title: widget.member != null
+              ? AppLocalizations.of(context)!.addMember_title_edit
+              : AppLocalizations.of(context)!.addMember_title_add,
+          actions: widget.member != null
+              ? [
+                  IconButton(
+                    icon: const Icon(Icons.help_outline),
+                    onPressed: () {},
+                  ),
+                ]
+              : null,
+        ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Basic Information Section
+                      Text(
+                          AppLocalizations.of(context)!
+                              .addMember_section_basicInfo,
+                          style: theme.textTheme.titleMedium),
+                      const SizedBox(height: 8),
+                      AppCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                                AppLocalizations.of(context)!
+                                    .addMember_field_name,
+                                style: const TextStyle(fontSize: 14)),
+                            const SizedBox(height: 8),
+                            TextFormField(
+                              controller: _nameController,
                               decoration: InputDecoration(
                                 hintText: AppLocalizations.of(context)!
-                                    .addMember_field_birthdateHint,
-                                suffixIcon: const Icon(Icons.calendar_today),
+                                    .addMember_field_nameHint,
                               ),
-                              child: Text(
-                                "${_birthdate.toLocal()}".split(' ')[0],
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return AppLocalizations.of(context)!
+                                      .addMember_validation_nameRequired;
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                                AppLocalizations.of(context)!
+                                    .addMember_field_gender,
+                                style: const TextStyle(fontSize: 14)),
+                            const SizedBox(height: 8),
+                            _buildGenderSelector(theme),
+                            const SizedBox(height: 16),
+                            Text(
+                                AppLocalizations.of(context)!
+                                    .addMember_field_birthdate,
+                                style: const TextStyle(fontSize: 14)),
+                            const SizedBox(height: 8),
+                            InkWell(
+                              onTap: () => _selectDate(context),
+                              child: InputDecorator(
+                                decoration: InputDecoration(
+                                  hintText: AppLocalizations.of(context)!
+                                      .addMember_field_birthdateHint,
+                                  suffixIcon: const Icon(Icons.calendar_today),
+                                ),
+                                child: Text(
+                                  "${_birthdate.toLocal()}".split(' ')[0],
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Current Sizes Section
-                    Text(AppLocalizations.of(context)!.addMember_section_sizes,
-                        style: theme.textTheme.titleMedium),
-                    const SizedBox(height: 8),
-                    AppCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildSizeInputSection(
-                            context: context,
-                            label: AppLocalizations.of(context)!
-                                .addMember_field_clothingSize,
-                            hintText: AppLocalizations.of(context)!
-                                .addMember_field_clothingSizeHint,
-                            controller: _clothingSizeController,
-                            sizes: isMetric
-                                ? SizeConstants.clothesSizesMetric
-                                : SizeConstants.clothesSizesImperial,
-                            currentValue: _clothesSize,
-                            onChanged: (val) {
-                              setState(() {
-                                _clothesSize = val;
-                                _clothingSizeController.text = val ?? '';
-                              });
-                            },
-                            isMetric: isMetric,
-                            unit: isMetric ? 'cm (EU)' : 'US',
-                          ),
-                          const SizedBox(height: 24),
-                          _buildSizeInputSection(
-                            context: context,
-                            label: AppLocalizations.of(context)!
-                                .addMember_field_shoeSize,
-                            hintText: AppLocalizations.of(context)!
-                                .addMember_field_shoeSizeHint,
-                            controller: _shoeSizeController,
-                            sizes: isMetric
-                                ? SizeConstants.shoeSizesMetric
-                                : SizeConstants.shoeSizesImperial,
-                            currentValue: _shoeSize,
-                            onChanged: (val) {
-                              setState(() {
-                                _shoeSize = val;
-                                _shoeSizeController.text = val ?? '';
-                              });
-                            },
-                            isMetric: isMetric,
-                            unit: isMetric ? 'EU' : 'US',
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Additional Notes Section
-                    Text(AppLocalizations.of(context)!.addMember_section_notes,
-                        style: theme.textTheme.titleMedium),
-                    const SizedBox(height: 8),
-                    AppCard(
-                      child: TextFormField(
-                        controller: _notesController,
-                        decoration: InputDecoration(
-                          hintText: AppLocalizations.of(context)!
-                              .addMember_field_notesHint,
-                          alignLabelWithHint: true,
+                          ],
                         ),
-                        maxLines: 4,
                       ),
-                    ),
-                    const SizedBox(height: 32),
+                      const SizedBox(height: 24),
 
-                    const SizedBox(height: 24),
+                      // Current Sizes Section
+                      Text(
+                          AppLocalizations.of(context)!.addMember_section_sizes,
+                          style: theme.textTheme.titleMedium),
+                      const SizedBox(height: 8),
+                      AppCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildSizeInputSection(
+                              context: context,
+                              label: AppLocalizations.of(context)!
+                                  .addMember_field_clothingSize,
+                              hintText: AppLocalizations.of(context)!
+                                  .addMember_field_clothingSizeHint,
+                              controller: _clothingSizeController,
+                              sizes: isMetric
+                                  ? SizeConstants.clothesSizesMetric
+                                  : SizeConstants.clothesSizesImperial,
+                              currentValue: _clothesSize,
+                              onChanged: (val) {
+                                setState(() {
+                                  _clothesSize = val;
+                                  _clothingSizeController.text = val ?? '';
+                                });
+                              },
+                              isMetric: isMetric,
+                              unit: isMetric ? 'cm (EU)' : 'US',
+                            ),
+                            const SizedBox(height: 24),
+                            _buildSizeInputSection(
+                              context: context,
+                              label: AppLocalizations.of(context)!
+                                  .addMember_field_shoeSize,
+                              hintText: AppLocalizations.of(context)!
+                                  .addMember_field_shoeSizeHint,
+                              controller: _shoeSizeController,
+                              sizes: isMetric
+                                  ? SizeConstants.shoeSizesMetric
+                                  : SizeConstants.shoeSizesImperial,
+                              currentValue: _shoeSize,
+                              onChanged: (val) {
+                                setState(() {
+                                  _shoeSize = val;
+                                  _shoeSizeController.text = val ?? '';
+                                });
+                              },
+                              isMetric: isMetric,
+                              unit: isMetric ? 'EU' : 'US',
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
 
-                    // Account Access Section
-                    Text(
+                      // Additional Notes Section
+                      Text(
+                          AppLocalizations.of(context)!.addMember_section_notes,
+                          style: theme.textTheme.titleMedium),
+                      const SizedBox(height: 8),
+                      AppCard(
+                        child: TextFormField(
+                          controller: _notesController,
+                          decoration: InputDecoration(
+                            hintText: AppLocalizations.of(context)!
+                                .addMember_field_notesHint,
+                            alignLabelWithHint: true,
+                          ),
+                          maxLines: 4,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+
+                      const SizedBox(height: 24),
+
+                      // Account Access Section
+                      Text(
+                          AppLocalizations.of(context)!
+                              .addMember_section_accountAccess,
+                          style: theme.textTheme.titleMedium),
+                      const SizedBox(height: 4),
+                      Text(
                         AppLocalizations.of(context)!
-                            .addMember_section_accountAccess,
-                        style: theme.textTheme.titleMedium),
-                    const SizedBox(height: 4),
-                    Text(
-                      AppLocalizations.of(context)!
-                          .addMember_invite_description,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey.shade600,
+                            .addMember_invite_description,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade600,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildAccountAccessSection(theme),
-                    const SizedBox(height: 32),
-
-                    // Action Buttons
-                    ActionButtons(
-                      primaryLabel: widget.member != null
-                          ? AppLocalizations.of(context)!
-                              .addMember_button_update
-                          : AppLocalizations.of(context)!.addMember_button_add,
-                      secondaryLabel:
-                          AppLocalizations.of(context)!.common_cancel,
-                      onPrimaryPressed: _saveMember,
-                      onSecondaryPressed: () => context.pop(),
-                      isLoading: _isLoading,
-                    ),
-                    if (widget.member != null &&
-                        PermissionService.canDeleteMember(
-                          _currentUserId,
-                          widget.member!,
-                          _familyId,
-                          _allMembers,
-                        )) ...[
                       const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 56,
-                        child: OutlinedButton(
-                          onPressed: _deleteMember,
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Colors.red),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                      _buildAccountAccessSection(theme),
+                      const SizedBox(height: 32),
+
+                      // Action Buttons
+                      ActionButtons(
+                        primaryLabel: widget.member != null
+                            ? AppLocalizations.of(context)!
+                                .addMember_button_update
+                            : AppLocalizations.of(context)!
+                                .addMember_button_add,
+                        secondaryLabel:
+                            AppLocalizations.of(context)!.common_cancel,
+                        onPrimaryPressed: _saveMember,
+                        onSecondaryPressed: () => context.pop(),
+                        isLoading: _isLoading,
+                      ),
+                      if (widget.member != null &&
+                          PermissionService.canDeleteMember(
+                            _currentUserId,
+                            widget.member!,
+                            _familyId,
+                            _allMembers,
+                          )) ...[
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: OutlinedButton(
+                            onPressed: _deleteMember,
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Colors.red),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
-                          ),
-                          child: Text(
-                            AppLocalizations.of(context)!
-                                .addMember_button_deleteMember,
-                            style: const TextStyle(
-                              color: Colors.red,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                            child: Text(
+                              AppLocalizations.of(context)!
+                                  .addMember_button_deleteMember,
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
-                      ),
+                      ],
+                      const SizedBox(height: 24),
                     ],
-                    const SizedBox(height: 24),
-                  ],
+                  ),
                 ),
               ),
-            ),
+      ),
     );
   }
 

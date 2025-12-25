@@ -24,8 +24,9 @@ class UserService {
     // If inviteCode is null, we can skip the Cloud Function if the user is already linked.
     if (inviteCode == null) {
       try {
-        final userDoc =
-            await _firestoreService.users.doc(firebaseUser.uid).get();
+        final userDoc = await _firestoreService.getDocument(
+          docRef: _firestoreService.users.doc(firebaseUser.uid),
+        );
         if (userDoc.exists) {
           final data = userDoc.data() as Map<String, dynamic>?;
           if (data != null && data['familyId'] != null) {
@@ -46,12 +47,14 @@ class UserService {
     final functions = FirebaseFunctions.instance;
 
     try {
-      final result =
-          await functions.httpsCallable('createUserAndJoinFamily').call({
-        'uid': firebaseUser.uid,
-        'email': firebaseUser.email,
-        'displayName': firebaseUser.displayName,
-        'familyCode': inviteCode,
+      final result = await PostHogService()
+          .trackLatency('createUserAndJoinFamily_function', () async {
+        return await functions.httpsCallable('createUserAndJoinFamily').call({
+          'uid': firebaseUser.uid,
+          'email': firebaseUser.email,
+          'displayName': firebaseUser.displayName,
+          'familyCode': inviteCode,
+        });
       });
 
       PostHogService.log('User created successfully: ${result.data}');
@@ -69,33 +72,38 @@ class UserService {
 
   /// Helper to join a family for an existing user
   Future<void> joinFamily(String uid, String email, String familyCode) async {
-    final familyDoc = await _firestoreService.families.doc(familyCode).get();
+    final familyDoc = await _firestoreService.getDocument(
+      docRef: _firestoreService.families.doc(familyCode),
+    );
     if (!familyDoc.exists) {
       throw Exception('Invalid Family Code');
     }
 
     // Verify invitation
-    final invitedMemberQuery = await _firestoreService
-        .familyMembers(familyCode)
-        .where('inviteEmail', isEqualTo: email)
-        .where('inviteStatus', isEqualTo: 'pending')
-        .limit(1)
-        .get();
+    final invitedMemberQuerySnapshot = await _firestoreService.getCollection(
+      query: _firestoreService
+          .familyMembers(familyCode)
+          .where('inviteEmail', isEqualTo: email)
+          .where('inviteStatus', isEqualTo: 'pending')
+          .limit(1),
+    );
 
-    if (invitedMemberQuery.docs.isEmpty) {
+    if (invitedMemberQuerySnapshot.docs.isEmpty) {
       throw Exception('No active invitation found for this family.');
     }
 
     // Clean up pending invite
     // Start a batch
-    final batch = _firestoreService.instance.batch();
+    final batch = _firestoreService.batch();
 
     // 1. Delete the pending invite
-    batch.delete(invitedMemberQuery.docs.first.reference);
+    batch.delete(invitedMemberQuerySnapshot.docs.first.reference);
 
     // 2. Add to Family Members
     // Fetch current user display name for the member name
-    final userDoc = await _firestoreService.users.doc(uid).get();
+    final userDoc = await _firestoreService.getDocument(
+      docRef: _firestoreService.users.doc(uid),
+    );
     final displayName =
         (userDoc.data() as Map<String, dynamic>?)?['displayName'] ?? 'Member';
 
@@ -109,7 +117,7 @@ class UserService {
       gender: Gender.unisex,
     );
 
-    // Manual set to include in batch (bypassing repo for atomicity)
+    // Manual set to include in batch
     batch.set(
       _firestoreService.familyMembers(familyCode).doc(uid),
       member.toMap(),
@@ -119,19 +127,20 @@ class UserService {
     batch.update(_firestoreService.users.doc(uid), {'familyId': familyCode});
 
     // Commit all changes atomically
-    await batch.commit();
+    await _firestoreService.commitBatch(batch);
   }
 
   /// Helper to leave current family and revert to personal family
   Future<void> leaveFamily(String uid, String currentFamilyId) async {
-    final batch = _firestoreService.instance.batch();
+    final batch = _firestoreService.batch();
 
     // If leaving own family (disbanding/resetting to solo)
     if (uid == currentFamilyId) {
       // Logic: "Leave" means reverting to a true solo state.
       // If there are other members, we should remove them (Disband).
-      final membersQuery =
-          await _firestoreService.familyMembers(currentFamilyId).get();
+      final membersQuery = await _firestoreService.getCollection(
+        query: _firestoreService.familyMembers(currentFamilyId),
+      );
       for (var doc in membersQuery.docs) {
         batch.delete(doc.reference);
       }
@@ -156,7 +165,9 @@ class UserService {
     // This avoids the 'exists' check which might be stale or slow.
 
     // Fetch current user display name (if needed) - read before batch
-    final userDoc = await _firestoreService.users.doc(uid).get();
+    final userDoc = await _firestoreService.getDocument(
+      docRef: _firestoreService.users.doc(uid),
+    );
     final displayName =
         (userDoc.data() as Map<String, dynamic>?)?['displayName'] ?? 'Admin';
 
@@ -175,7 +186,7 @@ class UserService {
     // Update User to point to personal family
     batch.update(_firestoreService.users.doc(uid), {'familyId': uid});
 
-    await batch.commit();
+    await _firestoreService.commitBatch(batch);
   }
 
   /// Updates the user's profile information in Firestore.
@@ -197,7 +208,10 @@ class UserService {
     if (preferences != null) data['preferences'] = preferences;
 
     if (data.isNotEmpty) {
-      await _firestoreService.users.doc(uid).update(data);
+      await _firestoreService.updateDocument(
+        docRef: _firestoreService.users.doc(uid),
+        data: data,
+      );
     }
   }
 }

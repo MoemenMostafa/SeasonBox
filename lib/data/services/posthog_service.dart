@@ -187,4 +187,34 @@ class PostHogService {
       'platform': 'flutter',
     });
   }
+
+  /// Track the latency of an operation
+  Future<T> trackLatency<T>(
+    String operationName,
+    Future<T> Function() operation, {
+    Map<String, dynamic>? context,
+  }) async {
+    final startTime = DateTime.now();
+    try {
+      final result = await operation();
+      final duration = DateTime.now().difference(startTime);
+
+      await captureEvent('latency_$operationName', properties: {
+        'duration_ms': duration.inMilliseconds,
+        'status': 'success',
+        if (context != null) ...context,
+      });
+
+      return result;
+    } catch (e) {
+      final duration = DateTime.now().difference(startTime);
+      await captureEvent('latency_$operationName', properties: {
+        'duration_ms': duration.inMilliseconds,
+        'status': 'failure',
+        'error': e.toString(),
+        if (context != null) ...context,
+      });
+      rethrow;
+    }
+  }
 }

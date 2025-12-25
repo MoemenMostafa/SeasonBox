@@ -21,6 +21,7 @@ import 'package:seasonbox/core/services/permission_service.dart';
 import 'package:seasonbox/core/constants/size_constants.dart';
 import 'package:seasonbox/app/providers/user_profile_provider.dart';
 import 'package:seasonbox/core/enums/gender.dart';
+import 'package:seasonbox/data/services/posthog_service.dart';
 
 class AddItemScreen extends StatefulWidget {
   final Item? item; // Optional item for editing
@@ -59,6 +60,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
   bool _isLoadingData = true;
   bool _isTransitionComplete = false;
   bool _isSaving = false;
+  bool _isDirty = false;
   final Map<String, Map<String, File>> _processedImages = {};
   final Map<String, bool> _processingStatus = {};
 
@@ -142,7 +144,11 @@ class _AddItemScreenState extends State<AddItemScreen> {
   @override
   void initState() {
     super.initState();
-    // Field population is deferred to _onTransitionComplete to prevent UI freeze
+    _titleController.addListener(() => _isDirty = true);
+    _descriptionController.addListener(() => _isDirty = true);
+    _brandController.addListener(() => _isDirty = true);
+    _tagController.addListener(() => _isDirty = true);
+    _customSizeController.addListener(() => _isDirty = true);
   }
 
   // ... (Lifecycle methods remain unchanged)
@@ -325,6 +331,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
         final imagePath = image.path;
 
         setState(() {
+          _isDirty = true;
           _selectedImages.add(image);
           _processingStatus[imagePath] = true;
         });
@@ -623,122 +630,180 @@ class _AddItemScreenState extends State<AddItemScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: SeasonBoxAppBar(
-        title: widget.item != null ? 'Edit Item' : 'Add New Item',
-        actions: [
-          if (widget.item != null)
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (didPop && _isDirty && !_isSaving) {
+          PostHogService.log('ui_abandonment', level: LogLevel.info, context: {
+            'screen': 'AddItemScreen',
+            'title_length': _titleController.text.length,
+            'has_images': _selectedImages.isNotEmpty,
+          });
+        }
+      },
+      child: Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: SeasonBoxAppBar(
+          title: widget.item != null ? 'Edit Item' : 'Add New Item',
+          actions: [
+            if (widget.item != null)
+              IconButton(
+                icon: const Icon(Icons.delete, color: Colors.white),
+                onPressed: _confirmDelete,
+                tooltip: 'Delete Item',
+              ),
             IconButton(
-              icon: const Icon(Icons.delete, color: Colors.white),
-              onPressed: _confirmDelete,
-              tooltip: 'Delete Item',
+              icon: const Icon(Icons.check, color: Colors.white),
+              onPressed: () => _saveItem(stayOnScreen: false),
+              tooltip: 'Save Item',
             ),
-          IconButton(
-            icon: const Icon(Icons.check, color: Colors.white),
-            onPressed: () => _saveItem(stayOnScreen: false),
-            tooltip: 'Save Item',
-          ),
-        ],
-      ),
-      body: _isSaving
-          ? const Center(child: CircularProgressIndicator())
-          : !_isTransitionComplete
-              ? _buildLoadingSkeleton()
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Photos Section
-                        Text(
-                            AppLocalizations.of(context)!
-                                .addItem_section_photos,
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
-                        SizedBox(
-                          height: 100,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: 1 +
-                                _existingPhotos.length +
-                                _selectedImages.length,
-                            itemBuilder: (context, index) {
-                              if (index == 0) {
-                                // Add Photo Button
-                                return Container(
-                                  width: 100,
-                                  margin: const EdgeInsets.only(right: 12),
-                                  decoration: BoxDecoration(
-                                    color: theme.cardColor,
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(
-                                        color: theme.colorScheme.primary,
-                                        width: 1.5),
-                                  ),
-                                  child: InkWell(
-                                    onTap: _showImagePickerModal,
-                                    borderRadius: BorderRadius.circular(16),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(Icons.camera_alt,
-                                            color: theme.colorScheme.primary,
-                                            size: 32),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          'Add Photo',
-                                          style: TextStyle(
-                                              color: theme.colorScheme.primary,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                      ],
+          ],
+        ),
+        body: _isSaving
+            ? const Center(child: CircularProgressIndicator())
+            : !_isTransitionComplete
+                ? _buildLoadingSkeleton()
+                : SingleChildScrollView(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Photos Section
+                          Text(
+                              AppLocalizations.of(context)!
+                                  .addItem_section_photos,
+                              style: const TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 8),
+                          SizedBox(
+                            height: 100,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: 1 +
+                                  _existingPhotos.length +
+                                  _selectedImages.length,
+                              itemBuilder: (context, index) {
+                                if (index == 0) {
+                                  // Add Photo Button
+                                  return Container(
+                                    width: 100,
+                                    margin: const EdgeInsets.only(right: 12),
+                                    decoration: BoxDecoration(
+                                      color: theme.cardColor,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                          color: theme.colorScheme.primary,
+                                          width: 1.5),
                                     ),
-                                  ),
-                                );
-                              } else if (index <= _existingPhotos.length) {
-                                // Display Existing Photo (from Firestore)
-                                final photoIndex = index - 1;
-                                final photoMap = _existingPhotos[photoIndex];
-                                return GestureDetector(
-                                  onTap: () {
-                                    // Extract all image URLs
-                                    final imageUrls = <String>[];
-                                    for (final photo in _existingPhotos) {
-                                      final url =
-                                          photo['full'] ?? photo['thumb'] ?? '';
-                                      if (url.isNotEmpty) {
-                                        imageUrls.add(url);
-                                      }
-                                    }
-
-                                    // Open gallery viewer
-                                    if (imageUrls.isNotEmpty) {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              ImageGalleryViewer(
-                                            imageUrls: imageUrls,
-                                            initialIndex: photoIndex,
+                                    child: InkWell(
+                                      onTap: _showImagePickerModal,
+                                      borderRadius: BorderRadius.circular(16),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.camera_alt,
+                                              color: theme.colorScheme.primary,
+                                              size: 32),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'Add Photo',
+                                            style: TextStyle(
+                                                color:
+                                                    theme.colorScheme.primary,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold),
                                           ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                } else if (index <= _existingPhotos.length) {
+                                  // Display Existing Photo (from Firestore)
+                                  final photoIndex = index - 1;
+                                  final photoMap = _existingPhotos[photoIndex];
+                                  return GestureDetector(
+                                    onTap: () {
+                                      // Extract all image URLs
+                                      final imageUrls = <String>[];
+                                      for (final photo in _existingPhotos) {
+                                        final url = photo['full'] ??
+                                            photo['thumb'] ??
+                                            '';
+                                        if (url.isNotEmpty) {
+                                          imageUrls.add(url);
+                                        }
+                                      }
+
+                                      // Open gallery viewer
+                                      if (imageUrls.isNotEmpty) {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                ImageGalleryViewer(
+                                              imageUrls: imageUrls,
+                                              initialIndex: photoIndex,
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    child: Container(
+                                      width: 100,
+                                      margin: const EdgeInsets.only(right: 12),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(16),
+                                        image: DecorationImage(
+                                          image: NetworkImage(
+                                              photoMap['thumb'] ??
+                                                  photoMap['full'] ??
+                                                  ''),
+                                          fit: BoxFit.cover,
                                         ),
-                                      );
-                                    }
-                                  },
-                                  child: Container(
+                                      ),
+                                      child: Stack(
+                                        children: [
+                                          Positioned(
+                                            top: 4,
+                                            right: 4,
+                                            child: InkWell(
+                                              onTap: () {
+                                                setState(() {
+                                                  _existingPhotos
+                                                      .removeAt(photoIndex);
+                                                });
+                                              },
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.all(4),
+                                                decoration: const BoxDecoration(
+                                                  color: Colors.black54,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: const Icon(Icons.close,
+                                                    color: Colors.white,
+                                                    size: 16),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                } else {
+                                  // Display Newly Selected Image
+                                  final imageIndex =
+                                      index - 1 - _existingPhotos.length;
+                                  final image = _selectedImages[imageIndex];
+                                  return Container(
                                     width: 100,
                                     margin: const EdgeInsets.only(right: 12),
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(16),
                                       image: DecorationImage(
-                                        image: NetworkImage(photoMap['thumb'] ??
-                                            photoMap['full'] ??
-                                            ''),
+                                        image: FileImage(File(image.path)),
                                         fit: BoxFit.cover,
                                       ),
                                     ),
@@ -748,10 +813,21 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                           top: 4,
                                           right: 4,
                                           child: InkWell(
-                                            onTap: () {
+                                            onTap: () async {
+                                              final path = image.path;
+                                              final processed =
+                                                  _processedImages[path];
+                                              if (processed != null) {
+                                                await processed['full']
+                                                    ?.delete();
+                                                await processed['thumb']
+                                                    ?.delete();
+                                              }
                                               setState(() {
-                                                _existingPhotos
-                                                    .removeAt(photoIndex);
+                                                _selectedImages
+                                                    .removeAt(imageIndex);
+                                                _processedImages.remove(path);
+                                                _processingStatus.remove(path);
                                               });
                                             },
                                             child: Container(
@@ -766,646 +842,602 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                             ),
                                           ),
                                         ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              } else {
-                                // Display Newly Selected Image
-                                final imageIndex =
-                                    index - 1 - _existingPhotos.length;
-                                final image = _selectedImages[imageIndex];
-                                return Container(
-                                  width: 100,
-                                  margin: const EdgeInsets.only(right: 12),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(16),
-                                    image: DecorationImage(
-                                      image: FileImage(File(image.path)),
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                  child: Stack(
-                                    children: [
-                                      Positioned(
-                                        top: 4,
-                                        right: 4,
-                                        child: InkWell(
-                                          onTap: () async {
-                                            final path = image.path;
-                                            final processed =
-                                                _processedImages[path];
-                                            if (processed != null) {
-                                              await processed['full']?.delete();
-                                              await processed['thumb']
-                                                  ?.delete();
-                                            }
-                                            setState(() {
-                                              _selectedImages
-                                                  .removeAt(imageIndex);
-                                              _processedImages.remove(path);
-                                              _processingStatus.remove(path);
-                                            });
-                                          },
-                                          child: Container(
-                                            padding: const EdgeInsets.all(4),
-                                            decoration: const BoxDecoration(
-                                              color: Colors.black54,
-                                              shape: BoxShape.circle,
+                                        if (_processingStatus[image.path] ==
+                                            true)
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.black26,
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
                                             ),
-                                            child: const Icon(Icons.close,
-                                                color: Colors.white, size: 16),
-                                          ),
-                                        ),
-                                      ),
-                                      if (_processingStatus[image.path] == true)
-                                        Container(
-                                          decoration: BoxDecoration(
-                                            color: Colors.black26,
-                                            borderRadius:
-                                                BorderRadius.circular(16),
-                                          ),
-                                          child: const Center(
-                                            child: SizedBox(
-                                              width: 24,
-                                              height: 24,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                                valueColor:
-                                                    AlwaysStoppedAnimation<
-                                                        Color>(Colors.white),
+                                            child: const Center(
+                                              child: SizedBox(
+                                                width: 24,
+                                                height: 24,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<
+                                                          Color>(Colors.white),
+                                                ),
                                               ),
                                             ),
                                           ),
-                                        ),
-                                    ],
+                                      ],
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Item Details Section
+                          Text(
+                              AppLocalizations.of(context)!
+                                  .addItem_section_itemDetails,
+                              style: const TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 8),
+                          AppCard(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                    AppLocalizations.of(context)!
+                                        .addItem_field_itemName,
+                                    style: const TextStyle(fontSize: 14)),
+                                const SizedBox(height: 8),
+                                TextFormField(
+                                  controller: _titleController,
+                                  decoration: InputDecoration(
+                                    hintText: AppLocalizations.of(context)!
+                                        .addItem_field_itemNameHint,
+                                    border: const OutlineInputBorder(),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 12),
                                   ),
-                                );
-                              }
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Item Details Section
-                        Text(
-                            AppLocalizations.of(context)!
-                                .addItem_section_itemDetails,
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
-                        AppCard(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                  AppLocalizations.of(context)!
-                                      .addItem_field_itemName,
-                                  style: const TextStyle(fontSize: 14)),
-                              const SizedBox(height: 8),
-                              TextFormField(
-                                controller: _titleController,
-                                decoration: InputDecoration(
-                                  hintText: AppLocalizations.of(context)!
-                                      .addItem_field_itemNameHint,
-                                  border: const OutlineInputBorder(),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 12),
+                                  validator: (value) => value?.isEmpty == true
+                                      ? AppLocalizations.of(context)!
+                                          .addItem_validation_required
+                                      : null,
                                 ),
-                                validator: (value) => value?.isEmpty == true
-                                    ? AppLocalizations.of(context)!
-                                        .addItem_validation_required
-                                    : null,
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                  AppLocalizations.of(context)!
-                                      .addItem_field_category,
-                                  style: const TextStyle(fontSize: 14)),
-                              const SizedBox(height: 8),
-                              DropdownButtonFormField<String>(
-                                initialValue: _selectedCategory,
-                                decoration: const InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 12),
+                                const SizedBox(height: 16),
+                                Text(
+                                    AppLocalizations.of(context)!
+                                        .addItem_field_category,
+                                    style: const TextStyle(fontSize: 14)),
+                                const SizedBox(height: 8),
+                                DropdownButtonFormField<String>(
+                                  initialValue: _selectedCategory,
+                                  decoration: const InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 12),
+                                  ),
+                                  items: _categories
+                                      .map((c) => DropdownMenuItem(
+                                          value: c,
+                                          child: Text(
+                                              _getCategoryName(context, c))))
+                                      .toList(),
+                                  onChanged: (v) {
+                                    setState(() {
+                                      _selectedCategory = v!;
+                                      _isCustomSize = false;
+                                      _selectedSize = '';
+                                      _customSizeController.clear();
+                                    });
+                                  },
                                 ),
-                                items: _categories
-                                    .map((c) => DropdownMenuItem(
-                                        value: c,
-                                        child:
-                                            Text(_getCategoryName(context, c))))
-                                    .toList(),
-                                onChanged: (v) {
-                                  setState(() {
-                                    _selectedCategory = v!;
-                                    _isCustomSize = false;
-                                    _selectedSize = '';
-                                    _customSizeController.clear();
-                                  });
-                                },
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                  AppLocalizations.of(context)!
-                                      .addItem_field_gender,
-                                  style: const TextStyle(fontSize: 14)),
-                              const SizedBox(height: 8),
-                              _buildGenderSelector(theme),
-                            ],
+                                const SizedBox(height: 16),
+                                Text(
+                                    AppLocalizations.of(context)!
+                                        .addItem_field_gender,
+                                    style: const TextStyle(fontSize: 14)),
+                                const SizedBox(height: 8),
+                                _buildGenderSelector(theme),
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 24),
+                          const SizedBox(height: 24),
 
-                        // Size Section (Collapsed for brevity - assumes logic is preserved in rebuild)
-                        const Text('Size',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
-                        AppCard(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                  AppLocalizations.of(context)!
-                                      .addItem_field_size,
-                                  style: const TextStyle(fontSize: 14)),
-                              const SizedBox(height: 8),
-                              SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Wrap(
-                                  spacing: 8,
-                                  children: [
-                                    ..._currentSizes.map((size) {
-                                      return ChoiceChip(
-                                        label: Text(size),
-                                        selected: !_isCustomSize &&
-                                            _selectedSize == size,
+                          // Size Section (Collapsed for brevity - assumes logic is preserved in rebuild)
+                          const Text('Size',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 8),
+                          AppCard(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                    AppLocalizations.of(context)!
+                                        .addItem_field_size,
+                                    style: const TextStyle(fontSize: 14)),
+                                const SizedBox(height: 8),
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Wrap(
+                                    spacing: 8,
+                                    children: [
+                                      ..._currentSizes.map((size) {
+                                        return ChoiceChip(
+                                          label: Text(size),
+                                          selected: !_isCustomSize &&
+                                              _selectedSize == size,
+                                          onSelected: (selected) {
+                                            if (selected) {
+                                              setState(() {
+                                                _isCustomSize = false;
+                                                _selectedSize = size;
+                                                _customSizeController.clear();
+                                              });
+                                            }
+                                          },
+                                        );
+                                      }),
+                                      ChoiceChip(
+                                        label: Text(
+                                            AppLocalizations.of(context)!
+                                                .addItem_size_other),
+                                        selected: _isCustomSize,
                                         onSelected: (selected) {
                                           if (selected) {
                                             setState(() {
-                                              _isCustomSize = false;
-                                              _selectedSize = size;
-                                              _customSizeController.clear();
+                                              _isCustomSize = true;
+                                              _selectedSize = '';
                                             });
                                           }
                                         },
-                                      );
-                                    }),
-                                    ChoiceChip(
-                                      label: Text(AppLocalizations.of(context)!
-                                          .addItem_size_other),
-                                      selected: _isCustomSize,
-                                      onSelected: (selected) {
-                                        if (selected) {
-                                          setState(() {
-                                            _isCustomSize = true;
-                                            _selectedSize = '';
-                                          });
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (_isCustomSize) ...[
+                                  const SizedBox(height: 16),
+                                  TextFormField(
+                                    controller: _customSizeController,
+                                    keyboardType: TextInputType.text,
+                                    decoration: InputDecoration(
+                                      labelText: 'Enter Custom Size',
+                                      hintText: AppLocalizations.of(context)!
+                                          .addItem_field_customSizeHint,
+                                      border: const OutlineInputBorder(),
+                                    ),
+                                    validator: (value) {
+                                      if (_isCustomSize &&
+                                          (value == null || value.isEmpty)) {
+                                        return 'Please enter a size';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                ],
+                                const SizedBox(height: 16),
+                                Text(
+                                    AppLocalizations.of(context)!
+                                        .addItem_field_quantity,
+                                    style: const TextStyle(fontSize: 14)),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    IconButton.filledTonal(
+                                      onPressed: () {
+                                        if (_quantity > 1) {
+                                          setState(() => _quantity--);
                                         }
                                       },
+                                      icon: const Icon(Icons.remove),
+                                    ),
+                                    Container(
+                                      width: 60,
+                                      alignment: Alignment.center,
+                                      child: Text('$_quantity',
+                                          style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold)),
+                                    ),
+                                    IconButton.filled(
+                                      onPressed: () =>
+                                          setState(() => _quantity++),
+                                      icon: const Icon(Icons.add),
                                     ),
                                   ],
                                 ),
-                              ),
-                              if (_isCustomSize) ...[
-                                const SizedBox(height: 16),
-                                TextFormField(
-                                  controller: _customSizeController,
-                                  keyboardType: TextInputType.text,
-                                  decoration: InputDecoration(
-                                    labelText: 'Enter Custom Size',
-                                    hintText: AppLocalizations.of(context)!
-                                        .addItem_field_customSizeHint,
-                                    border: const OutlineInputBorder(),
-                                  ),
-                                  validator: (value) {
-                                    if (_isCustomSize &&
-                                        (value == null || value.isEmpty)) {
-                                      return 'Please enter a size';
-                                    }
-                                    return null;
-                                  },
-                                ),
                               ],
-                              const SizedBox(height: 16),
-                              Text(
-                                  AppLocalizations.of(context)!
-                                      .addItem_field_quantity,
-                                  style: const TextStyle(fontSize: 14)),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  IconButton.filledTonal(
-                                    onPressed: () {
-                                      if (_quantity > 1) {
-                                        setState(() => _quantity--);
-                                      }
-                                    },
-                                    icon: const Icon(Icons.remove),
-                                  ),
-                                  Container(
-                                    width: 60,
-                                    alignment: Alignment.center,
-                                    child: Text('$_quantity',
-                                        style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold)),
-                                  ),
-                                  IconButton.filled(
-                                    onPressed: () =>
-                                        setState(() => _quantity++),
-                                    icon: const Icon(Icons.add),
-                                  ),
-                                ],
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 24),
+                          const SizedBox(height: 24),
 
-                        // Seasons & Member
-                        Text(
-                            AppLocalizations.of(context)!
-                                .addItem_section_seasonMember,
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
-                        AppCard(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                  AppLocalizations.of(context)!
-                                      .addItem_field_seasons,
-                                  style: const TextStyle(fontSize: 14)),
-                              const SizedBox(height: 8),
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: _seasons.map((season) {
-                                  final label = season['label'] as String;
-                                  final icon = season['icon'] as IconData;
-                                  final color = season['color'] as Color;
-                                  final isSelected =
-                                      _selectedSeasons.contains(label);
-                                  return FilterChip(
-                                    label: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(icon,
-                                            size: 16,
-                                            color: isSelected
-                                                ? Colors.white
-                                                : color),
-                                        const SizedBox(width: 4),
-                                        Text(_getSeasonName(context, label)),
-                                      ],
-                                    ),
-                                    selected: isSelected,
-                                    onSelected: (selected) {
-                                      setState(() {
-                                        if (selected) {
-                                          _selectedSeasons.add(label);
-                                        } else {
-                                          _selectedSeasons.remove(label);
-                                        }
-                                      });
-                                    },
-                                  );
-                                }).toList(),
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                  AppLocalizations.of(context)!
-                                      .addItem_field_assignedTo,
-                                  style: const TextStyle(fontSize: 14)),
-                              const SizedBox(height: 8),
-                              _isLoadingData
-                                  ? const SkeletonContainer.rectangular(
-                                      height: 48,
-                                      borderRadius:
-                                          BorderRadius.all(Radius.circular(4)))
-                                  : DropdownButtonFormField<String>(
-                                      key: ValueKey(_assignedChildId),
-                                      initialValue: _assignedChildId,
-                                      decoration: const InputDecoration(
-                                        hintText: 'Select member',
-                                        border: OutlineInputBorder(),
-                                        contentPadding: EdgeInsets.symmetric(
-                                            horizontal: 12, vertical: 12),
-                                      ),
-                                      items: [
-                                        DropdownMenuItem(
-                                            value: null,
-                                            child: Text(
-                                                AppLocalizations.of(context)!
-                                                    .addItem_field_none)),
-                                        ..._members.map((m) => DropdownMenuItem(
-                                            value: m.id, child: Text(m.name))),
-                                      ],
-                                      onChanged: (v) =>
-                                          setState(() => _assignedChildId = v),
-                                    ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Storage Location with QR
-                        Text(
-                            AppLocalizations.of(context)!
-                                .addItem_section_storageLocation,
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
-                        AppCard(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                  AppLocalizations.of(context)!
-                                      .addItem_section_storageLocation,
-                                  style: const TextStyle(fontSize: 14)),
-                              const SizedBox(height: 8),
-                              _isLoadingData
-                                  ? const SkeletonContainer.rectangular(
-                                      height: 48,
-                                      borderRadius:
-                                          BorderRadius.all(Radius.circular(4)))
-                                  : DropdownButtonFormField<String>(
-                                      initialValue: _locations.isEmpty
-                                          ? null
-                                          : _storageLocationId,
-                                      decoration: const InputDecoration(
-                                        hintText: 'Select location',
-                                        border: OutlineInputBorder(),
-                                        contentPadding: EdgeInsets.symmetric(
-                                            horizontal: 12, vertical: 12),
-                                      ),
-                                      items: _locations.isEmpty
-                                          ? null
-                                          : _locations
-                                              .map((l) => DropdownMenuItem(
-                                                  value: l.id,
-                                                  child: Text(l.name)))
-                                              .toList(),
-                                      onChanged: (v) => setState(
-                                          () => _storageLocationId = v),
-                                      validator: (v) => v == null
-                                          ? 'Please select a location'
-                                          : null,
-                                    ),
-                              const SizedBox(height: 16),
-                              SizedBox(
-                                width: double.infinity,
-                                child: OutlinedButton.icon(
-                                  onPressed: _scanQRCode,
-                                  icon: const Icon(Icons.qr_code_scanner),
-                                  label: Text(AppLocalizations.of(context)!
-                                      .home_action_scanQR),
-                                  style: OutlinedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 12),
-                                    backgroundColor:
-                                        theme.brightness == Brightness.dark
-                                            ? Colors.cyan.withValues(alpha: 0.1)
-                                            : Colors.cyan.shade50,
-                                    foregroundColor: Colors.cyan,
-                                    side: BorderSide
-                                        .none, // Or theme.colorScheme.outline
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Tags Section
-                        Text(AppLocalizations.of(context)!.addItem_section_tags,
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
-                        AppCard(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Autocomplete<String>(
-                                optionsBuilder:
-                                    (TextEditingValue textEditingValue) {
-                                  if (textEditingValue.text.isEmpty) {
-                                    return const Iterable<String>.empty();
-                                  }
-                                  return _allExistingTags
-                                      .where((String option) {
-                                    return option.contains(
-                                        textEditingValue.text.toLowerCase());
-                                  });
-                                },
-                                onSelected: (String selection) {
-                                  _addTag(selection);
-                                },
-                                fieldViewBuilder: (context, controller,
-                                    focusNode, onFieldSubmitted) {
-                                  return TextField(
-                                    controller: controller,
-                                    focusNode: focusNode,
-                                    decoration: InputDecoration(
-                                      hintText: AppLocalizations.of(context)!
-                                          .addItem_tags_hint,
-                                      border: const OutlineInputBorder(),
-                                      suffixIcon: IconButton(
-                                        icon: const Icon(Icons.add),
-                                        onPressed: () {
-                                          _addTag(controller.text);
-                                          controller.clear();
-                                        },
-                                      ),
-                                    ),
-                                    onSubmitted: (value) {
-                                      _addTag(value);
-                                      controller.clear();
-                                    },
-                                  );
-                                },
-                              ),
-                              if (_tags.isNotEmpty) ...[
-                                const SizedBox(height: 12),
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  children: _tags.map((tag) {
-                                    return Chip(
-                                      label: Text(tag),
-                                      onDeleted: () => _removeTag(tag),
-                                      deleteIcon:
-                                          const Icon(Icons.close, size: 16),
-                                      backgroundColor: theme
-                                          .colorScheme.primaryContainer
-                                          .withValues(alpha: 0.3),
-                                      labelStyle: TextStyle(
-                                          color: theme.colorScheme.primary,
-                                          fontSize: 12),
-                                      side: BorderSide.none,
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8)),
-                                    );
-                                  }).toList(),
-                                ),
-                              ],
-                              if (_allExistingTags.isNotEmpty) ...[
-                                const SizedBox(height: 16),
+                          // Seasons & Member
+                          Text(
+                              AppLocalizations.of(context)!
+                                  .addItem_section_seasonMember,
+                              style: const TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 8),
+                          AppCard(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
                                 Text(
-                                  AppLocalizations.of(context)!
-                                      .addItem_tags_mostUsed,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: theme.hintColor,
-                                  ),
-                                ),
+                                    AppLocalizations.of(context)!
+                                        .addItem_field_seasons,
+                                    style: const TextStyle(fontSize: 14)),
                                 const SizedBox(height: 8),
                                 Wrap(
                                   spacing: 8,
                                   runSpacing: 8,
-                                  children: _allExistingTags
-                                      .take(10)
-                                      .where((tag) => !_tags.contains(tag))
-                                      .map((tag) {
-                                    return InkWell(
-                                      onTap: () => _addTag(tag),
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 10, vertical: 6),
-                                        decoration: BoxDecoration(
-                                          color: theme.dividerColor
-                                              .withValues(alpha: 0.05),
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          border: Border.all(
-                                              color: theme.dividerColor
-                                                  .withValues(alpha: 0.1)),
-                                        ),
-                                        child: Text(
-                                          tag,
-                                          style: theme.textTheme.bodySmall,
-                                        ),
+                                  children: _seasons.map((season) {
+                                    final label = season['label'] as String;
+                                    final icon = season['icon'] as IconData;
+                                    final color = season['color'] as Color;
+                                    final isSelected =
+                                        _selectedSeasons.contains(label);
+                                    return FilterChip(
+                                      label: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(icon,
+                                              size: 16,
+                                              color: isSelected
+                                                  ? Colors.white
+                                                  : color),
+                                          const SizedBox(width: 4),
+                                          Text(_getSeasonName(context, label)),
+                                        ],
                                       ),
+                                      selected: isSelected,
+                                      onSelected: (selected) {
+                                        setState(() {
+                                          if (selected) {
+                                            _selectedSeasons.add(label);
+                                          } else {
+                                            _selectedSeasons.remove(label);
+                                          }
+                                        });
+                                      },
                                     );
                                   }).toList(),
                                 ),
+                                const SizedBox(height: 16),
+                                Text(
+                                    AppLocalizations.of(context)!
+                                        .addItem_field_assignedTo,
+                                    style: const TextStyle(fontSize: 14)),
+                                const SizedBox(height: 8),
+                                _isLoadingData
+                                    ? const SkeletonContainer.rectangular(
+                                        height: 48,
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(4)))
+                                    : DropdownButtonFormField<String>(
+                                        key: ValueKey(_assignedChildId),
+                                        initialValue: _assignedChildId,
+                                        decoration: const InputDecoration(
+                                          hintText: 'Select member',
+                                          border: OutlineInputBorder(),
+                                          contentPadding: EdgeInsets.symmetric(
+                                              horizontal: 12, vertical: 12),
+                                        ),
+                                        items: [
+                                          DropdownMenuItem(
+                                              value: null,
+                                              child: Text(
+                                                  AppLocalizations.of(context)!
+                                                      .addItem_field_none)),
+                                          ..._members.map((m) =>
+                                              DropdownMenuItem(
+                                                  value: m.id,
+                                                  child: Text(m.name))),
+                                        ],
+                                        onChanged: (v) => setState(
+                                            () => _assignedChildId = v),
+                                      ),
                               ],
-                            ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 24),
+                          const SizedBox(height: 24),
 
-                        // Notes (Notes logic)
-                        const Text('Notes (Optional)',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
-                        AppCard(
-                          child: TextFormField(
-                            controller: _descriptionController,
-                            maxLines: 4,
-                            decoration: const InputDecoration(
-                              hintText:
-                                  'Add any additional notes about item...',
-                              border: InputBorder.none,
+                          // Storage Location with QR
+                          Text(
+                              AppLocalizations.of(context)!
+                                  .addItem_section_storageLocation,
+                              style: const TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 8),
+                          AppCard(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                    AppLocalizations.of(context)!
+                                        .addItem_section_storageLocation,
+                                    style: const TextStyle(fontSize: 14)),
+                                const SizedBox(height: 8),
+                                _isLoadingData
+                                    ? const SkeletonContainer.rectangular(
+                                        height: 48,
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(4)))
+                                    : DropdownButtonFormField<String>(
+                                        initialValue: _locations.isEmpty
+                                            ? null
+                                            : _storageLocationId,
+                                        decoration: const InputDecoration(
+                                          hintText: 'Select location',
+                                          border: OutlineInputBorder(),
+                                          contentPadding: EdgeInsets.symmetric(
+                                              horizontal: 12, vertical: 12),
+                                        ),
+                                        items: _locations.isEmpty
+                                            ? null
+                                            : _locations
+                                                .map((l) => DropdownMenuItem(
+                                                    value: l.id,
+                                                    child: Text(l.name)))
+                                                .toList(),
+                                        onChanged: (v) => setState(
+                                            () => _storageLocationId = v),
+                                        validator: (v) => v == null
+                                            ? 'Please select a location'
+                                            : null,
+                                      ),
+                                const SizedBox(height: 16),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: OutlinedButton.icon(
+                                    onPressed: _scanQRCode,
+                                    icon: const Icon(Icons.qr_code_scanner),
+                                    label: Text(AppLocalizations.of(context)!
+                                        .home_action_scanQR),
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 12),
+                                      backgroundColor: theme.brightness ==
+                                              Brightness.dark
+                                          ? Colors.cyan.withValues(alpha: 0.1)
+                                          : Colors.cyan.shade50,
+                                      foregroundColor: Colors.cyan,
+                                      side: BorderSide
+                                          .none, // Or theme.colorScheme.outline
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 32),
+                          const SizedBox(height: 24),
 
-                        // Action Buttons (Save/Cancel)
-                        // ... (Preserved Save button logic)
-                        Container(
-                          width: double.infinity,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
+                          // Tags Section
+                          Text(
+                              AppLocalizations.of(context)!
+                                  .addItem_section_tags,
+                              style: const TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 8),
+                          AppCard(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Autocomplete<String>(
+                                  optionsBuilder:
+                                      (TextEditingValue textEditingValue) {
+                                    if (textEditingValue.text.isEmpty) {
+                                      return const Iterable<String>.empty();
+                                    }
+                                    return _allExistingTags
+                                        .where((String option) {
+                                      return option.contains(
+                                          textEditingValue.text.toLowerCase());
+                                    });
+                                  },
+                                  onSelected: (String selection) {
+                                    _addTag(selection);
+                                  },
+                                  fieldViewBuilder: (context, controller,
+                                      focusNode, onFieldSubmitted) {
+                                    return TextField(
+                                      controller: controller,
+                                      focusNode: focusNode,
+                                      decoration: InputDecoration(
+                                        hintText: AppLocalizations.of(context)!
+                                            .addItem_tags_hint,
+                                        border: const OutlineInputBorder(),
+                                        suffixIcon: IconButton(
+                                          icon: const Icon(Icons.add),
+                                          onPressed: () {
+                                            _addTag(controller.text);
+                                            controller.clear();
+                                          },
+                                        ),
+                                      ),
+                                      onSubmitted: (value) {
+                                        _addTag(value);
+                                        controller.clear();
+                                      },
+                                    );
+                                  },
+                                ),
+                                if (_tags.isNotEmpty) ...[
+                                  const SizedBox(height: 12),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: _tags.map((tag) {
+                                      return Chip(
+                                        label: Text(tag),
+                                        onDeleted: () => _removeTag(tag),
+                                        deleteIcon:
+                                            const Icon(Icons.close, size: 16),
+                                        backgroundColor: theme
+                                            .colorScheme.primaryContainer
+                                            .withValues(alpha: 0.3),
+                                        labelStyle: TextStyle(
+                                            color: theme.colorScheme.primary,
+                                            fontSize: 12),
+                                        side: BorderSide.none,
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(8)),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ],
+                                if (_allExistingTags.isNotEmpty) ...[
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    AppLocalizations.of(context)!
+                                        .addItem_tags_mostUsed,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: theme.hintColor,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: _allExistingTags
+                                        .take(10)
+                                        .where((tag) => !_tags.contains(tag))
+                                        .map((tag) {
+                                      return InkWell(
+                                        onTap: () => _addTag(tag),
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 10, vertical: 6),
+                                          decoration: BoxDecoration(
+                                            color: theme.dividerColor
+                                                .withValues(alpha: 0.05),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            border: Border.all(
+                                                color: theme.dividerColor
+                                                    .withValues(alpha: 0.1)),
+                                          ),
+                                          child: Text(
+                                            tag,
+                                            style: theme.textTheme.bodySmall,
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ],
+                              ],
                             ),
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                  color: const Color(0xFF6366F1)
-                                      .withValues(alpha: 0.3),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 6)),
-                            ],
                           ),
-                          child: ElevatedButton(
-                            onPressed: () => _saveItem(stayOnScreen: false),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.transparent,
-                              shadowColor: Colors.transparent,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
+                          const SizedBox(height: 24),
+
+                          // Notes (Notes logic)
+                          const Text('Notes (Optional)',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 8),
+                          AppCard(
+                            child: TextFormField(
+                              controller: _descriptionController,
+                              maxLines: 4,
+                              decoration: const InputDecoration(
+                                hintText:
+                                    'Add any additional notes about item...',
+                                border: InputBorder.none,
+                              ),
                             ),
-                            child: Text(
-                                widget.item != null
-                                    ? 'Update Item'
-                                    : 'Save Item',
-                                style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white)),
                           ),
-                        ),
-                        if (widget.item == null) ...[
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 32),
+
+                          // Action Buttons (Save/Cancel)
+                          // ... (Preserved Save button logic)
                           Container(
                             width: double.infinity,
                             height: 56,
                             decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                  color: const Color(0xFF6366F1), width: 2),
+                              boxShadow: [
+                                BoxShadow(
+                                    color: const Color(0xFF6366F1)
+                                        .withValues(alpha: 0.3),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 6)),
+                              ],
                             ),
-                            child: OutlinedButton(
-                              onPressed: () => _saveItem(stayOnScreen: true),
-                              style: OutlinedButton.styleFrom(
-                                side: BorderSide.none,
+                            child: ElevatedButton(
+                              onPressed: () => _saveItem(stayOnScreen: false),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12)),
                               ),
-                              child: const Text('Save & Add Another',
-                                  style: TextStyle(
+                              child: Text(
+                                  widget.item != null
+                                      ? 'Update Item'
+                                      : 'Save Item',
+                                  style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
-                                      color: Color(0xFF6366F1))),
+                                      color: Colors.white)),
                             ),
                           ),
+                          if (widget.item == null) ...[
+                            const SizedBox(height: 12),
+                            Container(
+                              width: double.infinity,
+                              height: 56,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                    color: const Color(0xFF6366F1), width: 2),
+                              ),
+                              child: OutlinedButton(
+                                onPressed: () => _saveItem(stayOnScreen: true),
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide.none,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12)),
+                                ),
+                                child: const Text('Save & Add Another',
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF6366F1))),
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: OutlinedButton(
+                              onPressed: () => context.pop(),
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(color: Colors.grey.shade700),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                              ),
+                              child: Text(
+                                  AppLocalizations.of(context)!.common_cancel,
+                                  style: const TextStyle(
+                                      color: Colors
+                                          .white)), // Assuming dark theme button text needs white or dynamic
+                            ),
+                          ),
+                          const SizedBox(height: 24),
                         ],
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          width: double.infinity,
-                          height: 56,
-                          child: OutlinedButton(
-                            onPressed: () => context.pop(),
-                            style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: Colors.grey.shade700),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
-                            ),
-                            child: Text(
-                                AppLocalizations.of(context)!.common_cancel,
-                                style: const TextStyle(
-                                    color: Colors
-                                        .white)), // Assuming dark theme button text needs white or dynamic
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                      ],
+                      ),
                     ),
                   ),
-                ),
+      ),
     );
   }
 

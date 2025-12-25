@@ -65,27 +65,30 @@ Provider<PostHogService>.value(value: postHogService)
 ### Features
 
 #### 1. Core Analytics
-- User identification
-- Event tracking
+- User identification (`PostHogService().identify`)
+- Event tracking (`PostHogService.log`)
 - Screen view tracking
 - User properties
 - Session management
 
 #### 2. Session Replay
 - Automatic session recording
-- Visual playback of user interactions
-- Helps identify UX issues and bugs
+- Visual playback of interactions
 
-#### 3. Debug Logging
-Comprehensive logging for production debugging:
-- Error tracking with stack traces
-- Warning logging
-- Network call monitoring
-- Permission tracking
-- Firestore operation logging
-- Authentication events
-- User action tracking
-- Performance metrics
+#### 3. Standardized Service Logging
+Comprehensive logging via dedicated service wrappers:
+- **`FirestoreService`**: Intercepts all database operations.
+- **`StorageService`**: Tracks file uploads, deletions, and transformations.
+- **`AuthService`**: Logs sign-in/out lifecycle and user identification.
+- **`BiometricService`**: Records authentication results and status changes.
+- **`UserService`**: Tracks Cloud Function execution and user management.
+
+#### 4. Performance & Latency Tracking
+- **`trackLatency`**: Generic helper to measure and report execution time of any async operation.
+- **Automatic Metrics**: Pre-configured in Storage and Firestore layers.
+
+#### 5. UI Flow Abandonment (Drop Detection)
+- Tracks when users start filling forms (AddItem, AddMember) but leave without saving.
 
 ## Usage Guide
 
@@ -171,29 +174,34 @@ try {
 }
 ```
 
-#### Firestore Operations
+#### Firestore Operations (Standardized)
 
-Track database operations to debug permission issues:
+**DEPRECATED**: Do not log Firestore operations manually in repositories.
+
+**RECOMMENDED**: Use `FirestoreService` wrapper methods. They handle logging and error reporting automatically.
 
 ```dart
-try {
-  await firestoreService.items(familyId).doc(itemId).set(data);
-  
-  await postHog.logFirestoreOperation(
-    operation: 'write',
-    collection: 'items',
-    documentId: itemId,
-    success: true,
-  );
-} catch (e) {
-  await postHog.logFirestoreOperation(
-    operation: 'write',
-    collection: 'items',
-    documentId: itemId,
-    success: false,
-    error: e.toString(),
-  );
-  rethrow;
+// Use this in Repositories
+await _firestoreService.updateDocument(
+  docRef: _firestoreService.items(item.familyId).doc(item.id),
+  data: item.toMap(),
+);
+```
+
+Internal implementation in `FirestoreService`:
+```dart
+Future<void> updateDocument({
+  required DocumentReference docRef,
+  required Map<String, dynamic> data,
+}) async {
+  try {
+    await PostHogService.log('Firestore UPDATE: ${docRef.path}',
+        level: LogLevel.info, context: {'path': docRef.path});
+    await docRef.update(data);
+  } catch (e) {
+    PostHogService().logError('firestore_update_failed', e, context: {'path': docRef.path});
+    rethrow;
+  }
 }
 ```
 
@@ -258,21 +266,42 @@ await postHog.screen(
 );
 ```
 
-#### Performance Metrics
+#### Performance & Latency Tracking
+
+Use the `trackLatency` helper to automatically measure and log operation duration:
 
 ```dart
-final startTime = DateTime.now();
-// Perform operation
-final duration = DateTime.now().difference(startTime);
+return await PostHogService().trackLatency('operation_name', () async {
+  // Your async logic here
+  return await someAsyncCall();
+}, context: {'extra': 'data'});
+```
 
-await postHog.logPerformance(
-  metric: 'image_upload_time',
-  value: duration.inMilliseconds,
-  unit: 'ms',
-  context: {
-    'image_size_kb': fileSizeKb,
-    'compression_used': true,
+This will capture:
+- **Event Name**: `operation_name`
+- **Property**: `latency_ms` (the duration)
+- **Context**: Any additional properties passed.
+
+#### UI Abandonment Tracking
+
+Implement drop detection in forms using `PopScope` and an `_isDirty` flag:
+
+```dart
+// In a Stateful widget
+bool _isDirty = false;
+
+// Listen to controllers
+_nameController.addListener(() => _isDirty = true);
+
+// In build()
+return PopScope(
+  canPop: true,
+  onPopInvokedWithResult: (bool didPop, dynamic result) {
+    if (didPop && _isDirty && !_isSaving) {
+      PostHogService.log('ui_abandonment', context: {'screen': 'MyScreen'});
+    }
   },
+  child: Scaffold(...),
 );
 ```
 
@@ -304,19 +333,15 @@ if (potentialIssue) {
 | `setUserProperties()` | Update user properties | `properties` |
 | `reset()` | Reset session (on logout) | None |
 
-### Debug Logging Methods
-
 | Method | Description | Use Case |
 |--------|-------------|----------|
+| `log()` | Log a general event | Successful operations, user navigation |
 | `logError()` | Log errors with stack traces | Production error tracking |
-| `logWarning()` | Log warnings | Potential issues |
-| `logNetworkCall()` | Track HTTP requests | API debugging |
-| `logPermission()` | Track permission requests | Permission debugging |
-| `logFirestoreOperation()` | Track database operations | Firestore permission issues |
-| `logAuth()` | Track authentication events | Login/logout monitoring |
-| `logUserAction()` | Track user interactions | User behavior analytics |
-| `logAppLifecycle()` | Track app state changes | App lifecycle monitoring |
-| `logPerformance()` | Measure performance | Performance optimization |
+| `logWarning()` | Log warnings | Potential logic inconsistencies |
+| `trackLatency()` | Measure and log execution time | Performance monitoring of async tasks |
+| `identify()` | Link session to a specific user | Post-login tracking |
+| `reset()` | Clear user identity | User logout |
+| `screen()` | Manual screen transition | Deep-linked or modal screens |
 
 ## Best Practices
 
@@ -451,68 +476,64 @@ In production, debug mode is automatically disabled for better performance.
 
 ## Integration Examples
 
-### Auth Service Integration
+### Storage Service Integration
+
+Log file operations and transformations automatically within `StorageService`:
 
 ```dart
-class AuthService {
-  final PostHogService _postHog;
-  
-  AuthService(this._postHog);
-  
-  Future<User?> signInWithGoogle() async {
+Future<void> uploadFile(String path, File file) async {
+  return await PostHogService().trackLatency('storage_upload', () async {
     try {
-      final user = await _performGoogleSignIn();
-      
-      await _postHog.logAuth(action: 'login', method: 'google');
-      await _postHog.identify(
-        userId: user.uid,
-        userProperties: {
-          'email': user.email ?? '',
-          'display_name': user.displayName ?? '',
-        },
-      );
-      
-      return user;
-    } catch (e, stackTrace) {
-      await _postHog.logAuth(
-        action: 'login_failed',
-        method: 'google',
-        error: e.toString(),
-      );
-      await _postHog.logError('google_signin_failed', e, stackTrace: stackTrace);
+      final ref = _storage.ref().child(path);
+      await ref.putFile(file);
+      await PostHogService.log('Storage UPLOAD: $path');
+    } catch (e) {
+      PostHogService().logError('storage_upload_failed', e, context: {'path': path});
       rethrow;
     }
-  }
+  });
 }
 ```
 
-### Firestore Service Integration
+### Biometric Service Integration
+
+Track authentication attempts and device configuration changes:
 
 ```dart
-class FirestoreService {
-  final PostHogService _postHog;
-  
-  Future<void> createItem(String familyId, Item item) async {
+Future<bool> authenticate() async {
+  return await PostHogService().trackLatency('biometric_authenticate', () async {
     try {
-      await items(familyId).doc(item.id).set(item.toMap());
-      
-      await _postHog.logFirestoreOperation(
-        operation: 'write',
-        collection: 'items',
-        documentId: item.id,
-        success: true,
-      );
+      final result = await _auth.authenticate(...);
+      await PostHogService.log('Biometric AUTH: ${result ? 'success' : 'failed'}');
+      return result;
     } catch (e) {
-      await _postHog.logFirestoreOperation(
-        operation: 'write',
-        collection: 'items',
-        documentId: item.id,
-        success: false,
-        error: e.toString(),
-      );
+      PostHogService().logError('biometric_auth_failed', e);
+      return false;
+    }
+  });
+}
+```
+
+### Auth Service Integration
+
+Track the user lifecycle and ensure correct identification:
+
+```dart
+Future<User?> signInWithGoogle() async {
+  return await PostHogService().trackLatency('auth_signin_google', () async {
+    try {
+      final user = await _performGoogleSignIn();
+      
+      // Identify user and log event
+      await _postHog.identify(userId: user.uid, userProperties: {...});
+      await PostHogService.log('auth_login', context: {'method': 'google'});
+      
+      return user;
+    } catch (e) {
+      PostHogService().logError('auth_login_failed', e, context: {'method': 'google'});
       rethrow;
     }
-  }
+  });
 }
 ```
 
