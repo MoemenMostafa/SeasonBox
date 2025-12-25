@@ -259,7 +259,9 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: IconButton(
-                  onPressed: () {}, // TODO: Edit member
+                  onPressed: () {
+                    context.push('/growth-chart', extra: member);
+                  },
                   icon: Icon(Icons.show_chart, color: theme.iconTheme.color),
                   tooltip:
                       AppLocalizations.of(context)!.members_tooltipGrowthChart,

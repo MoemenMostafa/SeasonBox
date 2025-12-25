@@ -692,6 +692,36 @@ abstract class AppLocalizations {
   /// **'Unknown location code: {code}'**
   String addItem_location_unknown(String code);
 
+  /// No description provided for @addItem_section_tags.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get addItem_section_tags;
+
+  /// No description provided for @addItem_tags_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add tag (color, brand, material...)'**
+  String get addItem_tags_hint;
+
+  /// No description provided for @addItem_tags_limitReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum 5 tags allowed'**
+  String get addItem_tags_limitReached;
+
+  /// No description provided for @addItem_tags_duplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag already exists'**
+  String get addItem_tags_duplicate;
+
+  /// No description provided for @addItem_tags_mostUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Most Used Tags'**
+  String get addItem_tags_mostUsed;
+
   /// No description provided for @profile_title.
   ///
   /// In en, this message translates to:
@@ -1849,6 +1879,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Growth Chart'**
   String get members_tooltipGrowthChart;
+
+  /// No description provided for @members_growthChart_actual.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual History'**
+  String get members_growthChart_actual;
+
+  /// No description provided for @members_growthChart_expectation.
+  ///
+  /// In en, this message translates to:
+  /// **'Expectation'**
+  String get members_growthChart_expectation;
+
+  /// No description provided for @members_growthChart_insight.
+  ///
+  /// In en, this message translates to:
+  /// **'Based on current growth, {name} will likely need a new size in about {months} months.'**
+  String members_growthChart_insight(String name, int months);
 
   /// No description provided for @members_tooltipEdit.
   ///

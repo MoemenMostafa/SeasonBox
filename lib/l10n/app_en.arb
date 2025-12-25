@@ -194,6 +194,11 @@
       }
     }
   },
+  "addItem_section_tags": "Tags",
+  "addItem_tags_hint": "Add tag (color, brand, material...)",
+  "addItem_tags_limitReached": "Maximum 5 tags allowed",
+  "addItem_tags_duplicate": "Tag already exists",
+  "addItem_tags_mostUsed": "Most Used Tags",
 
   "profile_title": "Profile",
   "profile_button_editProfile": "Edit Profile",
@@ -486,6 +491,19 @@
   "members_hasItems": "✓ Has items",
   "members_noItemsYet": "No items yet",
   "members_tooltipGrowthChart": "Growth Chart",
+  "members_growthChart_actual": "Actual History",
+  "members_growthChart_expectation": "Expectation",
+  "members_growthChart_insight": "Based on current growth, {name} will likely need a new size in about {months} months.",
+  "@members_growthChart_insight": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "months": {
+        "type": "int"
+      }
+    }
+  },
   "members_tooltipEdit": "Edit",
 
   "items_title": "Items",

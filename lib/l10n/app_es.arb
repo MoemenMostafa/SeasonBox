@@ -110,6 +110,11 @@
   "addItem_error_loadingData": "Error al cargar datos: {error}",
   "addItem_location_found": "Ubicación encontrada: {name}",
   "addItem_location_unknown": "Código de ubicación desconocido: {code}",
+  "addItem_section_tags": "Etiquetas",
+  "addItem_tags_hint": "Añadir etiqueta (color, marca, material...)",
+  "addItem_tags_limitReached": "Máximo 5 etiquetas permitidas",
+  "addItem_tags_duplicate": "La etiqueta ya existe",
+  "addItem_tags_mostUsed": "Etiquetas más usadas",
 
   "profile_title": "Perfil",
   "profile_button_editProfile": "Editar Perfil",
@@ -313,6 +318,19 @@
   "members_hasItems": "✓ Tiene artículos",
   "members_noItemsYet": "Sin artículos aún",
   "members_tooltipGrowthChart": "Gráfico de Crecimiento",
+  "members_growthChart_actual": "Historial Real",
+  "members_growthChart_expectation": "Expectativa",
+  "members_growthChart_insight": "Según el crecimiento actual, {name} probablemente necesitará una nueva talla en aproximadamente {months} meses.",
+  "@members_growthChart_insight": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "months": {
+        "type": "int"
+      }
+    }
+  },
   "members_tooltipEdit": "Editar",
 
   "items_title": "Artículos",

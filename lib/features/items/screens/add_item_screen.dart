@@ -18,11 +18,14 @@ import 'package:seasonbox/widgets/skeleton_container.dart';
 import 'package:seasonbox/widgets/image_gallery_viewer.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
 import 'package:seasonbox/core/services/permission_service.dart';
+import 'package:seasonbox/core/constants/size_constants.dart';
+import 'package:seasonbox/app/providers/user_profile_provider.dart';
 
 class AddItemScreen extends StatefulWidget {
   final Item? item; // Optional item for editing
+  final String? initialStorageLocationId; // Pre-selected location
 
-  const AddItemScreen({super.key, this.item});
+  const AddItemScreen({super.key, this.item, this.initialStorageLocationId});
 
   @override
   State<AddItemScreen> createState() => _AddItemScreenState();
@@ -46,6 +49,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
   final ImagePicker _picker = ImagePicker();
   final List<XFile> _selectedImages = [];
   List<Map<String, String>> _existingPhotos = []; // For edit mode
+  final List<String> _tags = [];
+  final TextEditingController _tagController = TextEditingController();
+  List<String> _allExistingTags = [];
 
   List<FamilyMember> _members = [];
   List<StorageLocation> _locations = [];
@@ -65,28 +71,22 @@ class _AddItemScreenState extends State<AddItemScreen> {
   final TextEditingController _customSizeController = TextEditingController();
 
   // ... (Size Constants Remain Unchanged)
-  static const List<String> _clothesSizes = [
-    'NB', '3M', '6M', '9M', '12M', '18M', '24M', // Baby
-    '2T', '3T', '4T', '5T', // Toddler
-    '4', '5', '6', '6X', '7', '8', '10', '12', '14', '16', // Kids Numeric
-    'XS', 'S', 'M', 'L', 'XL' // Kids Alpha
-  ];
-
-  static const List<String> _shoeSizes = [
-    '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',
-    '13', // Little Kids
-    '1Y', '2Y', '3Y', '4Y', '5Y', '6Y', '7Y' // Big Kids
-  ];
-
   List<String> get _currentSizes {
-    if (_selectedCategory == 'Clothes') return _clothesSizes;
-    if (_selectedCategory == 'Shoes') return _shoeSizes;
-    return []; // Empty for other categories, defaults to custom input
+    final isMetric = context.watch<UserProfileProvider>().isMetric;
+    return _getSizesForCategory(_selectedCategory, isMetric: isMetric);
   }
 
-  List<String> _getSizesForCategory(String category) {
-    if (category == 'Clothes') return _clothesSizes;
-    if (category == 'Shoes') return _shoeSizes;
+  List<String> _getSizesForCategory(String category, {required bool isMetric}) {
+    if (category == 'Clothes') {
+      return isMetric
+          ? SizeConstants.clothesSizesMetric
+          : SizeConstants.clothesSizesImperial;
+    }
+    if (category == 'Shoes') {
+      return isMetric
+          ? SizeConstants.shoeSizesMetric
+          : SizeConstants.shoeSizesImperial;
+    }
     return [];
   }
 
@@ -184,8 +184,11 @@ class _AddItemScreenState extends State<AddItemScreen> {
         _storageLocationId = widget.item!.storageLocationId;
         _selectedSeasons.clear();
         _selectedSeasons.addAll(widget.item!.seasonTags);
+        _tags.addAll(widget.item!.tags);
         // Load existing photos for edit mode
         _existingPhotos = List<Map<String, String>>.from(widget.item!.photos);
+      } else if (widget.initialStorageLocationId != null) {
+        _storageLocationId = widget.initialStorageLocationId;
       }
 
       setState(() {
@@ -217,6 +220,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
       final authService = context.read<AuthService>();
       final memberRepository = context.read<FamilyMemberRepository>();
       final locationRepository = context.read<StorageLocationRepository>();
+      final itemRepository = context.read<ItemRepository>();
 
       final familyId = await authService.getCurrentUserFamilyId();
       final userId = authService.currentUser?.uid;
@@ -234,10 +238,22 @@ class _AddItemScreenState extends State<AddItemScreen> {
           .getLocations(familyId)
           .timeout(const Duration(seconds: 5));
 
+      final items = await itemRepository
+          .getItems(familyId)
+          .timeout(const Duration(seconds: 5));
+
       if (mounted) {
         setState(() {
           _members = members;
           _locations = locations;
+          final tagCounts = <String, int>{};
+          for (final item in items) {
+            for (final tag in item.tags) {
+              tagCounts[tag] = (tagCounts[tag] ?? 0) + 1;
+            }
+          }
+          _allExistingTags = tagCounts.keys.toList()
+            ..sort((a, b) => tagCounts[b]!.compareTo(tagCounts[a]!));
           _isLoadingData = false;
 
           // Auto-assign to current user if they're a member (not admin) and creating a new item
@@ -248,7 +264,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
         });
 
         if (widget.item != null) {
-          final availableSizes = _getSizesForCategory(_selectedCategory);
+          final isMetric = context.read<UserProfileProvider>().isMetric;
+          final availableSizes =
+              _getSizesForCategory(_selectedCategory, isMetric: isMetric);
           _isCustomSize = !availableSizes.contains(_selectedSize);
           if (_isCustomSize) {
             _customSizeController.text = _selectedSize;
@@ -263,6 +281,37 @@ class _AddItemScreenState extends State<AddItemScreen> {
                 .addItem_error_loadingData(e.toString()))));
       }
     }
+  }
+
+  void _addTag(String tag) {
+    final trimmedTag = tag.trim().toLowerCase();
+    if (trimmedTag.isEmpty) return;
+    if (_tags.contains(trimmedTag)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content:
+                Text(AppLocalizations.of(context)!.addItem_tags_duplicate)),
+      );
+      return;
+    }
+    if (_tags.length >= 5) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content:
+                Text(AppLocalizations.of(context)!.addItem_tags_limitReached)),
+      );
+      return;
+    }
+    setState(() {
+      _tags.add(trimmedTag);
+      _tagController.clear();
+    });
+  }
+
+  void _removeTag(String tag) {
+    setState(() {
+      _tags.remove(tag);
+    });
   }
 
   @override
@@ -416,6 +465,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
         gender: _selectedGender,
         size: _isCustomSize ? _customSizeController.text.trim() : _selectedSize,
         seasonTags: _selectedSeasons.toList(),
+        tags: _tags,
         storageLocationId: _storageLocationId!,
         memberId: _assignedChildId,
         quantity: _quantity,
@@ -511,14 +561,19 @@ class _AddItemScreenState extends State<AddItemScreen> {
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: SeasonBoxAppBar(
         title: widget.item != null ? 'Edit Item' : 'Add New Item',
-        actions: widget.item != null
-            ? [
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: _confirmDelete,
-                ),
-              ]
-            : null,
+        actions: [
+          if (widget.item != null)
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.white),
+              onPressed: _confirmDelete,
+              tooltip: 'Delete Item',
+            ),
+          IconButton(
+            icon: const Icon(Icons.check, color: Colors.white),
+            onPressed: _saveItem,
+            tooltip: 'Save Item',
+          ),
+        ],
       ),
       body: _isSaving
           ? const Center(child: CircularProgressIndicator())
@@ -780,40 +835,42 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                       .addItem_field_size,
                                   style: const TextStyle(fontSize: 14)),
                               const SizedBox(height: 8),
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: [
-                                  ..._currentSizes.map((size) {
-                                    return ChoiceChip(
-                                      label: Text(size),
-                                      selected: !_isCustomSize &&
-                                          _selectedSize == size,
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Wrap(
+                                  spacing: 8,
+                                  children: [
+                                    ..._currentSizes.map((size) {
+                                      return ChoiceChip(
+                                        label: Text(size),
+                                        selected: !_isCustomSize &&
+                                            _selectedSize == size,
+                                        onSelected: (selected) {
+                                          if (selected) {
+                                            setState(() {
+                                              _isCustomSize = false;
+                                              _selectedSize = size;
+                                              _customSizeController.clear();
+                                            });
+                                          }
+                                        },
+                                      );
+                                    }),
+                                    ChoiceChip(
+                                      label: Text(AppLocalizations.of(context)!
+                                          .addItem_size_other),
+                                      selected: _isCustomSize,
                                       onSelected: (selected) {
                                         if (selected) {
                                           setState(() {
-                                            _isCustomSize = false;
-                                            _selectedSize = size;
-                                            _customSizeController.clear();
+                                            _isCustomSize = true;
+                                            _selectedSize = '';
                                           });
                                         }
                                       },
-                                    );
-                                  }),
-                                  ChoiceChip(
-                                    label: Text(AppLocalizations.of(context)!
-                                        .addItem_size_other),
-                                    selected: _isCustomSize,
-                                    onSelected: (selected) {
-                                      if (selected) {
-                                        setState(() {
-                                          _isCustomSize = true;
-                                          _selectedSize = '';
-                                        });
-                                      }
-                                    },
-                                  ),
-                                ],
+                                    ),
+                                  ],
+                                ),
                               ),
                               if (_isCustomSize) ...[
                                 const SizedBox(height: 16),
@@ -1023,6 +1080,126 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                   ),
                                 ),
                               ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Tags Section
+                        Text(AppLocalizations.of(context)!.addItem_section_tags,
+                            style: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        AppCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Autocomplete<String>(
+                                optionsBuilder:
+                                    (TextEditingValue textEditingValue) {
+                                  if (textEditingValue.text.isEmpty) {
+                                    return const Iterable<String>.empty();
+                                  }
+                                  return _allExistingTags
+                                      .where((String option) {
+                                    return option.contains(
+                                        textEditingValue.text.toLowerCase());
+                                  });
+                                },
+                                onSelected: (String selection) {
+                                  _addTag(selection);
+                                },
+                                fieldViewBuilder: (context, controller,
+                                    focusNode, onFieldSubmitted) {
+                                  return TextField(
+                                    controller: controller,
+                                    focusNode: focusNode,
+                                    decoration: InputDecoration(
+                                      hintText: AppLocalizations.of(context)!
+                                          .addItem_tags_hint,
+                                      border: const OutlineInputBorder(),
+                                      suffixIcon: IconButton(
+                                        icon: const Icon(Icons.add),
+                                        onPressed: () {
+                                          _addTag(controller.text);
+                                          controller.clear();
+                                        },
+                                      ),
+                                    ),
+                                    onSubmitted: (value) {
+                                      _addTag(value);
+                                      controller.clear();
+                                    },
+                                  );
+                                },
+                              ),
+                              if (_tags.isNotEmpty) ...[
+                                const SizedBox(height: 12),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: _tags.map((tag) {
+                                    return Chip(
+                                      label: Text(tag),
+                                      onDeleted: () => _removeTag(tag),
+                                      deleteIcon:
+                                          const Icon(Icons.close, size: 16),
+                                      backgroundColor: theme
+                                          .colorScheme.primaryContainer
+                                          .withValues(alpha: 0.3),
+                                      labelStyle: TextStyle(
+                                          color: theme.colorScheme.primary,
+                                          fontSize: 12),
+                                      side: BorderSide.none,
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8)),
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
+                              if (_allExistingTags.isNotEmpty) ...[
+                                const SizedBox(height: 16),
+                                Text(
+                                  AppLocalizations.of(context)!
+                                      .addItem_tags_mostUsed,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: theme.hintColor,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: _allExistingTags
+                                      .take(10)
+                                      .where((tag) => !_tags.contains(tag))
+                                      .map((tag) {
+                                    return InkWell(
+                                      onTap: () => _addTag(tag),
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 10, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: theme.dividerColor
+                                              .withValues(alpha: 0.05),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          border: Border.all(
+                                              color: theme.dividerColor
+                                                  .withValues(alpha: 0.1)),
+                                        ),
+                                        child: Text(
+                                          tag,
+                                          style: theme.textTheme.bodySmall,
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
                             ],
                           ),
                         ),

@@ -22,6 +22,7 @@ import 'package:seasonbox/data/repositories/family_member_repository.dart';
 import 'package:seasonbox/data/repositories/item_repository.dart';
 import 'package:seasonbox/data/repositories/storage_location_repository.dart';
 import 'package:seasonbox/data/services/storage_service.dart';
+import 'package:seasonbox/app/providers/user_profile_provider.dart';
 
 void main() async {
   // Run app in error-catching zone
@@ -106,6 +107,15 @@ class SeasonBox extends StatelessWidget {
             firestoreService,
             familyRepository,
           ),
+        ),
+        ChangeNotifierProxyProvider2<UserService, AuthService,
+            UserProfileProvider>(
+          create: (context) => UserProfileProvider(
+            Provider.of<UserService>(context, listen: false),
+            Provider.of<AuthService>(context, listen: false),
+          ),
+          update: (_, userService, authService, previous) =>
+              previous ?? UserProfileProvider(userService, authService),
         ),
       ],
       child: Consumer<ThemeProvider>(

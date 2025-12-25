@@ -17,6 +17,7 @@ class Item {
   final DateTime? lastUsedAt;
   final String status;
   final List<Map<String, dynamic>> loanHistory;
+  final List<String> tags; // Added tags
 
   Item({
     required this.id,
@@ -36,6 +37,7 @@ class Item {
     this.lastUsedAt,
     this.status = 'stored',
     this.loanHistory = const [],
+    this.tags = const [],
   });
 
   Map<String, dynamic> toMap() {
@@ -57,6 +59,7 @@ class Item {
       'lastUsedAt': lastUsedAt?.toIso8601String(),
       'status': status,
       'loanHistory': loanHistory,
+      'tags': tags,
     };
   }
 
@@ -98,6 +101,7 @@ class Item {
           map['lastUsedAt'] != null ? DateTime.parse(map['lastUsedAt']) : null,
       status: map['status'] ?? 'stored',
       loanHistory: List<Map<String, dynamic>>.from(map['loanHistory'] ?? []),
+      tags: List<String>.from(map['tags'] ?? []),
     );
   }
 }

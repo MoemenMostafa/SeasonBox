@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:seasonbox/data/models/family_member.dart';
@@ -13,6 +14,8 @@ import 'package:seasonbox/core/enums/user_role.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:seasonbox/core/services/permission_service.dart';
+import 'package:seasonbox/core/constants/size_constants.dart';
+import 'package:seasonbox/app/providers/user_profile_provider.dart';
 
 class AddFamilyMemberScreen extends StatefulWidget {
   final FamilyMember? member;
@@ -117,6 +120,44 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
       final currentUser = authService.currentUser;
       final inviterName = currentUser?.displayName ?? 'Admin';
 
+      final List<Map<String, dynamic>> updatedHistory =
+          List<Map<String, dynamic>>.from(widget.member?.sizeHistory ?? []);
+
+      if (widget.member == null) {
+        // New member: add initial sizes to history if they exist
+        if (_clothesSize != null) {
+          updatedHistory.add({
+            'date': Timestamp.now(),
+            'size': _clothesSize,
+            'category': 'clothes',
+          });
+        }
+        if (_shoeSize != null) {
+          updatedHistory.add({
+            'date': Timestamp.now(),
+            'size': _shoeSize,
+            'category': 'shoes',
+          });
+        }
+      } else {
+        // Existing member: record a new history entry if size has changed
+        if (_clothesSize != widget.member!.clothingSize &&
+            _clothesSize != null) {
+          updatedHistory.add({
+            'date': Timestamp.now(),
+            'size': _clothesSize,
+            'category': 'clothes',
+          });
+        }
+        if (_shoeSize != widget.member!.shoeSize && _shoeSize != null) {
+          updatedHistory.add({
+            'date': Timestamp.now(),
+            'size': _shoeSize,
+            'category': 'shoes',
+          });
+        }
+      }
+
       final member = FamilyMember(
         id: widget.member?.id ?? const Uuid().v4(),
         familyId: familyId,
@@ -126,6 +167,7 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
         role: _role,
         clothingSize: _clothesSize,
         shoeSize: _shoeSize,
+        sizeHistory: updatedHistory,
         notes: _notesController.text.trim(),
         inviteEmail: _inviteEmailController.text.trim().isNotEmpty
             ? _inviteEmailController.text.trim()
@@ -329,6 +371,7 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isMetric = context.watch<UserProfileProvider>().isMetric;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -422,38 +465,50 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                              AppLocalizations.of(context)!
-                                  .addMember_field_clothingSize,
-                              style: const TextStyle(fontSize: 14)),
-                          const SizedBox(height: 8),
-                          TextFormField(
+                          _buildSizeInputSection(
+                            context: context,
+                            label: AppLocalizations.of(context)!
+                                .addMember_field_clothingSize,
+                            hintText: AppLocalizations.of(context)!
+                                .addMember_field_clothingSizeHint,
                             controller: _clothingSizeController,
-                            decoration: InputDecoration(
-                              hintText: AppLocalizations.of(context)!
-                                  .addMember_field_clothingSizeHint,
-                            ),
-                            keyboardType: TextInputType.number,
-                            onChanged: (value) {
-                              _clothesSize = double.tryParse(value);
+                            sizes: isMetric
+                                ? SizeConstants.clothesSizesMetric
+                                    .where((s) => double.tryParse(s) != null)
+                                    .toList()
+                                : [], // Only show chips for metric as numeric
+                            currentValue: _clothesSize,
+                            onChanged: (val) {
+                              setState(() {
+                                _clothesSize = val;
+                                _clothingSizeController.text =
+                                    val?.toString() ?? '';
+                              });
                             },
+                            isMetric: isMetric,
+                            unit: isMetric ? 'cm (EU)' : 'US',
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                              AppLocalizations.of(context)!
-                                  .addMember_field_shoeSize,
-                              style: const TextStyle(fontSize: 14)),
-                          const SizedBox(height: 8),
-                          TextFormField(
+                          const SizedBox(height: 24),
+                          _buildSizeInputSection(
+                            context: context,
+                            label: AppLocalizations.of(context)!
+                                .addMember_field_shoeSize,
+                            hintText: AppLocalizations.of(context)!
+                                .addMember_field_shoeSizeHint,
                             controller: _shoeSizeController,
-                            decoration: InputDecoration(
-                              hintText: AppLocalizations.of(context)!
-                                  .addMember_field_shoeSizeHint,
-                            ),
-                            keyboardType: TextInputType.number,
-                            onChanged: (value) {
-                              _shoeSize = double.tryParse(value);
+                            sizes: isMetric
+                                ? SizeConstants.shoeSizesMetric
+                                : [], // Metric shoe sizes are numeric
+                            currentValue: _shoeSize,
+                            onChanged: (val) {
+                              setState(() {
+                                _shoeSize = val;
+                                _shoeSizeController.text =
+                                    val?.toString() ?? '';
+                              });
                             },
+                            isMetric: isMetric,
+                            unit: isMetric ? 'EU' : 'US',
                           ),
                         ],
                       ),
@@ -777,6 +832,73 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
             UserRole.fromString(_role).getLocalizedName(context),
             style: TextStyle(color: Colors.grey.shade600),
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSizeInputSection({
+    required BuildContext context,
+    required String label,
+    required String hintText,
+    required TextEditingController controller,
+    required List<String> sizes,
+    required double? currentValue,
+    required ValueChanged<double?> onChanged,
+    required bool isMetric,
+    required String unit,
+  }) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label, style: const TextStyle(fontSize: 14)),
+            Text(unit,
+                style: TextStyle(
+                    fontSize: 12, color: theme.colorScheme.onSurfaceVariant)),
+          ],
+        ),
+        if (sizes.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Wrap(
+              spacing: 8,
+              children: sizes.map((size) {
+                final double? sizeValue = double.tryParse(size);
+                final isSelected = sizeValue != null &&
+                    currentValue != null &&
+                    (sizeValue - currentValue).abs() < 0.01;
+                return ChoiceChip(
+                  label: Text(size, style: const TextStyle(fontSize: 12)),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    if (selected) {
+                      onChanged(sizeValue);
+                    }
+                  },
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          decoration: InputDecoration(
+            hintText: hintText,
+            suffixText: unit,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          ),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          onChanged: (value) {
+            final val = double.tryParse(value);
+            onChanged(val);
+          },
         ),
       ],
     );

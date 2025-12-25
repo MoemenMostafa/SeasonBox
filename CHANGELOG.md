@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.1.21+26
+- **Item Tagging & Search**:
+    - **Tag Management**: Added ability to add custom tags (up to 5) to items with autocomplete and frequency-based suggestions.
+    - **Advanced Search**: Implemented a search bar in the Items list that filters by title, category, and tags.
+    - **UI Enhancement**: tags are now displayed as clickable hashtags on item cards.
+    - **Deep Localization**: Full translation for tagging features across all 5 supported languages.
+- **Sizing & Measurement**:
+    - **Dynamic Sizing**: Implemented conditional size selection (Metric vs. Imperial) based on user profile settings.
+    - **Unified Experience**: Standardized sizing controls across `AddItemScreen` and `AddFamilyMemberScreen`.
+- **Growth Chart Refinement**:
+    - **Localization**: Finalized the translation of all growth chart strings.
+    - **Visual Polish**: Fixed UI overflow and linting issues in the `GrowthChartScreen`.
+- **UI/UX Improvements**:
+    - **Accessibility**: Increased touch targets on the Storage screen to prevent "fat finger" errors.
+    - **Auto-Assignment**: New items are now automatically assigned to the current member user if they are not an admin.
+    - **Bug Fixes**: Resolved layout issues in `AddItemScreen` and optimized code structure.
+
 ## 1.1.20+25
 - **CI Stability & Maintenance**:
     - **Test Fixes**: Resolved `widget_test.dart` failures by properly initializing Firebase mocks and fixing UI overflow issues in the test environment.

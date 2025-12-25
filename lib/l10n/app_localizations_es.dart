@@ -340,6 +340,21 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get addItem_section_tags => 'Etiquetas';
+
+  @override
+  String get addItem_tags_hint => 'Añadir etiqueta (color, marca, material...)';
+
+  @override
+  String get addItem_tags_limitReached => 'Máximo 5 etiquetas permitidas';
+
+  @override
+  String get addItem_tags_duplicate => 'La etiqueta ya existe';
+
+  @override
+  String get addItem_tags_mostUsed => 'Etiquetas más usadas';
+
+  @override
   String get profile_title => 'Perfil';
 
   @override
@@ -980,6 +995,17 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get members_tooltipGrowthChart => 'Gráfico de Crecimiento';
+
+  @override
+  String get members_growthChart_actual => 'Historial Real';
+
+  @override
+  String get members_growthChart_expectation => 'Expectativa';
+
+  @override
+  String members_growthChart_insight(String name, int months) {
+    return 'Según el crecimiento actual, $name probablemente necesitará una nueva talla en aproximadamente $months meses.';
+  }
 
   @override
   String get members_tooltipEdit => 'Editar';

@@ -340,6 +340,21 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get addItem_section_tags => 'Tags';
+
+  @override
+  String get addItem_tags_hint => 'Tag hinzufügen (Farbe, Marke, Material...)';
+
+  @override
+  String get addItem_tags_limitReached => 'Maximal 5 Tags erlaubt';
+
+  @override
+  String get addItem_tags_duplicate => 'Tag existiert bereits';
+
+  @override
+  String get addItem_tags_mostUsed => 'Meistverwendete Tags';
+
+  @override
   String get profile_title => 'Profil';
 
   @override
@@ -978,6 +993,17 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get members_tooltipGrowthChart => 'Wachstumstabelle';
+
+  @override
+  String get members_growthChart_actual => 'Tatsächlicher Verlauf';
+
+  @override
+  String get members_growthChart_expectation => 'Erwartung';
+
+  @override
+  String members_growthChart_insight(String name, int months) {
+    return 'Basierend auf dem aktuellen Wachstum wird $name voraussichtlich in etwa $months Monaten eine neue Größe benötigen.';
+  }
 
   @override
   String get members_tooltipEdit => 'Bearbeiten';

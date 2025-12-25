@@ -38,6 +38,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
   String? _selectedCategory;
   String? _selectedMemberId;
   String? _selectedStorageLocationId;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -45,6 +46,12 @@ class _ItemsScreenState extends State<ItemsScreen> {
     _selectedMemberId = widget.initialMemberId;
     _selectedStorageLocationId = widget.initialStorageLocationId;
     _loadItems();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadItems() async {
@@ -136,6 +143,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
   }
 
   List<Item> get _filteredItems {
+    final query = _searchController.text.toLowerCase().trim();
     return _items.where((item) {
       // Member filter
       bool matchesMemberFilter =
@@ -162,10 +170,17 @@ class _ItemsScreenState extends State<ItemsScreen> {
       bool matchesCategoryFilter = _selectedCategory == null ||
           item.category.toLowerCase() == _selectedCategory!.toLowerCase();
 
+      // Search filter (title, category, tags)
+      bool matchesSearch = query.isEmpty ||
+          item.title.toLowerCase().contains(query) ||
+          item.category.toLowerCase().contains(query) ||
+          item.tags.any((tag) => tag.toLowerCase().contains(query));
+
       return matchesMemberFilter &&
           matchesStorageFilter &&
           matchesStatusFilter &&
-          matchesCategoryFilter;
+          matchesCategoryFilter &&
+          matchesSearch;
     }).toList();
   }
 
@@ -220,6 +235,40 @@ class _ItemsScreenState extends State<ItemsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Search Bar
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                      child: TextField(
+                        controller: _searchController,
+                        style: theme.textTheme.bodyMedium,
+                        decoration: InputDecoration(
+                          hintText:
+                              AppLocalizations.of(context)!.home_search_hint,
+                          prefixIcon: const Icon(Icons.search),
+                          suffixIcon: _searchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    setState(() {
+                                      _searchController.clear();
+                                    });
+                                  },
+                                )
+                              : null,
+                          filled: true,
+                          fillColor: theme.brightness == Brightness.dark
+                              ? Colors.white.withValues(alpha: 0.05)
+                              : Colors.grey.shade100,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding:
+                              const EdgeInsets.symmetric(vertical: 0),
+                        ),
+                        onChanged: (value) => setState(() {}),
+                      ),
+                    ),
                     // Filter Chips
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
@@ -417,7 +466,14 @@ class _ItemsScreenState extends State<ItemsScreen> {
               ),
             ),
       floatingActionButton: SeasonBoxAddButton(
-        onPressed: () => context.push('/add-item').then((_) => _loadItems()),
+        onPressed: () {
+          context.push(
+            '/add-item',
+            extra: {
+              'initialStorageLocationId': _selectedStorageLocationId,
+            },
+          ).then((_) => _loadItems());
+        },
       ),
     );
   }
@@ -603,6 +659,32 @@ class _ItemsScreenState extends State<ItemsScreen> {
                             : Colors.grey.shade500,
                       ),
                     ),
+                    if (item.tags.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 4,
+                        runSpacing: 4,
+                        children: item.tags.map((tag) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary
+                                  .withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              '#$tag',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: theme.colorScheme.primary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
                   ],
                 ),
               ),

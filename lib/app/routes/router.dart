@@ -15,6 +15,7 @@ import 'package:seasonbox/data/models/family_member.dart';
 import 'package:seasonbox/data/models/storage_location.dart';
 import 'package:seasonbox/features/qr_scanner/screens/qr_scanner_screen.dart';
 import 'package:seasonbox/features/notifications/screens/notifications_screen.dart';
+import 'package:seasonbox/features/members/screens/growth_chart_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -52,8 +53,19 @@ class AppRouter {
           }),
       GoRoute(
           path: '/add-item',
-          builder: (context, state) =>
-              AddItemScreen(item: state.extra as Item?)),
+          builder: (context, state) {
+            final extra = state.extra;
+            if (extra is Item) {
+              return AddItemScreen(item: extra);
+            } else if (extra is Map<String, dynamic>) {
+              return AddItemScreen(
+                item: extra['item'] as Item?,
+                initialStorageLocationId:
+                    extra['initialStorageLocationId'] as String?,
+              );
+            }
+            return const AddItemScreen();
+          }),
       GoRoute(
           path: '/members',
           builder: (context, state) => const FamilyMembersScreen()),
@@ -82,6 +94,10 @@ class AppRouter {
       GoRoute(
           path: '/notifications',
           builder: (context, state) => const NotificationsScreen()),
+      GoRoute(
+          path: '/growth-chart',
+          builder: (context, state) =>
+              GrowthChartScreen(member: state.extra as FamilyMember)),
     ],
   );
 }
