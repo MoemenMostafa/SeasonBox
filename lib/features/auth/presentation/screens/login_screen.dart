@@ -115,330 +115,334 @@ class _LoginScreenState extends State<LoginScreen>
           ),
           // Main Content
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                children: [
-                  const SizedBox(height: 40),
-                  // Logo Area
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Column(
-                        children: [
-                          Text(
-                            AppLocalizations.of(context)!.appTitle,
-                            style: GoogleFonts.poppins(
-                              fontSize: 36,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            AppLocalizations.of(context)!.login_tagline,
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.inter(
-                              fontSize: 16,
-                              color: Colors.white.withValues(alpha: 0.9),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 48),
-                  // Feature Cards
-                  FeatureCard(
-                    icon: Icons.camera_alt_rounded,
-                    title: AppLocalizations.of(context)!
-                        .login_featureCard_photoInventoryTitle,
-                    subtitle: AppLocalizations.of(context)!
-                        .login_featureCard_photoInventorySubtitle,
-                  ),
-                  const SizedBox(height: 16),
-                  FeatureCard(
-                    icon: Icons.people_rounded,
-                    title: AppLocalizations.of(context)!
-                        .login_featureCard_familySharingTitle,
-                    subtitle: AppLocalizations.of(context)!
-                        .login_featureCard_familySharingSubtitle,
-                  ),
-                  const SizedBox(height: 16),
-                  FeatureCard(
-                    icon: Icons.notifications_active_rounded,
-                    title: AppLocalizations.of(context)!
-                        .login_featureCard_smartRemindersTitle,
-                    subtitle: AppLocalizations.of(context)!
-                        .login_featureCard_smartRemindersSubtitle,
-                  ),
-                  const Spacer(),
-                  // Buttons
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        context.push('/email-login');
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        AppLocalizations.of(context)!.login_button_email,
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: _isGoogleSignInLoading
-                          ? null
-                          : () async {
-                              setState(() {
-                                _isGoogleSignInLoading = true;
-                              });
-
-                              try {
-                                final user =
-                                    await authService.signInWithGoogle();
-                                if (user != null && context.mounted) {
-                                  try {
-                                    await context
-                                        .read<UserService>()
-                                        .createUserAndLinkFamily(user);
-                                  } catch (e) {
-                                    PostHogService.log(
-                                        'Error creating user/family: $e',
-                                        level: LogLevel.error);
-                                  }
-                                  if (context.mounted) {
-                                    context.go('/home');
-                                  }
-                                } else if (context.mounted) {
-                                  // User cancelled or sign-in failed
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                          AppLocalizations.of(context)!
-                                              .login_error_googleCancelled),
-                                      backgroundColor: Colors.orange,
-                                      duration: const Duration(seconds: 3),
-                                    ),
-                                  );
-                                }
-                              } catch (e) {
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(AppLocalizations.of(
-                                              context)!
-                                          .login_error_signIn(e.toString())),
-                                      backgroundColor: Colors.red,
-                                      duration: const Duration(seconds: 4),
-                                    ),
-                                  );
-                                }
-                              } finally {
-                                if (mounted) {
-                                  setState(() {
-                                    _isGoogleSignInLoading = false;
-                                  });
-                                }
-                              }
-                            },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: _isGoogleSignInLoading
-                          ? const SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor:
-                                    AlwaysStoppedAnimation<Color>(Colors.black),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 40),
+                    // Logo Area
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Column(
+                          children: [
+                            Text(
+                              AppLocalizations.of(context)!.appTitle,
+                              style: GoogleFonts.poppins(
+                                fontSize: 36,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
                               ),
-                            )
-                          : Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Image.asset(
-                                  'assets/images/google_logo.png',
-                                  height: 24,
-                                  width: 24,
-                                ),
-                                const SizedBox(width: 12),
-                                Text(
-                                  AppLocalizations.of(context)!
-                                      .login_button_google,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
                             ),
+                            const SizedBox(height: 8),
+                            Text(
+                              AppLocalizations.of(context)!.login_tagline,
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.inter(
+                                fontSize: 16,
+                                color: Colors.white.withValues(alpha: 0.9),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Consumer<BiometricService>(
-                    builder: (context, biometricService, child) {
-                      return FutureBuilder<bool>(
-                        future: biometricService.isBiometricLoginEnabled(),
-                        builder: (context, snapshot) {
-                          if (snapshot.data == true) {
-                            return SizedBox(
-                              width: double.infinity,
-                              height: 56,
-                              child: ElevatedButton(
-                                onPressed: () async {
-                                  final authenticated =
-                                      await biometricService.authenticate();
-                                  if (authenticated) {
-                                    final creds = await biometricService
-                                        .getStoredCredentials();
-                                    if (creds != null && context.mounted) {
-                                      try {
-                                        final authService =
-                                            Provider.of<AuthService>(context,
-                                                listen: false);
-                                        final provider =
-                                            creds['provider'] ?? 'email';
+                    const SizedBox(height: 48),
+                    // Feature Cards
+                    FeatureCard(
+                      icon: Icons.camera_alt_rounded,
+                      title: AppLocalizations.of(context)!
+                          .login_featureCard_photoInventoryTitle,
+                      subtitle: AppLocalizations.of(context)!
+                          .login_featureCard_photoInventorySubtitle,
+                    ),
+                    const SizedBox(height: 16),
+                    FeatureCard(
+                      icon: Icons.people_rounded,
+                      title: AppLocalizations.of(context)!
+                          .login_featureCard_familySharingTitle,
+                      subtitle: AppLocalizations.of(context)!
+                          .login_featureCard_familySharingSubtitle,
+                    ),
+                    const SizedBox(height: 16),
+                    FeatureCard(
+                      icon: Icons.notifications_active_rounded,
+                      title: AppLocalizations.of(context)!
+                          .login_featureCard_smartRemindersTitle,
+                      subtitle: AppLocalizations.of(context)!
+                          .login_featureCard_smartRemindersSubtitle,
+                    ),
+                    const SizedBox(height: 32),
+                    // Buttons
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          context.push('/email-login');
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          AppLocalizations.of(context)!.login_button_email,
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: _isGoogleSignInLoading
+                            ? null
+                            : () async {
+                                setState(() {
+                                  _isGoogleSignInLoading = true;
+                                });
 
-                                        if (provider == 'google') {
-                                          final user = await authService
-                                              .signInWithGoogle(
-                                                  trySilentFirst: true);
-                                          if (user != null && context.mounted) {
-                                            try {
-                                              await context
-                                                  .read<UserService>()
-                                                  .createUserAndLinkFamily(
-                                                      user);
-                                            } catch (e) {
-                                              PostHogService.log(
-                                                  'Error creating user/family: $e',
-                                                  level: LogLevel.error);
+                                final userService = context.read<UserService>();
+
+                                try {
+                                  final user =
+                                      await authService.signInWithGoogle();
+                                  if (user != null && context.mounted) {
+                                    try {
+                                      await userService
+                                          .createUserAndLinkFamily(user);
+                                    } catch (e) {
+                                      PostHogService.log(
+                                          'Error creating user/family: $e',
+                                          level: LogLevel.error);
+                                    }
+                                    if (context.mounted) {
+                                      context.go('/home');
+                                    }
+                                  } else if (context.mounted) {
+                                    // User cancelled or sign-in failed
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                            AppLocalizations.of(context)!
+                                                .login_error_googleCancelled),
+                                        backgroundColor: Colors.orange,
+                                        duration: const Duration(seconds: 3),
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(AppLocalizations.of(
+                                                context)!
+                                            .login_error_signIn(e.toString())),
+                                        backgroundColor: Colors.red,
+                                        duration: const Duration(seconds: 4),
+                                      ),
+                                    );
+                                  }
+                                } finally {
+                                  if (mounted) {
+                                    setState(() {
+                                      _isGoogleSignInLoading = false;
+                                    });
+                                  }
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: _isGoogleSignInLoading
+                            ? const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.black),
+                                ),
+                              )
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image.asset(
+                                    'assets/images/google_logo.png',
+                                    height: 24,
+                                    width: 24,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    AppLocalizations.of(context)!
+                                        .login_button_google,
+                                    style: GoogleFonts.inter(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Consumer<BiometricService>(
+                      builder: (context, biometricService, child) {
+                        return FutureBuilder<bool>(
+                          future: biometricService.isBiometricLoginEnabled(),
+                          builder: (context, snapshot) {
+                            if (snapshot.data == true) {
+                              return SizedBox(
+                                width: double.infinity,
+                                height: 56,
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    final authenticated =
+                                        await biometricService.authenticate();
+                                    if (authenticated) {
+                                      final creds = await biometricService
+                                          .getStoredCredentials();
+                                      if (creds != null && context.mounted) {
+                                        try {
+                                          final authService =
+                                              Provider.of<AuthService>(context,
+                                                  listen: false);
+                                          final provider =
+                                              creds['provider'] ?? 'email';
+
+                                          if (provider == 'google') {
+                                            final user = await authService
+                                                .signInWithGoogle(
+                                                    trySilentFirst: true);
+                                            if (user != null &&
+                                                context.mounted) {
+                                              try {
+                                                await context
+                                                    .read<UserService>()
+                                                    .createUserAndLinkFamily(
+                                                        user);
+                                              } catch (e) {
+                                                PostHogService.log(
+                                                    'Error creating user/family: $e',
+                                                    level: LogLevel.error);
+                                              }
+                                              if (context.mounted) {
+                                                context.go('/home');
+                                              }
                                             }
+                                          } else {
+                                            await authService
+                                                .signInWithEmailAndPassword(
+                                              creds['email']!,
+                                              creds['password']!,
+                                            );
                                             if (context.mounted) {
                                               context.go('/home');
                                             }
                                           }
-                                        } else {
-                                          await authService
-                                              .signInWithEmailAndPassword(
-                                            creds['email']!,
-                                            creds['password']!,
-                                          );
+                                        } catch (e) {
                                           if (context.mounted) {
-                                            context.go('/home');
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              SnackBar(
+                                                content: Text(AppLocalizations
+                                                        .of(context)!
+                                                    .login_error_invalidCredentials),
+                                                backgroundColor: Colors.red,
+                                                duration:
+                                                    const Duration(seconds: 4),
+                                              ),
+                                            );
                                           }
-                                        }
-                                      } catch (e) {
-                                        if (context.mounted) {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            SnackBar(
-                                              content: Text(AppLocalizations.of(
-                                                      context)!
-                                                  .login_error_invalidCredentials),
-                                              backgroundColor: Colors.red,
-                                              duration:
-                                                  const Duration(seconds: 4),
-                                            ),
-                                          );
                                         }
                                       }
                                     }
-                                  }
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      Colors.white.withValues(alpha: 0.2),
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    side: BorderSide(
-                                        color: Colors.white
-                                            .withValues(alpha: 0.5)),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(Icons.fingerprint),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      AppLocalizations.of(context)!
-                                          .login_button_biometric,
-                                      style: GoogleFonts.inter(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        Colors.white.withValues(alpha: 0.2),
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                      side: BorderSide(
+                                          color: Colors.white
+                                              .withValues(alpha: 0.5)),
                                     ),
-                                  ],
+                                    elevation: 0,
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(Icons.fingerprint),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        AppLocalizations.of(context)!
+                                            .login_button_biometric,
+                                        style: GoogleFonts.inter(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            );
-                          }
-                          return const SizedBox.shrink();
-                        },
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  // Footer
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 24.0),
-                    child: RichText(
-                      textAlign: TextAlign.center,
-                      text: TextSpan(
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: Colors.white70,
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          },
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                    // Footer
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 24.0),
+                      child: RichText(
+                        textAlign: TextAlign.center,
+                        text: TextSpan(
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: Colors.white70,
+                          ),
+                          children: [
+                            TextSpan(
+                                text: AppLocalizations.of(context)!
+                                    .login_footer_terms),
+                            TextSpan(
+                              text: AppLocalizations.of(context)!
+                                  .login_footer_termsOfService,
+                              style: const TextStyle(
+                                  decoration: TextDecoration.underline),
+                            ),
+                            TextSpan(
+                                text: AppLocalizations.of(context)!
+                                    .login_footer_and),
+                            TextSpan(
+                              text: AppLocalizations.of(context)!
+                                  .login_footer_privacyPolicy,
+                              style: const TextStyle(
+                                  decoration: TextDecoration.underline),
+                            ),
+                          ],
                         ),
-                        children: [
-                          TextSpan(
-                              text: AppLocalizations.of(context)!
-                                  .login_footer_terms),
-                          TextSpan(
-                            text: AppLocalizations.of(context)!
-                                .login_footer_termsOfService,
-                            style: const TextStyle(
-                                decoration: TextDecoration.underline),
-                          ),
-                          TextSpan(
-                              text: AppLocalizations.of(context)!
-                                  .login_footer_and),
-                          TextSpan(
-                            text: AppLocalizations.of(context)!
-                                .login_footer_privacyPolicy,
-                            style: const TextStyle(
-                                decoration: TextDecoration.underline),
-                          ),
-                        ],
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

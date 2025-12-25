@@ -52,8 +52,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
   bool _isLoadingData = true;
   bool _isTransitionComplete = false;
   bool _isSaving = false;
-  String? _currentUserId;
-  String? _familyId;
 
   final List<String> _categories = [
     'Clothes',
@@ -223,8 +221,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
       final familyId = await authService.getCurrentUserFamilyId();
       final userId = authService.currentUser?.uid;
 
-      if (familyId == null || userId == null)
+      if (familyId == null || userId == null) {
         throw Exception('User not authenticated');
+      }
 
       final members = await memberRepository
           .getFamilyMembers(familyId)
@@ -237,8 +236,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
       if (mounted) {
         setState(() {
-          _currentUserId = userId;
-          _familyId = familyId;
           _members = members;
           _locations = locations;
           _isLoadingData = false;
@@ -983,7 +980,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                       borderRadius:
                                           BorderRadius.all(Radius.circular(4)))
                                   : DropdownButtonFormField<String>(
-                                      value: _locations.isEmpty
+                                      initialValue: _locations.isEmpty
                                           ? null
                                           : _storageLocationId,
                                       decoration: const InputDecoration(

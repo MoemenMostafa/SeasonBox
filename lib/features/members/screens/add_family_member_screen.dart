@@ -69,7 +69,7 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
       final authService = context.read<AuthService>();
       final familyId = await authService.getCurrentUserFamilyId();
       final userId = authService.currentUser?.uid;
-      
+
       if (familyId == null || userId == null) return;
 
       if (!mounted) return;
@@ -108,13 +108,13 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
 
     try {
       if (!mounted) return;
-      final familyId =
-          await context.read<AuthService>().getCurrentUserFamilyId();
+      final authService = context.read<AuthService>();
+      final familyId = await authService.getCurrentUserFamilyId();
       if (familyId == null) {
         throw Exception('User not authenticated');
       }
 
-      final currentUser = context.read<AuthService>().currentUser;
+      final currentUser = authService.currentUser;
       final inviterName = currentUser?.displayName ?? 'Admin';
 
       final member = FamilyMember(
@@ -289,11 +289,12 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
   }
 
   Future<void> _shareInvite() async {
-    final familyId = await context.read<AuthService>().getCurrentUserFamilyId();
+    final authService = context.read<AuthService>();
+    final familyId = await authService.getCurrentUserFamilyId();
     if (familyId != null && mounted) {
       final message =
           AppLocalizations.of(context)!.addMember_share_message(familyId);
-      await Share.share(message);
+      await SharePlus.instance.share(ShareParams(text: message));
     }
   }
 
@@ -761,11 +762,12 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
             );
           }).toList(),
           onChanged: (value) {
-            if (value != null && PermissionService.canChangeRole(
-              _currentUserId,
-              _familyId,
-              _allMembers,
-            )) {
+            if (value != null &&
+                PermissionService.canChangeRole(
+                  _currentUserId,
+                  _familyId,
+                  _allMembers,
+                )) {
               setState(() {
                 _role = value;
               });

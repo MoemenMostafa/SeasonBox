@@ -5,7 +5,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import '../models/family.dart';
 import '../models/family_member.dart';
 import '../repositories/family_repository.dart';
-import '../repositories/family_member_repository.dart';
+
 import 'firestore_service.dart';
 import 'posthog_service.dart';
 
@@ -14,10 +14,8 @@ import 'posthog_service.dart';
 class UserService {
   final FirestoreService _firestoreService;
   final FamilyRepository _familyRepository;
-  final FamilyMemberRepository _familyMemberRepository;
 
-  UserService(this._firestoreService, this._familyRepository,
-      this._familyMemberRepository);
+  UserService(this._firestoreService, this._familyRepository);
 
   Future<void> createUserAndLinkFamily(User firebaseUser,
       {String? familyId, String? inviteCode}) async {

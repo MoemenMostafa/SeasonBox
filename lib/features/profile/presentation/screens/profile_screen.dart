@@ -837,7 +837,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Could not launch $url')),
         );

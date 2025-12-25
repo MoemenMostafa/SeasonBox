@@ -50,6 +50,10 @@ class _ItemsScreenState extends State<ItemsScreen> {
   Future<void> _loadItems() async {
     try {
       final authService = context.read<AuthService>();
+      final itemRepository = context.read<ItemRepository>();
+      final locationRepository = context.read<StorageLocationRepository>();
+      final memberRepository = context.read<FamilyMemberRepository>();
+
       String? familyId = await authService.getCurrentUserFamilyId();
       final userId = authService.currentUser?.uid;
 
@@ -62,9 +66,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
       // 1. Fetch Family Members first to check role
       List<FamilyMember> members;
       try {
-        members = await context
-            .read<FamilyMemberRepository>()
-            .getFamilyMembers(familyId);
+        members = await memberRepository.getFamilyMembers(familyId);
       } catch (e) {
         // Fallback: If permission denied (likely data inconsistent), switch to personal family
         PostHogService.log('Error fetching members for $familyId: $e',
@@ -80,9 +82,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
             );
           }
           familyId = userId; // Fallback to personal
-          members = await context
-              .read<FamilyMemberRepository>()
-              .getFamilyMembers(familyId);
+          members = await memberRepository.getFamilyMembers(familyId);
         } else {
           rethrow;
         }
@@ -106,11 +106,11 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
       // 3. Load items (filtered if member) and locations in parallel
       final results = await Future.wait([
-        context.read<ItemRepository>().getItems(
-              familyId,
-              ownerId: isRestrictedMember ? userId : null,
-            ),
-        context.read<StorageLocationRepository>().getLocations(familyId),
+        itemRepository.getItems(
+          familyId,
+          ownerId: isRestrictedMember ? userId : null,
+        ),
+        locationRepository.getLocations(familyId),
       ]).timeout(const Duration(seconds: 5));
 
       if (mounted) {

@@ -105,7 +105,6 @@ class SeasonBox extends StatelessWidget {
           update: (_, firestoreService, familyRepository, __) => UserService(
             firestoreService,
             familyRepository,
-            FamilyMemberRepository(firestoreService),
           ),
         ),
       ],

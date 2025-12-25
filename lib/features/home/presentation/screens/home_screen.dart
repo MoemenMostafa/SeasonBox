@@ -51,10 +51,8 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       // Fetch user data for family name and photo
-      final userDoc = await context
-          .read<UserService>()
-          .getUserStream(currentUser.uid)
-          .first;
+      final userService = context.read<UserService>();
+      final userDoc = await userService.getUserStream(currentUser.uid).first;
       final userData = userDoc.data() as Map<String, dynamic>?;
 
       final members = await context

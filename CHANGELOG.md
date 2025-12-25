@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.20+25
+- **CI Stability & Maintenance**:
+    - **Test Fixes**: Resolved `widget_test.dart` failures by properly initializing Firebase mocks and fixing UI overflow issues in the test environment.
+    - **Lint Resolutions**: Fixed numerous `use_build_context_synchronously` warnings and other code quality issues.
+    - **Dependency Update**: Migrated from deprecated `Share` methods to the latest `share_plus` API.
+    - **CI Optimization**: Added disk space cleanup and path filtering to GitHub Actions workflows to improve build reliability and speed.
+
 ## 1.1.19+24
 - **PostHog Enhancements**:
     - **PostHog Session Replay**: Fixed blank recordings by wrapping `MaterialApp` with `PostHogWidget`.

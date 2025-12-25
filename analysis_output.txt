@@ -1,0 +1,14 @@
+Analyzing SeasonBox...                                          
+
+warning • The value of the field '_familyMemberRepository' isn't used • lib/data/services/user_service.dart:17:32 • unused_field
+   info • Don't use 'BuildContext's across async gaps • lib/features/home/presentation/screens/home_screen.dart:60:29 • use_build_context_synchronously
+warning • The value of the field '_currentUserId' isn't used • lib/features/items/screens/add_item_screen.dart:55:11 • unused_field
+warning • The value of the field '_familyId' isn't used • lib/features/items/screens/add_item_screen.dart:56:11 • unused_field
+   info • Don't use 'BuildContext's across async gaps • lib/features/items/screens/items_screen.dart:83:27 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/features/items/screens/items_screen.dart:109:9 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/features/items/screens/items_screen.dart:113:9 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/features/members/screens/add_family_member_screen.dart:117:27 • use_build_context_synchronously
+   info • 'Share' is deprecated and shouldn't be used. Use SharePlus instead • lib/features/members/screens/add_family_member_screen.dart:296:13 • deprecated_member_use
+   info • 'share' is deprecated and shouldn't be used. Use SharePlus.instance.share() instead • lib/features/members/screens/add_family_member_screen.dart:296:19 • deprecated_member_use
+   info • Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check • lib/features/profile/presentation/screens/profile_screen.dart:841:30 • use_build_context_synchronously
+
