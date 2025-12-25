@@ -19,6 +19,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Extract latest changelog
+        id: extract_changelog
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2)
+          {
+            echo "changelog<<EOF"
+            awk -v ver="$VERSION" '/^## / { if (p) exit; if ($2 == ver) p=1 } p' CHANGELOG.md
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
@@ -102,12 +112,12 @@ jobs:
           groups: testers
           file: build/app/outputs/flutter-apk/app-release.apk
           releaseNotes: |
+            ${{ steps.extract_changelog.outputs.changelog }}
+
+            ---
             Build: ${{ github.run_number }}
             Commit: ${{ github.sha }}
             Branch: ${{ github.ref_name }}
-            
-            Changes:
-            ${{ github.event.head_commit.message }}
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
