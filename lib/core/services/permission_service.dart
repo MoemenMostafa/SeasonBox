@@ -1,5 +1,6 @@
 import 'package:seasonbox/data/models/family_member.dart';
 import 'package:seasonbox/data/models/item.dart';
+import 'package:seasonbox/core/enums/gender.dart';
 
 /// Service to handle permission checks for UI elements
 /// Based on Firestore security rules, this determines what actions
@@ -28,7 +29,7 @@ class PermissionService {
         familyId: '',
         name: '',
         birthdate: DateTime.now(),
-        gender: 'Unisex',
+        gender: Gender.unisex,
         role: 'member',
       ),
     );
@@ -170,7 +171,7 @@ class PermissionService {
         familyId: '',
         name: '',
         birthdate: DateTime.now(),
-        gender: 'Unisex',
+        gender: Gender.unisex,
         role: 'member',
       ),
     );

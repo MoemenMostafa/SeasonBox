@@ -16,6 +16,7 @@ import 'package:flutter/services.dart';
 import 'package:seasonbox/core/services/permission_service.dart';
 import 'package:seasonbox/core/constants/size_constants.dart';
 import 'package:seasonbox/app/providers/user_profile_provider.dart';
+import 'package:seasonbox/core/enums/gender.dart';
 
 class AddFamilyMemberScreen extends StatefulWidget {
   final FamilyMember? member;
@@ -34,13 +35,13 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
   final _shoeSizeController = TextEditingController();
   final _inviteEmailController = TextEditingController();
 
-  String _gender = 'Unisex';
+  Gender _gender = Gender.unisex;
   String _role = 'member';
   DateTime _birthdate = DateTime.now();
 
   // Sizes
-  double? _clothesSize;
-  double? _shoeSize;
+  String? _clothesSize;
+  String? _shoeSize;
 
   String? _inviteStatus;
   bool _isLoading = false;
@@ -59,8 +60,8 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
       _birthdate = widget.member!.birthdate;
       _clothesSize = widget.member!.clothingSize;
       _shoeSize = widget.member!.shoeSize;
-      _clothingSizeController.text = _clothesSize?.toString() ?? '';
-      _shoeSizeController.text = _shoeSize?.toString() ?? '';
+      _clothingSizeController.text = _clothesSize ?? '';
+      _shoeSizeController.text = _shoeSize ?? '';
       _inviteStatus = widget.member!.inviteStatus;
       _inviteEmailController.text = widget.member!.inviteEmail ?? '';
       _role = widget.member!.role;
@@ -474,15 +475,12 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                             controller: _clothingSizeController,
                             sizes: isMetric
                                 ? SizeConstants.clothesSizesMetric
-                                    .where((s) => double.tryParse(s) != null)
-                                    .toList()
-                                : [], // Only show chips for metric as numeric
+                                : SizeConstants.clothesSizesImperial,
                             currentValue: _clothesSize,
                             onChanged: (val) {
                               setState(() {
                                 _clothesSize = val;
-                                _clothingSizeController.text =
-                                    val?.toString() ?? '';
+                                _clothingSizeController.text = val ?? '';
                               });
                             },
                             isMetric: isMetric,
@@ -498,13 +496,12 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                             controller: _shoeSizeController,
                             sizes: isMetric
                                 ? SizeConstants.shoeSizesMetric
-                                : [], // Metric shoe sizes are numeric
+                                : SizeConstants.shoeSizesImperial,
                             currentValue: _shoeSize,
                             onChanged: (val) {
                               setState(() {
                                 _shoeSize = val;
-                                _shoeSizeController.text =
-                                    val?.toString() ?? '';
+                                _shoeSizeController.text = val ?? '';
                               });
                             },
                             isMetric: isMetric,
@@ -604,16 +601,26 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
   }
 
   Widget _buildGenderSelector(ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
-      children: ['Boy', 'Girl', 'Unisex'].map((gender) {
+      children: Gender.values.map((gender) {
         final isSelected = _gender == gender;
         IconData icon;
-        if (gender == 'Boy') {
-          icon = Icons.male;
-        } else if (gender == 'Girl') {
-          icon = Icons.female;
-        } else {
-          icon = Icons.transgender;
+        String label;
+
+        switch (gender) {
+          case Gender.male:
+            icon = Icons.male;
+            label = l10n.gender_male;
+            break;
+          case Gender.female:
+            icon = Icons.female;
+            label = l10n.gender_female;
+            break;
+          case Gender.unisex:
+            icon = Icons.transgender;
+            label = l10n.gender_unisex;
+            break;
         }
 
         return Expanded(
@@ -643,7 +650,7 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                             isSelected ? Colors.white : Colors.grey.shade400),
                     const SizedBox(width: 8),
                     Text(
-                      gender,
+                      label,
                       style: TextStyle(
                         color: isSelected ? Colors.white : Colors.grey.shade400,
                         fontWeight: FontWeight.bold,
@@ -843,8 +850,8 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
     required String hintText,
     required TextEditingController controller,
     required List<String> sizes,
-    required double? currentValue,
-    required ValueChanged<double?> onChanged,
+    required String? currentValue,
+    required ValueChanged<String?> onChanged,
     required bool isMetric,
     required String unit,
   }) {
@@ -868,16 +875,13 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
             child: Wrap(
               spacing: 8,
               children: sizes.map((size) {
-                final double? sizeValue = double.tryParse(size);
-                final isSelected = sizeValue != null &&
-                    currentValue != null &&
-                    (sizeValue - currentValue).abs() < 0.01;
+                final isSelected = size == currentValue;
                 return ChoiceChip(
                   label: Text(size, style: const TextStyle(fontSize: 12)),
                   selected: isSelected,
                   onSelected: (selected) {
                     if (selected) {
-                      onChanged(sizeValue);
+                      onChanged(size);
                     }
                   },
                 );
@@ -894,10 +898,9 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           ),
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          keyboardType: TextInputType.text,
           onChanged: (value) {
-            final val = double.tryParse(value);
-            onChanged(val);
+            onChanged(value.trim().isEmpty ? null : value.trim());
           },
         ),
       ],

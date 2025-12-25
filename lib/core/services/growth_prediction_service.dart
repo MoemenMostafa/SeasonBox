@@ -1,3 +1,5 @@
+import '../enums/gender.dart';
+
 enum MeasurementSystem { metric, imperial }
 
 class GrowthPredictionService {
@@ -8,7 +10,7 @@ class GrowthPredictionService {
     required double currentSize,
     required int targetMonths,
     required MeasurementSystem system,
-    required String gender,
+    required Gender gender,
   }) {
     // Simplified growth model for clothing
     // 0-24 months: ~1 size every 3-4 months
@@ -47,12 +49,12 @@ class GrowthPredictionService {
     required double currentSize,
     required int targetMonths,
     required MeasurementSystem system,
-    required String gender,
+    required Gender gender,
   }) {
     // Refined shoe growth based on EU standards and max growth age
     // Girls: Foot growth typically stops around 14 years (168 months)
     // Boys: Foot growth typically stops around 18 years (216 months)
-    final double maxGrowthAge = gender.toLowerCase() == 'male' ? 216.0 : 168.0;
+    final double maxGrowthAge = gender == Gender.male ? 216.0 : 168.0;
 
     if (currentAgeMonths >= maxGrowthAge) {
       return currentSize; // Growth has stopped
@@ -97,7 +99,7 @@ class GrowthPredictionService {
     required double currentSize,
     required String category,
     required MeasurementSystem system,
-    required String gender,
+    required Gender gender,
   }) {
     if (currentSize <= 0) return 0;
 
@@ -120,8 +122,7 @@ class GrowthPredictionService {
       }
     } else {
       // Shoe rates from predictShoeSize logic
-      final double maxGrowthAge =
-          gender.toLowerCase() == 'male' ? 216.0 : 168.0;
+      final double maxGrowthAge = gender == Gender.male ? 216.0 : 168.0;
       if (currentAgeMonths >= maxGrowthAge) return 0;
 
       if (currentAgeMonths < 12) {

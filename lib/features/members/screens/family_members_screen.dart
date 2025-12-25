@@ -183,12 +183,12 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                                   ?.withValues(alpha: 0.7))),
                       const SizedBox(height: 4),
                       Text(
-                          AppLocalizations.of(context)!.members_clothes(
-                              member.clothingSize?.toStringAsFixed(0) ?? '-'),
+                          AppLocalizations.of(context)!
+                              .members_clothes(member.clothingSize ?? '-'),
                           style: const TextStyle(fontWeight: FontWeight.bold)),
                       Text(
-                          AppLocalizations.of(context)!.members_shoes(
-                              member.shoeSize?.toStringAsFixed(0) ?? '-'),
+                          AppLocalizations.of(context)!
+                              .members_shoes(member.shoeSize ?? '-'),
                           style: const TextStyle(fontWeight: FontWeight.bold)),
                     ],
                   ),

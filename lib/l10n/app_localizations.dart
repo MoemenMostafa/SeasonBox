@@ -578,23 +578,23 @@ abstract class AppLocalizations {
   /// **'Gear'**
   String get addItem_category_gear;
 
-  /// No description provided for @addItem_gender_unisex.
+  /// No description provided for @gender_unisex.
   ///
   /// In en, this message translates to:
   /// **'Unisex'**
-  String get addItem_gender_unisex;
+  String get gender_unisex;
 
-  /// No description provided for @addItem_gender_boy.
+  /// No description provided for @gender_male.
   ///
   /// In en, this message translates to:
-  /// **'Boy'**
-  String get addItem_gender_boy;
+  /// **'Male'**
+  String get gender_male;
 
-  /// No description provided for @addItem_gender_girl.
+  /// No description provided for @gender_female.
   ///
   /// In en, this message translates to:
-  /// **'Girl'**
-  String get addItem_gender_girl;
+  /// **'Female'**
+  String get gender_female;
 
   /// No description provided for @addItem_season_winter.
   ///

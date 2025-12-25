@@ -38,20 +38,14 @@ class StorageService {
     return result != null ? File(result.path) : file;
   }
 
-  /// Upload both full (compressed) and thumbnail versions
-  Future<Map<String, String>> uploadImageWithThumbnail({
-    required File file,
+  Future<Map<String, String>> uploadPreProcessedImage({
+    required File fullFile,
+    required File thumbFile,
     required String userId,
     required String itemId,
   }) async {
     try {
       final uuid = _uuid.v4();
-
-      // Compress full image
-      final compressedFile = await compressImage(file);
-
-      // Generate thumbnail
-      final thumbnailFile = await generateThumbnail(file);
 
       // Upload full image
       final fullRef = _storage
@@ -62,7 +56,7 @@ class StorageService {
           .child(itemId)
           .child('full_$uuid.jpg');
 
-      await fullRef.putFile(compressedFile);
+      await fullRef.putFile(fullFile);
       final fullUrl = await fullRef.getDownloadURL();
 
       // Upload thumbnail
@@ -74,14 +68,40 @@ class StorageService {
           .child(itemId)
           .child('thumb_$uuid.jpg');
 
-      await thumbRef.putFile(thumbnailFile);
+      await thumbRef.putFile(thumbFile);
       final thumbUrl = await thumbRef.getDownloadURL();
+
+      return {'full': fullUrl, 'thumb': thumbUrl};
+    } catch (e) {
+      throw Exception('Failed to upload pre-processed image: $e');
+    }
+  }
+
+  /// Upload both full (compressed) and thumbnail versions
+  Future<Map<String, String>> uploadImageWithThumbnail({
+    required File file,
+    required String userId,
+    required String itemId,
+  }) async {
+    try {
+      // Compress full image
+      final compressedFile = await compressImage(file);
+
+      // Generate thumbnail
+      final thumbnailFile = await generateThumbnail(file);
+
+      final result = await uploadPreProcessedImage(
+        fullFile: compressedFile,
+        thumbFile: thumbnailFile,
+        userId: userId,
+        itemId: itemId,
+      );
 
       // Clean up temp files
       await compressedFile.delete();
       await thumbnailFile.delete();
 
-      return {'full': fullUrl, 'thumb': thumbUrl};
+      return result;
     } catch (e) {
       throw Exception('Failed to upload image: $e');
     }

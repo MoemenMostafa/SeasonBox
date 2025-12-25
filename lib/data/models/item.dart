@@ -1,3 +1,5 @@
+import '../../core/enums/gender.dart';
+
 class Item {
   final String id;
   final String familyId;
@@ -5,7 +7,7 @@ class Item {
   final List<Map<String, String>>
       photos; // Changed to support {full: url, thumb: url}
   final String category;
-  final String gender;
+  final Gender gender;
   final String size;
   final Map<String, num>? sizeRange; // {min: number, max: number}
   final List<String> seasonTags;
@@ -47,7 +49,7 @@ class Item {
       'title': title,
       'photos': photos,
       'category': category,
-      'gender': gender,
+      'gender': gender.toFirestore(),
       'size': size,
       'sizeRange': sizeRange,
       'seasonTags': seasonTags,
@@ -85,7 +87,7 @@ class Item {
       title: map['title'] ?? '',
       photos: photosList,
       category: map['category'] ?? '',
-      gender: map['gender'] ?? '',
+      gender: Gender.fromFirestore(map['gender']),
       size: map['size'] ?? '',
       sizeRange: map['sizeRange'] != null
           ? Map<String, num>.from(map['sizeRange'])

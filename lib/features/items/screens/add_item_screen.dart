@@ -20,6 +20,7 @@ import 'package:seasonbox/l10n/app_localizations.dart';
 import 'package:seasonbox/core/services/permission_service.dart';
 import 'package:seasonbox/core/constants/size_constants.dart';
 import 'package:seasonbox/app/providers/user_profile_provider.dart';
+import 'package:seasonbox/core/enums/gender.dart';
 
 class AddItemScreen extends StatefulWidget {
   final Item? item; // Optional item for editing
@@ -39,7 +40,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
   // New State Variables
   String _selectedCategory = 'Clothes';
-  String _selectedGender = 'Unisex';
+  Gender _selectedGender = Gender.unisex;
   String _selectedSize = '10';
   int _quantity = 1;
   String? _assignedChildId;
@@ -58,6 +59,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
   bool _isLoadingData = true;
   bool _isTransitionComplete = false;
   bool _isSaving = false;
+  final Map<String, Map<String, File>> _processedImages = {};
+  final Map<String, bool> _processingStatus = {};
 
   final List<String> _categories = [
     'Clothes',
@@ -116,18 +119,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
     }
   }
 
-  String _getGenderName(BuildContext context, String gender) {
-    final l10n = AppLocalizations.of(context)!;
-    switch (gender) {
-      case 'Unisex':
-        return l10n.addItem_gender_unisex;
-      case 'Boy':
-        return l10n.addItem_gender_boy;
-      case 'Girl':
-        return l10n.addItem_gender_girl;
-      default:
-        return gender;
-    }
+  String _getGenderName(BuildContext context, Gender gender) {
+    return gender.toDisplayString(context);
   }
 
   String _getSeasonName(BuildContext context, String season) {
@@ -327,10 +320,38 @@ class _AddItemScreenState extends State<AddItemScreen> {
   Future<void> _pickImage(ImageSource source) async {
     try {
       final XFile? image = await _picker.pickImage(source: source);
-      if (image != null) {
+      if (image != null && mounted) {
+        final imageFile = File(image.path);
+        final imagePath = image.path;
+
         setState(() {
           _selectedImages.add(image);
+          _processingStatus[imagePath] = true;
         });
+
+        // Start compression in background
+        final storageService = context.read<StorageService>();
+
+        try {
+          final compressed = await storageService.compressImage(imageFile);
+          final thumb = await storageService.generateThumbnail(imageFile);
+
+          if (mounted) {
+            setState(() {
+              _processedImages[imagePath] = {
+                'full': compressed,
+                'thumb': thumb,
+              };
+              _processingStatus[imagePath] = false;
+            });
+          }
+        } catch (e) {
+          if (mounted) {
+            setState(() {
+              _processingStatus[imagePath] = false;
+            });
+          }
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -409,7 +430,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
     }
   }
 
-  Future<void> _saveItem() async {
+  Future<void> _saveItem({bool stayOnScreen = false}) async {
     if (!_formKey.currentState!.validate()) return;
     // ... (Validation logic)
     if (_storageLocationId == null) {
@@ -442,15 +463,30 @@ class _AddItemScreenState extends State<AddItemScreen> {
       // Generate item ID first (needed for storage path)
       final itemId = widget.item?.id ?? const Uuid().v4();
 
-      // Upload newly selected images with thumbnails
+      // Upload newly selected images using pre-processed ones if available
       final List<Map<String, String>> newPhotoMaps = [];
       for (final XFile imageFile in _selectedImages) {
-        final file = File(imageFile.path);
-        final photoUrls = await storageService.uploadImageWithThumbnail(
-          file: file,
-          userId: userId,
-          itemId: itemId,
-        );
+        final processed = _processedImages[imageFile.path];
+        Map<String, String> photoUrls;
+
+        if (processed != null) {
+          photoUrls = await storageService.uploadPreProcessedImage(
+            fullFile: processed['full']!,
+            thumbFile: processed['thumb']!,
+            userId: userId,
+            itemId: itemId,
+          );
+          // Clean up temp files
+          await processed['full']!.delete();
+          await processed['thumb']!.delete();
+        } else {
+          // Fallback if not processed yet
+          photoUrls = await storageService.uploadImageWithThumbnail(
+            file: File(imageFile.path),
+            userId: userId,
+            itemId: itemId,
+          );
+        }
         newPhotoMaps.add(photoUrls);
       }
 
@@ -482,13 +518,18 @@ class _AddItemScreenState extends State<AddItemScreen> {
       }
 
       if (mounted) {
-        context.pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text(widget.item != null
                   ? 'Item updated successfully'
                   : 'Item added successfully')),
         );
+
+        if (stayOnScreen) {
+          _resetForm(keepDefaults: true);
+        } else {
+          context.pop();
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -501,6 +542,31 @@ class _AddItemScreenState extends State<AddItemScreen> {
         setState(() => _isSaving = false);
       }
     }
+  }
+
+  void _resetForm({required bool keepDefaults}) {
+    setState(() {
+      _titleController.clear();
+      _descriptionController.clear();
+      _brandController.clear();
+      _selectedImages.clear();
+      _existingPhotos.clear();
+      _processedImages.clear();
+      _processingStatus.clear();
+      _tags.clear();
+      if (!keepDefaults) {
+        _selectedCategory = 'Clothes';
+        _selectedGender = Gender.unisex;
+        _selectedSize = '10';
+        _quantity = 1;
+        _assignedChildId = null;
+        _storageLocationId = null;
+        _selectedSeasons.clear();
+        _selectedSeasons.add('Winter');
+        _isCustomSize = false;
+        _customSizeController.clear();
+      }
+    });
   }
 
   Future<void> _confirmDelete() async {
@@ -570,7 +636,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
             ),
           IconButton(
             icon: const Icon(Icons.check, color: Colors.white),
-            onPressed: _saveItem,
+            onPressed: () => _saveItem(stayOnScreen: false),
             tooltip: 'Save Item',
           ),
         ],
@@ -725,10 +791,20 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                         top: 4,
                                         right: 4,
                                         child: InkWell(
-                                          onTap: () {
+                                          onTap: () async {
+                                            final path = image.path;
+                                            final processed =
+                                                _processedImages[path];
+                                            if (processed != null) {
+                                              await processed['full']?.delete();
+                                              await processed['thumb']
+                                                  ?.delete();
+                                            }
                                             setState(() {
                                               _selectedImages
                                                   .removeAt(imageIndex);
+                                              _processedImages.remove(path);
+                                              _processingStatus.remove(path);
                                             });
                                           },
                                           child: Container(
@@ -742,6 +818,26 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                           ),
                                         ),
                                       ),
+                                      if (_processingStatus[image.path] == true)
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.black26,
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                          ),
+                                          child: const Center(
+                                            child: SizedBox(
+                                              width: 24,
+                                              height: 24,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                valueColor:
+                                                    AlwaysStoppedAnimation<
+                                                        Color>(Colors.white),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
                                     ],
                                   ),
                                 );
@@ -876,6 +972,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                 const SizedBox(height: 16),
                                 TextFormField(
                                   controller: _customSizeController,
+                                  keyboardType: TextInputType.text,
                                   decoration: InputDecoration(
                                     labelText: 'Enter Custom Size',
                                     hintText: AppLocalizations.of(context)!
@@ -1244,7 +1341,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                             ],
                           ),
                           child: ElevatedButton(
-                            onPressed: _saveItem,
+                            onPressed: () => _saveItem(stayOnScreen: false),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.transparent,
                               shadowColor: Colors.transparent,
@@ -1261,6 +1358,31 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                     color: Colors.white)),
                           ),
                         ),
+                        if (widget.item == null) ...[
+                          const SizedBox(height: 12),
+                          Container(
+                            width: double.infinity,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                  color: const Color(0xFF6366F1), width: 2),
+                            ),
+                            child: OutlinedButton(
+                              onPressed: () => _saveItem(stayOnScreen: true),
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide.none,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                              ),
+                              child: const Text('Save & Add Another',
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF6366F1))),
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 16),
                         SizedBox(
                           width: double.infinity,
@@ -1364,7 +1486,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
   Widget _buildGenderSelector(ThemeData theme) {
     return Row(
-      children: ['Boy', 'Girl', 'Unisex'].map((gender) {
+      children: Gender.values.map((gender) {
         final isSelected = _selectedGender == gender;
         return Expanded(
           child: Padding(

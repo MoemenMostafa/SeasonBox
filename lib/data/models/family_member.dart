@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../core/enums/gender.dart';
+
 class FamilyMember {
   final String id;
   final String?
@@ -7,9 +9,9 @@ class FamilyMember {
   final String familyId;
   final String name;
   final DateTime birthdate;
-  final String gender;
-  final double? clothingSize;
-  final double? shoeSize;
+  final Gender gender;
+  final String? clothingSize;
+  final String? shoeSize;
   final String? notes;
   final Map<String, double> currentSizeByCategory;
   final List<Map<String, dynamic>> sizeHistory;
@@ -44,7 +46,7 @@ class FamilyMember {
       'familyId': familyId,
       'name': name,
       'birthdate': Timestamp.fromDate(birthdate),
-      'gender': gender,
+      'gender': gender.toFirestore(),
       'clothingSize': clothingSize,
       'shoeSize': shoeSize,
       'notes': notes,
@@ -66,9 +68,9 @@ class FamilyMember {
       familyId: map['familyId'] ?? '',
       name: map['name'] ?? '',
       birthdate: (map['birthdate'] as Timestamp).toDate(),
-      gender: map['gender'] ?? 'Unisex',
-      clothingSize: map['clothingSize']?.toDouble(),
-      shoeSize: map['shoeSize']?.toDouble(),
+      gender: Gender.fromFirestore(map['gender']),
+      clothingSize: map['clothingSize']?.toString(),
+      shoeSize: map['shoeSize']?.toString(),
       notes: map['notes'],
       currentSizeByCategory:
           Map<String, double>.from(map['currentSizeByCategory'] ?? {}),

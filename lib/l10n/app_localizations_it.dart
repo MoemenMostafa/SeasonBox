@@ -269,13 +269,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get addItem_category_gear => 'Attrezzatura';
 
   @override
-  String get addItem_gender_unisex => 'Unisex';
+  String get gender_unisex => 'Unisex';
 
   @override
-  String get addItem_gender_boy => 'Maschio';
+  String get gender_male => 'Maschio';
 
   @override
-  String get addItem_gender_girl => 'Femmina';
+  String get gender_female => 'Femmina';
 
   @override
   String get addItem_season_winter => 'Inverno';

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart'; // Import Provider
-import 'package:seasonbox/features/auth/data/auth_service.dart'; // Import AuthService
-import 'package:seasonbox/data/services/user_service.dart'; // Import UserService
-import 'package:cloud_firestore/cloud_firestore.dart'; // Import CloudFirestore
-import 'package:seasonbox/app/providers/navigation_provider.dart'; // Import NavigationProvider
+import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
+import 'package:seasonbox/features/auth/data/auth_service.dart';
+import 'package:seasonbox/data/services/user_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SeasonBoxAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -115,8 +115,7 @@ class SeasonBoxAppBar extends StatelessWidget implements PreferredSizeWidget {
             padding: const EdgeInsets.all(8.0),
             child: GestureDetector(
               onTap: () {
-                // index 4 is Profile tab
-                context.read<NavigationProvider>().setIndex(4);
+                context.push('/profile');
               },
               child: profileImage,
             ),
@@ -128,7 +127,7 @@ class SeasonBoxAppBar extends StatelessWidget implements PreferredSizeWidget {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: GestureDetector(
-        onTap: () => context.read<NavigationProvider>().setIndex(4),
+        onTap: () => context.push('/profile'),
         child: profileImage,
       ),
     );

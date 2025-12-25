@@ -4,6 +4,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 
 import '../models/family.dart';
 import '../models/family_member.dart';
+import '../../core/enums/gender.dart';
 import '../repositories/family_repository.dart';
 
 import 'firestore_service.dart';
@@ -105,7 +106,7 @@ class UserService {
       name: displayName,
       role: 'member',
       birthdate: DateTime.now(),
-      gender: 'Unisex',
+      gender: Gender.unisex,
     );
 
     // Manual set to include in batch (bypassing repo for atomicity)
@@ -166,7 +167,7 @@ class UserService {
       name: displayName,
       role: 'admin',
       birthdate: DateTime.now(),
-      gender: 'Unisex',
+      gender: Gender.unisex,
     );
 
     batch.set(_firestoreService.familyMembers(uid).doc(uid), member.toMap());

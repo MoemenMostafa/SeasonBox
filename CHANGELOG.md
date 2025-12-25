@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.0+28
+- **Navigation Redesign**:
+    - **Central "Add Item" FAB**: Added a prominent floating action button in the center of the bottom navigation bar for quick access to adding items.
+    - **Refined Tabs**: Split navigation into Home/Items (left) and Members/Storage (right) with a modern notched bottom bar.
+    - **Standalone Profile**: Moved the Profile screen to a dedicated route, accessible via the user avatar on the Dashboard.
+- **Performance & UX**:
+    - **Immediate Image Processing**: Images are now compressed and thumbnails generated immediately after capture, significantly reducing save times.
+    - **"Save & Add Another"**: Added a high-efficiency workflow for adding multiple items, preserving common fields like Size, Location, and Member.
+
 ## 1.2.1+27
 - **Authentication & Security**:
     - **Optimized Google Login**: Improved family linking logic to skip redundant Cloud Function calls for previously linked users.

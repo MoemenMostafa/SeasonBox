@@ -14,7 +14,6 @@ import 'package:seasonbox/features/auth/data/auth_service.dart';
 import 'package:seasonbox/widgets/image_gallery_viewer.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
 import 'package:seasonbox/data/services/user_service.dart';
-import 'package:seasonbox/app/providers/navigation_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -52,20 +51,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Fetch user data for family name and photo
       final userService = context.read<UserService>();
+      final memberRepo = context.read<FamilyMemberRepository>();
+      final itemRepo = context.read<ItemRepository>();
+
       final userDoc = await userService.getUserStream(currentUser.uid).first;
       final userData = userDoc.data() as Map<String, dynamic>?;
 
-      final members = await context
-          .read<FamilyMemberRepository>()
+      final members = await memberRepo
           .getFamilyMembers(familyId)
           .timeout(const Duration(seconds: 5));
 
       if (!mounted) return;
 
-      final items = await context
-          .read<ItemRepository>()
-          .getItems(familyId)
-          .timeout(const Duration(seconds: 5));
+      final items =
+          await itemRepo.getItems(familyId).timeout(const Duration(seconds: 5));
 
       if (!mounted) return;
 
@@ -114,7 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.all(8.0),
                 child: GestureDetector(
                   onTap: () {
-                    context.read<NavigationProvider>().setIndex(4);
+                    context.push('/profile');
                   },
                   child: CircleAvatar(
                     backgroundImage: NetworkImage(_userPhotoURL!),
@@ -305,7 +304,7 @@ class _HomeScreenState extends State<HomeScreen> {
         final age = DateTime.now().difference(member.birthdate).inDays ~/ 365;
 
         // Get clothing size
-        final size = member.clothingSize?.toString() ?? 'N/A';
+        final size = member.clothingSize ?? 'N/A';
 
         // Calculate item count for this member
         final itemCount =
@@ -469,7 +468,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: _buildItemCard(
               context,
               item.title,
-              '${AppLocalizations.of(context)!.home_member_size(item.size)} • ${item.gender}',
+              '${AppLocalizations.of(context)!.home_member_size(item.size)} • ${item.gender.toDisplayString(context)}',
               AppLocalizations.of(context)!.home_item_storage, // Placeholder
               item.photos.isNotEmpty
                   ? item.photos.first['thumb'] ??

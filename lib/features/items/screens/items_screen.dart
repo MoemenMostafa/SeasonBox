@@ -17,6 +17,7 @@ import 'package:seasonbox/widgets/skeleton_container.dart';
 import 'package:seasonbox/widgets/image_gallery_viewer.dart';
 import 'package:seasonbox/core/services/permission_service.dart';
 import 'package:seasonbox/data/services/posthog_service.dart';
+import 'package:seasonbox/core/enums/gender.dart';
 
 class ItemsScreen extends StatefulWidget {
   final String? initialMemberId;
@@ -105,7 +106,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
           name: 'Me',
           role: familyId == userId ? 'admin' : 'member', // Owner is admin
           birthdate: DateTime.now(),
-          gender: 'Unisex',
+          gender: Gender.unisex,
         ),
       );
 
@@ -550,7 +551,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
               familyId: '',
               name: 'Unknown',
               birthdate: DateTime.now(),
-              gender: 'Unisex',
+              gender: Gender.unisex,
             ),
           )
         : null;
@@ -640,8 +641,8 @@ class _ItemsScreenState extends State<ItemsScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      AppLocalizations.of(context)!
-                          .items_sizeLabel(item.size, item.gender),
+                      AppLocalizations.of(context)!.items_sizeLabel(
+                          item.size, item.gender.toDisplayString(context)),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: isDark
                             ? Colors.grey.shade400

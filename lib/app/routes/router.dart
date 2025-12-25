@@ -16,6 +16,7 @@ import 'package:seasonbox/data/models/storage_location.dart';
 import 'package:seasonbox/features/qr_scanner/screens/qr_scanner_screen.dart';
 import 'package:seasonbox/features/notifications/screens/notifications_screen.dart';
 import 'package:seasonbox/features/members/screens/growth_chart_screen.dart';
+import 'package:seasonbox/features/profile/presentation/screens/profile_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -98,6 +99,8 @@ class AppRouter {
           path: '/growth-chart',
           builder: (context, state) =>
               GrowthChartScreen(member: state.extra as FamilyMember)),
+      GoRoute(
+          path: '/profile', builder: (context, state) => const ProfileScreen()),
     ],
   );
 }

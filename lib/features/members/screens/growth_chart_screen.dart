@@ -137,9 +137,10 @@ class _GrowthChartScreenState extends State<GrowthChartScreen> {
   LineChartData _buildChartData(ThemeData theme, AppLocalizations l10n) {
     final currentAgeMonths =
         DateTime.now().difference(widget.member.birthdate).inDays / 30.0;
-    final currentSize = _showClothes
-        ? (widget.member.clothingSize ?? 0.0)
-        : (widget.member.shoeSize ?? 0.0);
+    final currentSize = double.tryParse(_showClothes
+            ? (widget.member.clothingSize ?? '0.0')
+            : (widget.member.shoeSize ?? '0.0')) ??
+        0.0;
 
     final system = _measurementSystem == 'metric'
         ? MeasurementSystem.metric
@@ -317,9 +318,10 @@ class _GrowthChartScreenState extends State<GrowthChartScreen> {
                           .difference(widget.member.birthdate)
                           .inDays /
                       30.0;
-                  final size = _showClothes
-                      ? (widget.member.clothingSize ?? 0.0)
-                      : (widget.member.shoeSize ?? 0.0);
+                  final sizeStr = _showClothes
+                      ? widget.member.clothingSize
+                      : widget.member.shoeSize;
+                  final size = double.tryParse(sizeStr ?? '0.0') ?? 0.0;
                   final system = _measurementSystem == 'metric'
                       ? MeasurementSystem.metric
                       : MeasurementSystem.imperial;
