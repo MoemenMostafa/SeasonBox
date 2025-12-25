@@ -312,11 +312,37 @@ class _GrowthChartScreenState extends State<GrowthChartScreen> {
                       ?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  l10n.members_growthChart_insight(
-                      widget.member.name, 6), // TODO: Calculate actual months
-                  style: theme.textTheme.bodySmall,
-                ),
+                Builder(builder: (context) {
+                  final ageMonths = DateTime.now()
+                          .difference(widget.member.birthdate)
+                          .inDays /
+                      30.0;
+                  final size = _showClothes
+                      ? (widget.member.clothingSize ?? 0.0)
+                      : (widget.member.shoeSize ?? 0.0);
+                  final system = _measurementSystem == 'metric'
+                      ? MeasurementSystem.metric
+                      : MeasurementSystem.imperial;
+
+                  final monthsUntilNext =
+                      GrowthPredictionService.calculateMonthsUntilNextSize(
+                    currentAgeMonths: ageMonths,
+                    currentSize: size,
+                    category: _showClothes ? 'clothes' : 'shoes',
+                    system: system,
+                    gender: widget.member.gender,
+                  );
+
+                  final message = (monthsUntilNext == 0 && size > 0)
+                      ? l10n.members_growthChart_noGrowth(widget.member.name)
+                      : l10n.members_growthChart_insight(
+                          widget.member.name, monthsUntilNext);
+
+                  return Text(
+                    message,
+                    style: theme.textTheme.bodySmall,
+                  );
+                }),
               ],
             ),
           ),

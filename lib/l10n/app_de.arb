@@ -331,6 +331,14 @@
       }
     }
   },
+  "members_growthChart_noGrowth": "In den nächsten 12 Monaten wird für {name} kein Wachstum erwartet.",
+  "@members_growthChart_noGrowth": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "members_tooltipEdit": "Bearbeiten",
 
   "items_title": "Artikel",

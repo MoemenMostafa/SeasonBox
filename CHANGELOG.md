@@ -1,6 +1,15 @@
 # Changelog
 
-## 1.1.21+26
+## 1.2.1+27
+- **Authentication & Security**:
+    - **Optimized Google Login**: Improved family linking logic to skip redundant Cloud Function calls for previously linked users.
+    - **Comprehensive Test Suite**: Implemented a robust authentication flow test suite covering Google Login, Email Registration, Family Join/Leave, and Biometric authentication.
+- **Growth Chart & Localization**:
+    - **"No Growth" Insights**: Added intelligent growth insights for cases where no significant growth is expected (e.g., reached max growth age).
+    - **Expanded Localization**: Fully localized the new growth insights across English, French, Spanish, German, and Italian.
+    - **Prediction Refinement**: Updated shoe size prediction models to reflect gender-specific maximum growth ages and EU growth patterns.
+
+## 1.2.0+26
 - **Item Tagging & Search**:
     - **Tag Management**: Added ability to add custom tags (up to 5) to items with autocomplete and frequency-based suggestions.
     - **Advanced Search**: Implemented a search bar in the Items list that filters by title, category, and tags.

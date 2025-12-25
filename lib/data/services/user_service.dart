@@ -19,6 +19,27 @@ class UserService {
 
   Future<void> createUserAndLinkFamily(User firebaseUser,
       {String? familyId, String? inviteCode}) async {
+    // Optimization: Check if user already exists and is linked
+    // If inviteCode is null, we can skip the Cloud Function if the user is already linked.
+    if (inviteCode == null) {
+      try {
+        final userDoc =
+            await _firestoreService.users.doc(firebaseUser.uid).get();
+        if (userDoc.exists) {
+          final data = userDoc.data() as Map<String, dynamic>?;
+          if (data != null && data['familyId'] != null) {
+            PostHogService.log(
+                'User already exists and is linked to family: ${data['familyId']}');
+            return;
+          }
+        }
+      } catch (e) {
+        // Log error but continue to ensure user is created if there's an issue with the check
+        PostHogService.log('Error checking user existence: $e',
+            level: LogLevel.error);
+      }
+    }
+
     // Call Cloud Function instead of client-side Firestore operations
     // This bypasses permission issues by using admin SDK
     final functions = FirebaseFunctions.instance;

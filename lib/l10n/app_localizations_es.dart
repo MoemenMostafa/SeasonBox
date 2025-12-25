@@ -1008,6 +1008,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String members_growthChart_noGrowth(String name) {
+    return 'No se espera crecimiento en los próximos 12 meses para $name.';
+  }
+
+  @override
   String get members_tooltipEdit => 'Editar';
 
   @override

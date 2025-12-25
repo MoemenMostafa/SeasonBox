@@ -504,6 +504,14 @@
       }
     }
   },
+  "members_growthChart_noGrowth": "There is no expected growth in the coming 12 months for {name}.",
+  "@members_growthChart_noGrowth": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "members_tooltipEdit": "Edit",
 
   "items_title": "Items",

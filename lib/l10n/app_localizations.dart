@@ -1898,6 +1898,12 @@ abstract class AppLocalizations {
   /// **'Based on current growth, {name} will likely need a new size in about {months} months.'**
   String members_growthChart_insight(String name, int months);
 
+  /// No description provided for @members_growthChart_noGrowth.
+  ///
+  /// In en, this message translates to:
+  /// **'There is no expected growth in the coming 12 months for {name}.'**
+  String members_growthChart_noGrowth(String name);
+
   /// No description provided for @members_tooltipEdit.
   ///
   /// In en, this message translates to:

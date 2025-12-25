@@ -332,6 +332,14 @@
       }
     }
   },
+  "members_growthChart_noGrowth": "Non è previsto alcun aumento per i prossimi 12 mesi per {name}.",
+  "@members_growthChart_noGrowth": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "members_tooltipEdit": "Modifica",
 
   "items_title": "Articoli",

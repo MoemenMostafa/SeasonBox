@@ -15,6 +15,8 @@ class GrowthPredictionService {
     // 2-5 years: ~1 size every 6-9 months
     // 6+ years: ~1 size every 12 months
 
+    if (currentAgeMonths >= 216) return currentSize; // 18 years
+
     double growthRate; // Sizes per month
     if (currentAgeMonths < 24) {
       growthRate = 1.0 / 4.0;
@@ -47,22 +49,98 @@ class GrowthPredictionService {
     required MeasurementSystem system,
     required String gender,
   }) {
-    // Shoe growth is faster in young children
-    // 0-3 years: ~1.5mm / month (~1 EU size every 4-5 months)
-    // 3-6 years: ~1mm / month (~1 EU size every 6-8 months)
-    // 6+ years: ~0.8mm / month (~1 EU size every 10-12 months)
+    // Refined shoe growth based on EU standards and max growth age
+    // Girls: Foot growth typically stops around 14 years (168 months)
+    // Boys: Foot growth typically stops around 18 years (216 months)
+    final double maxGrowthAge = gender.toLowerCase() == 'male' ? 216.0 : 168.0;
+
+    if (currentAgeMonths >= maxGrowthAge) {
+      return currentSize; // Growth has stopped
+    }
 
     double growthRate; // EU sizes per month
-    if (currentAgeMonths < 36) {
-      growthRate = 1.0 / 4.0;
-    } else if (currentAgeMonths < 72) {
-      growthRate = 1.0 / 7.0;
+    // Rates based on average EU foot growth
+    if (currentAgeMonths < 12) {
+      growthRate = 0.5; // ~0.5 size per month (rapid)
+    } else if (currentAgeMonths < 36) {
+      growthRate = 1.0 / 3.0; // ~1 size every 3 months (3 sizes per year)
+    } else if (currentAgeMonths < 60) {
+      growthRate = 1.0 / 4.0; // ~1 size every 4 months (half size every 2 mos)
+    } else if (currentAgeMonths < 120) {
+      growthRate = 1.0 / 8.0; // ~1 size every 8 months
     } else {
-      growthRate = 1.0 / 11.0;
+      // Approaching max growth, rate slows down further
+      final monthsUntilStop = maxGrowthAge - currentAgeMonths;
+      if (monthsUntilStop <= 0) return currentSize;
+
+      // Slow down to ~1 size every 12-18 months
+      growthRate = 1.0 / 12.0;
+
+      // Ensure we don't exceed a reasonable adult size jump if very close to stop
+      // This is a simplified linear slowdown for the final years
     }
 
     double predictedSize = currentSize + (growthRate * targetMonths);
+
+    // If we passed the max growth age during the prediction window, cap it
+    if (currentAgeMonths + targetMonths > maxGrowthAge) {
+      final double activeMonths = maxGrowthAge - currentAgeMonths;
+      predictedSize = currentSize + (growthRate * activeMonths);
+    }
+
     return predictedSize;
+  }
+
+  /// Calculates the estimated number of months until the next size is needed.
+  static int calculateMonthsUntilNextSize({
+    required double currentAgeMonths,
+    required double currentSize,
+    required String category,
+    required MeasurementSystem system,
+    required String gender,
+  }) {
+    if (currentSize <= 0) return 0;
+
+    // Determine the next "standard" size
+    // For EU: 20 -> 21
+    // For US: 4.5 -> 5.0 (though users might buy 5.5, let's assume +1 size jump)
+    double nextSize = currentSize + 1.0;
+
+    // Use current growth rate to estimate time
+    double growthRate;
+    if (category == 'clothes') {
+      if (currentAgeMonths >= 216) return 0; // 18 years
+
+      if (currentAgeMonths < 24) {
+        growthRate = 1.0 / 4.0;
+      } else if (currentAgeMonths < 60) {
+        growthRate = 1.0 / 8.0;
+      } else {
+        growthRate = 1.0 / 12.0;
+      }
+    } else {
+      // Shoe rates from predictShoeSize logic
+      final double maxGrowthAge =
+          gender.toLowerCase() == 'male' ? 216.0 : 168.0;
+      if (currentAgeMonths >= maxGrowthAge) return 0;
+
+      if (currentAgeMonths < 12) {
+        growthRate = 0.5;
+      } else if (currentAgeMonths < 36) {
+        growthRate = 1.0 / 3.0;
+      } else if (currentAgeMonths < 60) {
+        growthRate = 1.0 / 4.0;
+      } else if (currentAgeMonths < 120) {
+        growthRate = 1.0 / 8.0;
+      } else {
+        growthRate = 1.0 / 12.0;
+      }
+    }
+
+    if (growthRate <= 0) return 0;
+
+    final months = (nextSize - currentSize) / growthRate;
+    return months.round();
   }
 
   /// Converts between systems if needed for display
@@ -85,12 +163,9 @@ class GrowthPredictionService {
   static double convertShoeSize(
       double size, MeasurementSystem from, MeasurementSystem to) {
     if (from == to) return size;
-    // EU to US Child rough conversion: US = (EU * 1.5) - some constant?
-    // Actually EU 20 -> US 4.5
-    // EU 25 -> US 8
-    // EU 30 -> US 12
+    // EU to US Child rough conversion
     if (from == MeasurementSystem.metric && to == MeasurementSystem.imperial) {
-      // Rough: US = EU - 15 (for children's sizes)
+      // Rough: US = EU - 16 (for children's sizes)
       return size - 16;
     } else {
       return size + 16;

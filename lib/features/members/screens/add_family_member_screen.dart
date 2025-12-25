@@ -358,7 +358,7 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _birthdate,
-      firstDate: DateTime(2000),
+      firstDate: DateTime(1900),
       lastDate: DateTime.now(),
     );
     if (picked != null && picked != _birthdate) {
