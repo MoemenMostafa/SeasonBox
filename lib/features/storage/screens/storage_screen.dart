@@ -310,7 +310,18 @@ class _StorageScreenState extends State<StorageScreen> {
               hintText: AppLocalizations.of(context)!.storage_searchHint,
               hintStyle: TextStyle(color: theme.hintColor),
               prefixIcon: Icon(Icons.search, color: theme.iconTheme.color),
-              suffixIcon: Icon(Icons.tune, color: theme.iconTheme.color),
+              suffixIcon: (_searchController.text.isNotEmpty ||
+                      _selectedFilter != 'All')
+                  ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        setState(() {
+                          _searchController.clear();
+                          _selectedFilter = 'All';
+                        });
+                      },
+                    )
+                  : null,
               filled: true,
               fillColor:
                   isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
@@ -367,58 +378,99 @@ class _StorageScreenState extends State<StorageScreen> {
   }
 
   Widget _buildStorageList(ThemeData theme, bool isDark) {
-    // Enhanced filter logic
-    final filteredLocations = _locations.where((l) {
-      // Search filter - check name and description
-      final searchQuery = _searchController.text.toLowerCase();
+    // Hierarchy-aware filtering logic
+    final searchQuery = _searchController.text.toLowerCase();
+    final matchingIds = <String>{};
+    final locationMap = {for (var l in _locations) l.id: l};
+    final childrenMap = <String?, List<String>>{};
+    for (var l in _locations) {
+      childrenMap.putIfAbsent(l.parentId, () => []).add(l.id);
+    }
+
+    // 1. Find direct matches based on search and filters
+    for (var l in _locations) {
       final matchesSearch = searchQuery.isEmpty ||
           l.name.toLowerCase().contains(searchQuery) ||
           l.description.toLowerCase().contains(searchQuery) ||
           l.type.toLowerCase().contains(searchQuery);
 
-      // Type/Location filter
       bool matchesFilter = false;
       if (_selectedFilter == 'All') {
         matchesFilter = true;
       } else if (_selectedFilter == 'Closets') {
         matchesFilter = l.type.toLowerCase() == 'closet';
       } else if (_selectedFilter == 'Basement' || _selectedFilter == 'Attic') {
-        // Check if location name contains the filter term OR if parent location contains it
         final filterTerm = _selectedFilter.toLowerCase();
         final nameMatches = l.name.toLowerCase().contains(filterTerm);
-
-        // Check parent location if it exists
         bool parentMatches = false;
         if (l.parentId != null) {
-          final parent = _locations.firstWhere(
-            (loc) => loc.id == l.parentId,
-            orElse: () => l,
-          );
-          parentMatches = parent.name.toLowerCase().contains(filterTerm);
+          final parent = locationMap[l.parentId];
+          if (parent != null) {
+            parentMatches = parent.name.toLowerCase().contains(filterTerm);
+          }
         }
-
         matchesFilter = nameMatches || parentMatches;
       } else {
-        // For any other custom filters, try to match by name or type
         matchesFilter =
             l.name.toLowerCase().contains(_selectedFilter.toLowerCase()) ||
                 l.type.toLowerCase().contains(_selectedFilter.toLowerCase());
       }
 
-      return matchesSearch && matchesFilter;
-    }).toList();
+      if (matchesSearch && matchesFilter) {
+        matchingIds.add(l.id);
+      }
+    }
+
+    // 2. Expand to include ancestors (to maintain path) and descendants (to show folder contents)
+    final idsToShow = <String>{};
+
+    void addWithAncestors(String id) {
+      if (idsToShow.add(id)) {
+        final parentId = locationMap[id]?.parentId;
+        if (parentId != null) {
+          addWithAncestors(parentId);
+        }
+      }
+    }
+
+    void addWithDescendants(String id) {
+      if (idsToShow.add(id)) {
+        final children = childrenMap[id] ?? [];
+        for (var childId in children) {
+          addWithDescendants(childId);
+        }
+      }
+    }
+
+    for (var id in matchingIds) {
+      addWithAncestors(id);
+      // When searching specifically or filtering, show the contents of the matching location
+      if (searchQuery.isNotEmpty || _selectedFilter != 'All') {
+        addWithDescendants(id);
+      }
+    }
+
+    final filteredLocations =
+        _locations.where((l) => idsToShow.contains(l.id)).toList();
+
+    // Sort alphabetically by name
+    filteredLocations
+        .sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
     // Enhanced hierarchical grouping logic
     Map<String?, List<StorageLocation>> groupedLocations = {};
     for (var location in filteredLocations) {
       final parentId = location.parentId;
+      // Crucial: if the parent isn't in filteredLocations (shouldn't happen with our logic,
+      // but good for safety), treat it as top-level if we want to show it.
+      // Actually, our addWithAncestors ensures parent is always there.
       if (!groupedLocations.containsKey(parentId)) {
         groupedLocations[parentId] = [];
       }
       groupedLocations[parentId]!.add(location);
     }
 
-    // Top-level locations (no parent)
+    // Top-level locations (no parent or parent not visible)
     final topLevelLocations = groupedLocations[null] ?? [];
 
     // Build sections
@@ -471,23 +523,11 @@ class _StorageScreenState extends State<StorageScreen> {
   Widget _buildSectionHeader(String title, ThemeData theme) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          Text(
-            AppLocalizations.of(context)!.storage_expandAll,
-            style: TextStyle(
-              color: theme.colorScheme.primary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
+      child: Text(
+        title,
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
@@ -548,6 +588,21 @@ class _StorageScreenState extends State<StorageScreen> {
                     ],
                   ),
                 ),
+                if (PermissionService.canManageStorage(
+                  _currentUserId,
+                  _familyId,
+                  _members,
+                ))
+                  IconButton(
+                    icon: Icon(Icons.add_circle_outline,
+                        size: 20, color: theme.colorScheme.primary),
+                    onPressed: () {
+                      context
+                          .push('/add-storage-location', extra: location.id)
+                          .then((_) => _loadLocations());
+                    },
+                    tooltip: 'Add sub-location',
+                  ),
                 if (childLocations.isNotEmpty)
                   Container(
                     padding: const EdgeInsets.all(8),
@@ -585,6 +640,7 @@ class _StorageScreenState extends State<StorageScreen> {
                 ),
                 const Spacer(),
                 GestureDetector(
+                  behavior: HitTestBehavior.opaque,
                   onTap: () {
                     context.push(
                       '/items',
@@ -593,53 +649,125 @@ class _StorageScreenState extends State<StorageScreen> {
                       },
                     );
                   },
-                  child: Text(
-                    AppLocalizations.of(context)!.storage_viewItems,
-                    style: TextStyle(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    child: Text(
+                      AppLocalizations.of(context)!.storage_viewItems,
+                      style: TextStyle(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
-            // Show child locations if any
+            // Show child locations recursively
             if (childLocations.isNotEmpty) ...[
               const SizedBox(height: 12),
               const Divider(height: 1),
-              const SizedBox(height: 8),
-              ...childLocations.map((child) => Padding(
-                    padding: const EdgeInsets.only(left: 16, top: 8),
-                    child: Row(
-                      children: [
-                        Icon(
-                          _getIconForType(child.type),
-                          size: 16,
-                          color: _getColorForType(child.type),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            child.name,
-                            style: theme.textTheme.bodyMedium,
-                          ),
-                        ),
-                        Text(
-                          child.type,
-                          style: TextStyle(
-                            color: theme.textTheme.bodySmall?.color
-                                ?.withValues(alpha: 0.6),
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )),
+              ...childLocations.map((child) =>
+                  _buildChildLocationItem(child, theme, groupedLocations, 1)),
             ],
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildChildLocationItem(
+    StorageLocation child,
+    ThemeData theme,
+    Map<String?, List<StorageLocation>> groupedLocations,
+    int level,
+  ) {
+    final subChildren = groupedLocations[child.id] ?? [];
+    final canManage = PermissionService.canManageStorage(
+      _currentUserId,
+      _familyId,
+      _members,
+    );
+
+    return Column(
+      children: [
+        InkWell(
+          onTap: canManage
+              ? () {
+                  context
+                      .push('/add-storage-location', extra: child)
+                      .then((_) => _loadLocations());
+                }
+              : null,
+          child: Padding(
+            padding: EdgeInsets.only(left: 16.0 * level, top: 12, bottom: 8),
+            child: Row(
+              children: [
+                Icon(
+                  _getIconForType(child.type),
+                  size: 18,
+                  color: _getColorForType(child.type),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        child.name,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        '${child.type} \u2022 ${AppLocalizations.of(context)!.storage_itemsCount(_getItemCountForLocation(child.id))}',
+                        style: TextStyle(
+                          color: theme.textTheme.bodySmall?.color
+                              ?.withValues(alpha: 0.6),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.inventory_2_outlined,
+                      size: 20,
+                      color: theme.colorScheme.primary.withValues(alpha: 0.8)),
+                  onPressed: () {
+                    context.push(
+                      '/items',
+                      extra: <String, dynamic>{
+                        'initialStorageLocationId': child.id,
+                      },
+                    );
+                  },
+                  tooltip: 'View items',
+                ),
+                if (canManage) ...[
+                  const SizedBox(width: 4),
+                  IconButton(
+                    icon: Icon(Icons.add_circle_outline,
+                        size: 20,
+                        color:
+                            theme.colorScheme.primary.withValues(alpha: 0.8)),
+                    onPressed: () {
+                      context
+                          .push('/add-storage-location', extra: child.id)
+                          .then((_) => _loadLocations());
+                    },
+                    tooltip: 'Add sub-location',
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+        if (subChildren.isNotEmpty)
+          ...subChildren.map((subChild) => _buildChildLocationItem(
+              subChild, theme, groupedLocations, level + 1)),
+      ],
     );
   }
 

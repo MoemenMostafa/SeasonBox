@@ -14,8 +14,10 @@ import 'package:seasonbox/core/services/permission_service.dart';
 
 class AddStorageLocationScreen extends StatefulWidget {
   final StorageLocation? location;
+  final String? initialParentId;
 
-  const AddStorageLocationScreen({super.key, this.location});
+  const AddStorageLocationScreen(
+      {super.key, this.location, this.initialParentId});
 
   @override
   State<AddStorageLocationScreen> createState() =>
@@ -47,6 +49,8 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
       _parentLocationId = widget.location!.parentId;
       // Note: isClimateControlled and isAccessible are not in the model yet
       // If you add them later, initialize them here
+    } else if (widget.initialParentId != null) {
+      _parentLocationId = widget.initialParentId;
     }
   }
 

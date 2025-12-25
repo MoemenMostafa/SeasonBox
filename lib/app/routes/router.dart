@@ -36,8 +36,20 @@ class AppRouter {
               AddFamilyMemberScreen(member: state.extra as FamilyMember?)),
       GoRoute(
           path: '/add-storage-location',
-          builder: (context, state) => AddStorageLocationScreen(
-              location: state.extra as StorageLocation?)),
+          builder: (context, state) {
+            final extra = state.extra;
+            if (extra is StorageLocation) {
+              return AddStorageLocationScreen(location: extra);
+            } else if (extra is String) {
+              return AddStorageLocationScreen(initialParentId: extra);
+            } else if (extra is Map<String, dynamic>) {
+              return AddStorageLocationScreen(
+                location: extra['location'] as StorageLocation?,
+                initialParentId: extra['initialParentId'] as String?,
+              );
+            }
+            return const AddStorageLocationScreen();
+          }),
       GoRoute(
           path: '/add-item',
           builder: (context, state) =>
