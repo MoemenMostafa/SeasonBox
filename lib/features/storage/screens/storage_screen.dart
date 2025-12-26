@@ -168,6 +168,7 @@ class _StorageScreenState extends State<StorageScreen> {
         _members,
       )
           ? SeasonBoxAddButton(
+              heroTag: 'add_storage_fab',
               onPressed: () => context
                   .push('/add-storage-location')
                   .then((_) => _loadLocations()),

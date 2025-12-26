@@ -106,4 +106,46 @@ class Item {
       tags: List<String>.from(map['tags'] ?? []),
     );
   }
+
+  Item copyWith({
+    String? id,
+    String? familyId,
+    String? title,
+    List<Map<String, String>>? photos,
+    String? category,
+    Gender? gender,
+    String? size,
+    Map<String, num>? sizeRange,
+    List<String>? seasonTags,
+    String? storageLocationId,
+    String? memberId,
+    int? quantity,
+    String? notes,
+    DateTime? addedAt,
+    DateTime? lastUsedAt,
+    String? status,
+    List<Map<String, dynamic>>? loanHistory,
+    List<String>? tags,
+  }) {
+    return Item(
+      id: id ?? this.id,
+      familyId: familyId ?? this.familyId,
+      title: title ?? this.title,
+      photos: photos ?? this.photos,
+      category: category ?? this.category,
+      gender: gender ?? this.gender,
+      size: size ?? this.size,
+      sizeRange: sizeRange ?? this.sizeRange,
+      seasonTags: seasonTags ?? this.seasonTags,
+      storageLocationId: storageLocationId ?? this.storageLocationId,
+      memberId: memberId ?? this.memberId,
+      quantity: quantity ?? this.quantity,
+      notes: notes ?? this.notes,
+      addedAt: addedAt ?? this.addedAt,
+      lastUsedAt: lastUsedAt ?? this.lastUsedAt,
+      status: status ?? this.status,
+      loanHistory: loanHistory ?? this.loanHistory,
+      tags: tags ?? this.tags,
+    );
+  }
 }

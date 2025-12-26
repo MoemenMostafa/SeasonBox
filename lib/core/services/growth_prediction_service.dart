@@ -3,6 +3,31 @@ import '../enums/gender.dart';
 enum MeasurementSystem { metric, imperial }
 
 class GrowthPredictionService {
+  static const List<double> _euClothingSizes = [
+    50,
+    56,
+    62,
+    68,
+    74,
+    80,
+    86,
+    92,
+    98,
+    104,
+    110,
+    116,
+    122,
+    128,
+    134,
+    140,
+    146,
+    152,
+    158,
+    164,
+    170,
+    176
+  ];
+
   /// Predicts the size of clothes after [months] from now for a child of [currentAgeMonths].
   /// [currentSize] is the current size in [system].
   static double predictClothingSize({
@@ -12,34 +37,40 @@ class GrowthPredictionService {
     required MeasurementSystem system,
     required Gender gender,
   }) {
-    // Simplified growth model for clothing
-    // 0-24 months: ~1 size every 3-4 months
-    // 2-5 years: ~1 size every 6-9 months
-    // 6+ years: ~1 size every 12 months
-
     if (currentAgeMonths >= 216) return currentSize; // 18 years
 
-    double growthRate; // Sizes per month
-    if (currentAgeMonths < 24) {
-      growthRate = 1.0 / 4.0;
-    } else if (currentAgeMonths < 60) {
-      growthRate = 1.0 / 8.0;
-    } else {
-      growthRate = 1.0 / 12.0;
-    }
-
-    // In Metric (cm), sizes usually jump by 6cm (80, 86, 92...)
-    // In Imperial (Age), sizes jump by 1 year (2T, 3T, 4T...)
-
-    double predictedSize = currentSize + (growthRate * targetMonths);
-
     if (system == MeasurementSystem.metric) {
-      // In metric, we usually round to the nearest standard size (multiple of 6 if cm)
-      // If the current size is something like 92, and it grows, it should hit 98 next.
-      // But let's return the raw double for the chart and let UI handle display rounding if needed.
-      return predictedSize;
+      // Metric logic: EU sizes are heights in cm.
+      // Growth rates in cm per month:
+      // 0-12m: ~2.0 cm/month
+      // 1-2y: ~1.0 cm/month
+      // 2-6y: ~0.7 cm/month
+      // 6-12y: ~0.5 cm/month (steady until puberty)
+      // 12-16y: ~0.4 cm/month (simplified puberty average)
+
+      double totalHeightGrowth = 0;
+      double tempAge = currentAgeMonths;
+
+      for (int i = 0; i < targetMonths; i++) {
+        if (tempAge >= 216) break;
+        totalHeightGrowth += _getHeightGrowthRate(tempAge, gender);
+        tempAge += 1.0;
+      }
+
+      return currentSize + totalHeightGrowth;
     } else {
-      return predictedSize;
+      // Imperial logic: US sizes are ages (2, 3, 4...).
+      // Growth is roughly 1 year-size per 12 months.
+      double growthRate; // Sizes per month
+      if (currentAgeMonths < 24) {
+        growthRate = 1.0 / 4.0; // Rapid growth in infancy
+      } else if (currentAgeMonths < 60) {
+        growthRate = 1.0 / 10.0; // Slightly slower
+      } else {
+        growthRate = 1.0 / 12.0; // 1 year per 12 months
+      }
+
+      return currentSize + (growthRate * targetMonths);
     }
   }
 
@@ -51,46 +82,54 @@ class GrowthPredictionService {
     required MeasurementSystem system,
     required Gender gender,
   }) {
-    // Refined shoe growth based on EU standards and max growth age
-    // Girls: Foot growth typically stops around 14 years (168 months)
-    // Boys: Foot growth typically stops around 18 years (216 months)
-    final double maxGrowthAge = gender == Gender.male ? 216.0 : 168.0;
+    // Refined shoe growth based on provided velocity charts (8-18 years)
+    // Girls: Velocity peaks at ~10.5y (126m), finishes at ~14y (168m)
+    // Boys: Velocity peaks at ~11.5y (138m), finishes at ~16y (192m)
 
-    if (currentAgeMonths >= maxGrowthAge) {
-      return currentSize; // Growth has stopped
+    double totalGrowth = 0;
+    double tempAge = currentAgeMonths;
+
+    for (int i = 0; i < targetMonths; i++) {
+      final double maxGrowthAge = gender == Gender.male ? 192.0 : 168.0;
+
+      if (tempAge >= maxGrowthAge) break;
+
+      double growthRate; // sizes per month
+      if (tempAge < 36) {
+        growthRate = 1.0 / 3.0; // ~1 size every 3 months
+      } else if (tempAge < 96) {
+        // 3-8 years
+        growthRate = 1.0 / 6.0; // ~1 size every 6 months
+      } else {
+        // 8-18 years: Gender-specific non-linear velocity
+        if (gender == Gender.female) {
+          // Girls peak at 126m
+          if (tempAge < 126) {
+            // Accelerating towards peak (rough linear increase from 1/12 to 1/4)
+            growthRate = (1.0 / 12.0) +
+                ((1.0 / 4.0 - 1.0 / 12.0) * (tempAge - 96) / (126 - 96));
+          } else {
+            // Decelerating after peak (1/4 to 0)
+            growthRate = (1.0 / 4.0) * (1 - (tempAge - 126) / (168 - 126));
+          }
+        } else {
+          // Boys peak at 138m
+          if (tempAge < 138) {
+            // Accelerating towards peak (rough linear increase from 1/12 to 1/3)
+            growthRate = (1.0 / 12.0) +
+                ((1.0 / 3.0 - 1.0 / 12.0) * (tempAge - 96) / (138 - 96));
+          } else {
+            // Decelerating after peak (1/3 to 0)
+            growthRate = (1.0 / 3.0) * (1 - (tempAge - 138) / (192 - 138));
+          }
+        }
+      }
+
+      totalGrowth += growthRate;
+      tempAge += 1.0;
     }
 
-    double growthRate; // EU sizes per month
-    // Rates based on average EU foot growth
-    if (currentAgeMonths < 12) {
-      growthRate = 0.5; // ~0.5 size per month (rapid)
-    } else if (currentAgeMonths < 36) {
-      growthRate = 1.0 / 3.0; // ~1 size every 3 months (3 sizes per year)
-    } else if (currentAgeMonths < 60) {
-      growthRate = 1.0 / 4.0; // ~1 size every 4 months (half size every 2 mos)
-    } else if (currentAgeMonths < 120) {
-      growthRate = 1.0 / 8.0; // ~1 size every 8 months
-    } else {
-      // Approaching max growth, rate slows down further
-      final monthsUntilStop = maxGrowthAge - currentAgeMonths;
-      if (monthsUntilStop <= 0) return currentSize;
-
-      // Slow down to ~1 size every 12-18 months
-      growthRate = 1.0 / 12.0;
-
-      // Ensure we don't exceed a reasonable adult size jump if very close to stop
-      // This is a simplified linear slowdown for the final years
-    }
-
-    double predictedSize = currentSize + (growthRate * targetMonths);
-
-    // If we passed the max growth age during the prediction window, cap it
-    if (currentAgeMonths + targetMonths > maxGrowthAge) {
-      final double activeMonths = maxGrowthAge - currentAgeMonths;
-      predictedSize = currentSize + (growthRate * activeMonths);
-    }
-
-    return predictedSize;
+    return currentSize + totalGrowth;
   }
 
   /// Calculates the estimated number of months until the next size is needed.
@@ -103,45 +142,99 @@ class GrowthPredictionService {
   }) {
     if (currentSize <= 0) return 0;
 
-    // Determine the next "standard" size
-    // For EU: 20 -> 21
-    // For US: 4.5 -> 5.0 (though users might buy 5.5, let's assume +1 size jump)
-    double nextSize = currentSize + 1.0;
-
-    // Use current growth rate to estimate time
-    double growthRate;
-    if (category == 'clothes') {
-      if (currentAgeMonths >= 216) return 0; // 18 years
-
-      if (currentAgeMonths < 24) {
-        growthRate = 1.0 / 4.0;
-      } else if (currentAgeMonths < 60) {
-        growthRate = 1.0 / 8.0;
-      } else {
-        growthRate = 1.0 / 12.0;
-      }
+    double targetSize;
+    if (category == 'clothes' && system == MeasurementSystem.metric) {
+      // Find the next EU standard size
+      targetSize = _euClothingSizes.firstWhere(
+        (size) => size > currentSize,
+        orElse: () => currentSize + 6.0, // Default jump if outside range
+      );
     } else {
-      // Shoe rates from predictShoeSize logic
-      final double maxGrowthAge = gender == Gender.male ? 216.0 : 168.0;
-      if (currentAgeMonths >= maxGrowthAge) return 0;
-
-      if (currentAgeMonths < 12) {
-        growthRate = 0.5;
-      } else if (currentAgeMonths < 36) {
-        growthRate = 1.0 / 3.0;
-      } else if (currentAgeMonths < 60) {
-        growthRate = 1.0 / 4.0;
-      } else if (currentAgeMonths < 120) {
-        growthRate = 1.0 / 8.0;
-      } else {
-        growthRate = 1.0 / 12.0;
-      }
+      // Standard increments for shoe or imperial clothing
+      targetSize = currentSize + 1.0;
     }
 
-    if (growthRate <= 0) return 0;
+    int months = 0;
+    double projectedSize = currentSize;
+    double tempAge = currentAgeMonths;
 
-    final months = (nextSize - currentSize) / growthRate;
-    return months.round();
+    // Simulate month by month to find target
+    while (projectedSize < targetSize && months < 60) {
+      // Limit to 5 years prediction
+      double growthRate;
+      if (category == 'clothes') {
+        if (tempAge >= 216) break;
+        if (system == MeasurementSystem.metric) {
+          growthRate = _getHeightGrowthRate(tempAge, gender);
+        } else {
+          if (tempAge < 24) {
+            growthRate = 1.0 / 4.0;
+          } else if (tempAge < 60) {
+            growthRate = 1.0 / 10.0;
+          } else {
+            growthRate = 1.0 / 12.0;
+          }
+        }
+      } else {
+        // Use the same logic as predictShoeSize
+        final double maxGrowthAge = gender == Gender.male ? 192.0 : 168.0;
+        if (tempAge >= maxGrowthAge) break;
+
+        if (tempAge < 36) {
+          growthRate = 1.0 / 3.0;
+        } else if (tempAge < 96) {
+          growthRate = 1.0 / 6.0;
+        } else {
+          if (gender == Gender.female) {
+            if (tempAge < 126) {
+              growthRate = (1.0 / 12.0) +
+                  ((1.0 / 4.0 - 1.0 / 12.0) * (tempAge - 96) / (126 - 96));
+            } else {
+              growthRate = (1.0 / 4.0) * (1 - (tempAge - 126) / (168 - 126));
+            }
+          } else {
+            if (tempAge < 138) {
+              growthRate = (1.0 / 12.0) +
+                  ((1.0 / 3.0 - 1.0 / 12.0) * (tempAge - 96) / (138 - 96));
+            } else {
+              growthRate = (1.0 / 3.0) * (1 - (tempAge - 138) / (192 - 138));
+            }
+          }
+        }
+      }
+
+      if (growthRate <= 0) break;
+      projectedSize += growthRate;
+      tempAge += 1.0;
+      months++;
+    }
+
+    return months;
+  }
+
+  static double _getHeightGrowthRate(double ageMonths, Gender gender) {
+    if (ageMonths < 12) return 2.0;
+    if (ageMonths < 24) return 1.0;
+    if (ageMonths < 60) return 0.7; // < 5 years
+
+    // WHO 5-19y Reference approximations
+    if (gender == Gender.male) {
+      // Boys
+      if (ageMonths < 120) return 0.5; // 5-10y
+      if (ageMonths < 156) return 0.65; // 10-13y
+      if (ageMonths < 180) return 0.8; // 13-15y (Peak spurt)
+      if (ageMonths < 204) return 0.3; // 15-17y
+      if (ageMonths < 216) return 0.1; // 17-18y
+      return 0.0;
+    } else {
+      // Girls
+      if (ageMonths < 108) return 0.5; // 5-9y
+      if (ageMonths < 132) return 0.65; // 9-11y
+      if (ageMonths < 156) return 0.7; // 11-13y (Peak spurt)
+      if (ageMonths < 180) return 0.2; // 13-15y
+      if (ageMonths < 216) return 0.05; // 15-18y
+      return 0.0;
+    }
   }
 
   /// Converts between systems if needed for display

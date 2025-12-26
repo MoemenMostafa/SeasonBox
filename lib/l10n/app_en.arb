@@ -64,7 +64,8 @@
   },
   "home_stats_totalItems": "Total Items",
   "home_stats_members": "Members",
-  "home_search_hint": "Search items, locations...",
+  "home_search_hint": "Search tiles, sizes, or #tag",
+  "home_search_hint_revamped": "Search by title, size, or #tag",
   "home_section_quickActions": "Quick Actions",
   "home_section_familyMembers": "Family Members",
   "home_section_recentItems": "Recent Items",
@@ -238,6 +239,8 @@
   "profile_setting_biometricLoginSubtitle": "Enable Face ID / Touch ID",
   "profile_setting_language": "Language",
   "profile_setting_languageSubtitle": "Change app language",
+  "profile_setting_statusTracking": "Enable Status Tracking",
+  "profile_setting_statusTrackingSubtitle": "Track if items are in use or stored",
   "profile_data_exportData": "Export Data",
   "profile_data_exportDataSubtitle": "Download your information",
   "profile_data_backupData": "Backup Data",
@@ -313,7 +316,9 @@
   "addMember_field_gender": "Gender",
   "addMember_field_birthdate": "Birth Date",
   "addMember_field_birthdateHint": "mm/dd/yyyy",
+  "addMember_field_birthdate_explanation": "Birthdate is used to calculate age and provide age-specific growth predictions.",
   "addMember_section_sizes": "Current Sizes",
+  "addMember_section_sizes_explanation": "Current sizes are used as a baseline to predict future sizes based on growth patterns.",
   "addMember_field_clothingSize": "Clothing Size",
   "addMember_field_clothingSizeHint": "e.g. 110 (cm) or 5 (age)",
   "addMember_field_shoeSize": "Shoe Size",
@@ -470,6 +475,13 @@
       "age": {"type": "int"}
     }
   },
+  "members_birthdate_notSet": "Birthdate not set",
+  "members_dialog_birthdateRequired_title": "Birthdate Required",
+  "members_dialog_birthdateRequired_message": "A birthdate is needed to calculate the member's age and provide accurate growth predictions and milestones on the charts.",
+  "members_dialog_birthdateRequired_button": "Set Birthdate",
+  "members_dialog_sizeRequired_title": "Size Information Required",
+  "members_dialog_sizeRequired_message": "Current clothing or shoe sizes are required as a baseline to predict future sizes based on growth patterns.",
+  "members_dialog_sizeRequired_button": "Set Sizes",
   "members_born": "Born: {date}",
   "@members_born": {
     "placeholders": {
@@ -504,7 +516,7 @@
       }
     }
   },
-  "members_growthChart_noGrowth": "There is no expected growth in the coming 12 months for {name}.",
+  "members_growthChart_noGrowth": "{name} has reached physical maturity. Standard growth generally concludes after age 18.",
   "@members_growthChart_noGrowth": {
     "placeholders": {
       "name": {
@@ -512,6 +524,7 @@
       }
     }
   },
+  "members_growthChart_reference": "Growth models are based on the World Health Organization (WHO) Child Growth Standards.",
   "members_tooltipEdit": "Edit",
 
   "items_title": "Items",
@@ -539,6 +552,12 @@
   "items_filterShoes": "Shoes",
   "items_filterAccessories": "Accessories",
   "items_sizeLabel": "Size {size} • {gender}",
+  "items_filter_title": "Filters",
+  "items_filter_category": "Category",
+  "items_filter_gender": "Gender",
+  "items_filter_status": "Status",
+  "items_filter_member": "Member",
+  "items_filter_active": "Active Filters",
   "@items_sizeLabel": {
     "placeholders": {
       "size": {"type": "String"},

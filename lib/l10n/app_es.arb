@@ -43,7 +43,8 @@
   },
   "home_stats_totalItems": "Artículos Totales",
   "home_stats_members": "Miembros",
-  "home_search_hint": "Buscar artículos, ubicaciones...",
+  "home_search_hint": "Buscar artículos, ubicaciones o #etiqueta",
+  "home_search_hint_revamped": "Buscar por título, talla o #etiqueta",
   "home_section_quickActions": "Acciones Rápidas",
   "home_section_familyMembers": "Miembros de la Familia",
   "home_section_recentItems": "Artículos Recientes",
@@ -140,6 +141,8 @@
   "profile_setting_biometricLoginSubtitle": "Activar Face ID / Touch ID",
   "profile_setting_language": "Idioma",
   "profile_setting_languageSubtitle": "Cambiar idioma de la app",
+  "profile_setting_statusTracking": "Activar seguimiento de estado",
+  "profile_setting_statusTrackingSubtitle": "Saber si los artículos están en uso o almacenados",
   "profile_data_exportData": "Exportar Datos",
   "profile_data_exportDataSubtitle": "Descargar tu información",
   "profile_data_backupData": "Respaldar Datos",
@@ -198,7 +201,9 @@
   "addMember_field_gender": "Género",
   "addMember_field_birthdate": "Fecha de Nacimiento",
   "addMember_field_birthdateHint": "dd/mm/aaaa",
+  "addMember_field_birthdate_explanation": "La fecha de nacimiento se utiliza para calcular la edad y proporcionar predicciones de crecimiento específicas para la edad.",
   "addMember_section_sizes": "Tallas Actuales",
+  "addMember_section_sizes_explanation": "Las tallas actuales se utilizan como base para predecir tallas futuras basadas en patrones de crecimiento.",
   "addMember_field_clothingSize": "Talla de Ropa",
   "addMember_field_clothingSizeHint": "ej. 110 (cm) o 5 (edad)",
   "addMember_field_shoeSize": "Talla de Zapato",
@@ -312,6 +317,13 @@
   "members_summaryTotalItems": "Artículos Totales",
   "members_summaryNeedCheck": "Necesitan Revisión",
   "members_ageYears": "{age} años",
+  "members_birthdate_notSet": "Fecha de nacimiento no establecida",
+  "members_dialog_birthdateRequired_title": "Fecha de nacimiento requerida",
+  "members_dialog_birthdateRequired_message": "Se necesita una fecha de nacimiento para calcular la edad del miembro y proporcionar predicciones de crecimiento y hitos precisos en los gráficos.",
+  "members_dialog_birthdateRequired_button": "Establecer fecha de nacimiento",
+  "members_dialog_sizeRequired_title": "Información de talla requerida",
+  "members_dialog_sizeRequired_message": "Las tallas actuales de ropa o calzado son necesarias como base para predecir tallas futuras basadas en patrones de crecimiento.",
+  "members_dialog_sizeRequired_button": "Establecer tallas",
   "members_born": "Nacido: {date}",
   "members_clothes": "Ropa: {size}",
   "members_shoes": "Zapatos: {size}",
@@ -331,7 +343,7 @@
       }
     }
   },
-  "members_growthChart_noGrowth": "No se espera crecimiento en los próximos 12 meses para {name}.",
+  "members_growthChart_noGrowth": "{name} ha alcanzado la madurez física. El crecimiento estándar generalmente concluye después de los 18 años.",
   "@members_growthChart_noGrowth": {
     "placeholders": {
       "name": {
@@ -339,6 +351,7 @@
       }
     }
   },
+  "members_growthChart_reference": "Los modelos de crecimiento se basan en los Estándares de Crecimiento Infantil de la Organización Mundial de la Salud (OMS).",
   "members_tooltipEdit": "Editar",
 
   "items_title": "Artículos",
@@ -355,6 +368,12 @@
   "items_filterShoes": "Zapatos",
   "items_filterAccessories": "Accesorios",
   "items_sizeLabel": "Talla {size} • {gender}",
+  "items_filter_title": "Filtros",
+  "items_filter_category": "Categoría",
+  "items_filter_gender": "Género",
+  "items_filter_status": "Estado",
+  "items_filter_member": "Miembro",
+  "items_filter_active": "Filtros activos",
   "items_noSeasonTags": "Sin etiquetas de temporada",
   "items_quantity": "Cantidad: {count}",
   "items_statusInUse": "En Uso",

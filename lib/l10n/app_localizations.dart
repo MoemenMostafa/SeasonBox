@@ -299,8 +299,14 @@ abstract class AppLocalizations {
   /// No description provided for @home_search_hint.
   ///
   /// In en, this message translates to:
-  /// **'Search items, locations...'**
+  /// **'Search tiles, sizes, or #tag'**
   String get home_search_hint;
+
+  /// No description provided for @home_search_hint_revamped.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by title, size, or #tag'**
+  String get home_search_hint_revamped;
 
   /// No description provided for @home_section_quickActions.
   ///
@@ -866,6 +872,18 @@ abstract class AppLocalizations {
   /// **'Change app language'**
   String get profile_setting_languageSubtitle;
 
+  /// No description provided for @profile_setting_statusTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Status Tracking'**
+  String get profile_setting_statusTracking;
+
+  /// No description provided for @profile_setting_statusTrackingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Track if items are in use or stored'**
+  String get profile_setting_statusTrackingSubtitle;
+
   /// No description provided for @profile_data_exportData.
   ///
   /// In en, this message translates to:
@@ -1196,11 +1214,23 @@ abstract class AppLocalizations {
   /// **'mm/dd/yyyy'**
   String get addMember_field_birthdateHint;
 
+  /// No description provided for @addMember_field_birthdate_explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Birthdate is used to calculate age and provide age-specific growth predictions.'**
+  String get addMember_field_birthdate_explanation;
+
   /// No description provided for @addMember_section_sizes.
   ///
   /// In en, this message translates to:
   /// **'Current Sizes'**
   String get addMember_section_sizes;
+
+  /// No description provided for @addMember_section_sizes_explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Current sizes are used as a baseline to predict future sizes based on growth patterns.'**
+  String get addMember_section_sizes_explanation;
 
   /// No description provided for @addMember_field_clothingSize.
   ///
@@ -1844,6 +1874,48 @@ abstract class AppLocalizations {
   /// **'{age} years'**
   String members_ageYears(int age);
 
+  /// No description provided for @members_birthdate_notSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Birthdate not set'**
+  String get members_birthdate_notSet;
+
+  /// No description provided for @members_dialog_birthdateRequired_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Birthdate Required'**
+  String get members_dialog_birthdateRequired_title;
+
+  /// No description provided for @members_dialog_birthdateRequired_message.
+  ///
+  /// In en, this message translates to:
+  /// **'A birthdate is needed to calculate the member\'s age and provide accurate growth predictions and milestones on the charts.'**
+  String get members_dialog_birthdateRequired_message;
+
+  /// No description provided for @members_dialog_birthdateRequired_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Birthdate'**
+  String get members_dialog_birthdateRequired_button;
+
+  /// No description provided for @members_dialog_sizeRequired_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Size Information Required'**
+  String get members_dialog_sizeRequired_title;
+
+  /// No description provided for @members_dialog_sizeRequired_message.
+  ///
+  /// In en, this message translates to:
+  /// **'Current clothing or shoe sizes are required as a baseline to predict future sizes based on growth patterns.'**
+  String get members_dialog_sizeRequired_message;
+
+  /// No description provided for @members_dialog_sizeRequired_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Sizes'**
+  String get members_dialog_sizeRequired_button;
+
   /// No description provided for @members_born.
   ///
   /// In en, this message translates to:
@@ -1901,8 +1973,14 @@ abstract class AppLocalizations {
   /// No description provided for @members_growthChart_noGrowth.
   ///
   /// In en, this message translates to:
-  /// **'There is no expected growth in the coming 12 months for {name}.'**
+  /// **'{name} has reached physical maturity. Standard growth generally concludes after age 18.'**
   String members_growthChart_noGrowth(String name);
+
+  /// No description provided for @members_growthChart_reference.
+  ///
+  /// In en, this message translates to:
+  /// **'Growth models are based on the World Health Organization (WHO) Child Growth Standards.'**
+  String get members_growthChart_reference;
 
   /// No description provided for @members_tooltipEdit.
   ///
@@ -1993,6 +2071,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Size {size} • {gender}'**
   String items_sizeLabel(String size, String gender);
+
+  /// No description provided for @items_filter_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get items_filter_title;
+
+  /// No description provided for @items_filter_category.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get items_filter_category;
+
+  /// No description provided for @items_filter_gender.
+  ///
+  /// In en, this message translates to:
+  /// **'Gender'**
+  String get items_filter_gender;
+
+  /// No description provided for @items_filter_status.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get items_filter_status;
+
+  /// No description provided for @items_filter_member.
+  ///
+  /// In en, this message translates to:
+  /// **'Member'**
+  String get items_filter_member;
+
+  /// No description provided for @items_filter_active.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Filters'**
+  String get items_filter_active;
 
   /// No description provided for @items_noSeasonTags.
   ///

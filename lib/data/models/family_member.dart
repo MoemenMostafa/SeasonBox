@@ -8,7 +8,7 @@ class FamilyMember {
       userId; // Firebase Auth UID - links member to authenticated user
   final String familyId;
   final String name;
-  final DateTime birthdate;
+  final DateTime? birthdate;
   final Gender gender;
   final String? clothingSize;
   final String? shoeSize;
@@ -26,7 +26,7 @@ class FamilyMember {
     this.userId,
     required this.familyId,
     required this.name,
-    required this.birthdate,
+    this.birthdate,
     required this.gender,
     this.clothingSize,
     this.shoeSize,
@@ -45,7 +45,7 @@ class FamilyMember {
       'userId': userId,
       'familyId': familyId,
       'name': name,
-      'birthdate': Timestamp.fromDate(birthdate),
+      'birthdate': birthdate != null ? Timestamp.fromDate(birthdate!) : null,
       'gender': gender.toFirestore(),
       'clothingSize': clothingSize,
       'shoeSize': shoeSize,
@@ -67,7 +67,9 @@ class FamilyMember {
       userId: map['userId'],
       familyId: map['familyId'] ?? '',
       name: map['name'] ?? '',
-      birthdate: (map['birthdate'] as Timestamp).toDate(),
+      birthdate: map['birthdate'] != null
+          ? (map['birthdate'] as Timestamp).toDate()
+          : null,
       gender: Gender.fromFirestore(map['gender']),
       clothingSize: map['clothingSize']?.toString(),
       shoeSize: map['shoeSize']?.toString(),

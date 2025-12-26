@@ -12,12 +12,12 @@ import 'package:seasonbox/widgets/season_box_app_bar.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
 import 'package:seasonbox/widgets/app_card.dart';
 import 'package:seasonbox/widgets/season_box_add_button.dart';
-import 'package:seasonbox/widgets/season_box_filter_chip.dart';
-import 'package:seasonbox/widgets/skeleton_container.dart';
+
 import 'package:seasonbox/widgets/image_gallery_viewer.dart';
 import 'package:seasonbox/core/services/permission_service.dart';
 import 'package:seasonbox/data/services/posthog_service.dart';
 import 'package:seasonbox/core/enums/gender.dart';
+import 'package:seasonbox/app/providers/user_profile_provider.dart';
 
 class ItemsScreen extends StatefulWidget {
   final String? initialMemberId;
@@ -35,10 +35,11 @@ class _ItemsScreenState extends State<ItemsScreen> {
   List<StorageLocation> _locations = [];
   List<FamilyMember> _members = [];
   bool _isLoading = true;
-  String _selectedFilter = 'All Items';
   String? _selectedCategory;
   String? _selectedMemberId;
   String? _selectedStorageLocationId;
+  Gender? _selectedGender;
+  String? _selectedStatus; // 'In Use', 'Stored'
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -145,6 +146,9 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
   List<Item> get _filteredItems {
     final query = _searchController.text.toLowerCase().trim();
+    final userProfile = context.read<UserProfileProvider>();
+    final statusTrackingEnabled = userProfile.statusTrackingEnabled;
+
     return _items.where((item) {
       // Member filter
       bool matchesMemberFilter =
@@ -154,44 +158,360 @@ class _ItemsScreenState extends State<ItemsScreen> {
       bool matchesStorageFilter = _selectedStorageLocationId == null ||
           item.storageLocationId == _selectedStorageLocationId;
 
-      // Status/Season filter
-      bool matchesStatusFilter = _selectedFilter == 'All Items' ||
-          (_selectedFilter == 'In Use' &&
-              item.status.toLowerCase() == 'in use') ||
-          (_selectedFilter == 'Stored' &&
-              item.status.toLowerCase() == 'stored') ||
-          (_selectedFilter == 'Winter' &&
-              item.seasonTags
-                  .any((tag) => tag.toLowerCase().contains('winter'))) ||
-          (_selectedFilter == 'Summer' &&
-              item.seasonTags
-                  .any((tag) => tag.toLowerCase().contains('summer')));
+      // Gender filter
+      bool matchesGenderFilter =
+          _selectedGender == null || item.gender == _selectedGender;
+
+      // Status filter (only if enabled)
+      bool matchesStatusFilter = true;
+      if (statusTrackingEnabled && _selectedStatus != null) {
+        matchesStatusFilter =
+            item.status.toLowerCase() == _selectedStatus!.toLowerCase();
+      }
 
       // Category filter
       bool matchesCategoryFilter = _selectedCategory == null ||
           item.category.toLowerCase() == _selectedCategory!.toLowerCase();
 
-      // Search filter (title, category, tags)
+      // Search filter (title, category, tags, size)
       bool matchesSearch = query.isEmpty ||
           item.title.toLowerCase().contains(query) ||
           item.category.toLowerCase().contains(query) ||
-          item.tags.any((tag) => tag.toLowerCase().contains(query));
+          item.tags.any((tag) => tag.toLowerCase().contains(query)) ||
+          _isSizeMatch(item, query);
 
       return matchesMemberFilter &&
           matchesStorageFilter &&
+          matchesGenderFilter &&
           matchesStatusFilter &&
           matchesCategoryFilter &&
           matchesSearch;
     }).toList();
   }
 
+  bool _isSizeMatch(Item item, String query) {
+    if (query.isEmpty) return false;
+
+    final lowerQuery = query.toLowerCase();
+
+    // 1. Exact or partial string match on item.size (e.g., "M", "92", "EU 92")
+    if (item.size.toLowerCase().contains(lowerQuery)) return true;
+
+    // 2. Parse query for numeric values/ranges
+    final numberRegex = RegExp(r'(\d+([\.,]\d+)?)');
+    final queryMatches = numberRegex.allMatches(query).toList();
+
+    if (queryMatches.isNotEmpty) {
+      // Get item's numeric range
+      double itemMin;
+      double itemMax;
+
+      if (item.sizeRange != null) {
+        itemMin = (item.sizeRange!['min'] ?? 0.0).toDouble();
+        itemMax = (item.sizeRange!['max'] ?? 0.0).toDouble();
+      } else {
+        // Try to extract numbers from item.size if sizeRange is missing
+        final itemMatches = numberRegex.allMatches(item.size).toList();
+        if (itemMatches.isEmpty) return false; // No numbers in item size
+
+        if (itemMatches.length == 1) {
+          itemMin = itemMax =
+              double.tryParse(itemMatches[0].group(0)!.replaceAll(',', '.')) ??
+                  -1.0;
+        } else {
+          itemMin =
+              double.tryParse(itemMatches[0].group(0)!.replaceAll(',', '.')) ??
+                  -1.0;
+          itemMax =
+              double.tryParse(itemMatches[1].group(0)!.replaceAll(',', '.')) ??
+                  -1.0;
+        }
+      }
+
+      if (itemMin == -1.0) return false;
+
+      // Handle query
+      if (queryMatches.length == 1) {
+        // Single number query: check if it fits in item's range
+        final qNum =
+            double.tryParse(queryMatches[0].group(0)!.replaceAll(',', '.')) ??
+                -1.0;
+        return qNum >= itemMin && qNum <= itemMax;
+      } else {
+        // Range query: check for overlap
+        final qMin =
+            double.tryParse(queryMatches[0].group(0)!.replaceAll(',', '.')) ??
+                -1.0;
+        final qMax =
+            double.tryParse(queryMatches[1].group(0)!.replaceAll(',', '.')) ??
+                -1.0;
+
+        if (qMin == -1.0 || qMax == -1.0) return false;
+
+        // Overlap if: max(min1, min2) <= min(max1, max2)
+        final overlapMin = qMin > itemMin ? qMin : itemMin;
+        final overlapMax = qMax < itemMax ? qMax : itemMax;
+        return overlapMin <= overlapMax;
+      }
+    }
+
+    return false;
+  }
+
   void _clearAllFilters() {
     setState(() {
-      _selectedFilter = 'All Items';
       _selectedCategory = null;
       _selectedMemberId = null;
       _selectedStorageLocationId = null;
+      _selectedGender = null;
+      _selectedStatus = null;
     });
+  }
+
+  Widget _buildFilterButton(ThemeData theme) {
+    bool hasActiveFilters = _selectedCategory != null ||
+        _selectedMemberId != null ||
+        _selectedGender != null ||
+        _selectedStatus != null;
+
+    return GestureDetector(
+      onTap: () => _showFilterBottomSheet(context),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: hasActiveFilters
+              ? theme.colorScheme.primary
+              : theme.colorScheme.primary.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.filter_list,
+              size: 20,
+              color:
+                  hasActiveFilters ? Colors.white : theme.colorScheme.primary,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              AppLocalizations.of(context)!.items_filter_title,
+              style: TextStyle(
+                color:
+                    hasActiveFilters ? Colors.white : theme.colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildActiveFilterChips(BuildContext context) {
+    final chips = <Widget>[];
+
+    if (_selectedCategory != null) {
+      chips.add(_buildActiveChip(context, _selectedCategory!, () {
+        setState(() => _selectedCategory = null);
+      }));
+    }
+
+    if (_selectedGender != null) {
+      chips.add(_buildActiveChip(
+          context, _selectedGender!.toDisplayString(context), () {
+        setState(() => _selectedGender = null);
+      }));
+    }
+
+    if (_selectedStatus != null) {
+      chips.add(_buildActiveChip(context, _selectedStatus!, () {
+        setState(() => _selectedStatus = null);
+      }));
+    }
+
+    if (_selectedMemberId != null) {
+      final member = _members.firstWhere((m) => m.id == _selectedMemberId,
+          orElse: () => FamilyMember(
+              id: '',
+              familyId: '',
+              name: 'Unknown',
+              birthdate: DateTime.now(),
+              gender: Gender.unisex));
+      chips.add(_buildActiveChip(context, member.name, () {
+        setState(() => _selectedMemberId = null);
+      }));
+    }
+
+    return chips;
+  }
+
+  Widget _buildActiveChip(
+      BuildContext context, String label, VoidCallback onDelete) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: Chip(
+        label: Text(label, style: const TextStyle(fontSize: 12)),
+        onDeleted: onDelete,
+        deleteIcon: const Icon(Icons.close, size: 14),
+        backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.05),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        side:
+            BorderSide(color: theme.colorScheme.primary.withValues(alpha: 0.2)),
+        padding: EdgeInsets.zero,
+        labelPadding: const EdgeInsets.symmetric(horizontal: 8),
+      ),
+    );
+  }
+
+  void _showFilterBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final theme = Theme.of(context);
+            final l10n = AppLocalizations.of(context)!;
+            final userProfile = context.read<UserProfileProvider>();
+
+            return DraggableScrollableSheet(
+              initialChildSize: 0.6,
+              minChildSize: 0.4,
+              maxChildSize: 0.9,
+              expand: false,
+              builder: (context, scrollController) {
+                return SingleChildScrollView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            l10n.items_filter_title,
+                            style: theme.textTheme.headlineSmall
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              _clearAllFilters();
+                              setModalState(() {});
+                              Navigator.pop(context);
+                            },
+                            child: Text(l10n.items_clearAll),
+                          ),
+                        ],
+                      ),
+                      const Divider(),
+                      const SizedBox(height: 16),
+
+                      // Category
+                      _buildFilterSection(
+                        l10n.items_filter_category,
+                        ['Clothes', 'Shoes', 'Accessories']
+                            .map((cat) => FilterChip(
+                                  label: Text(cat),
+                                  selected: _selectedCategory == cat,
+                                  onSelected: (val) {
+                                    setState(() =>
+                                        _selectedCategory = val ? cat : null);
+                                    setModalState(() {});
+                                  },
+                                ))
+                            .toList(),
+                      ),
+
+                      // Gender
+                      _buildFilterSection(
+                        l10n.items_filter_gender,
+                        Gender.values
+                            .map((g) => FilterChip(
+                                  label: Text(g.toDisplayString(context)),
+                                  selected: _selectedGender == g,
+                                  onSelected: (val) {
+                                    setState(
+                                        () => _selectedGender = val ? g : null);
+                                    setModalState(() {});
+                                  },
+                                ))
+                            .toList(),
+                      ),
+
+                      // Status (if enabled)
+                      if (userProfile.statusTrackingEnabled)
+                        _buildFilterSection(
+                          l10n.items_filter_status,
+                          ['In Use', 'Stored']
+                              .map((s) => FilterChip(
+                                    label: Text(s),
+                                    selected: _selectedStatus == s,
+                                    onSelected: (val) {
+                                      setState(() =>
+                                          _selectedStatus = val ? s : null);
+                                      setModalState(() {});
+                                    },
+                                  ))
+                              .toList(),
+                        ),
+
+                      // Member
+                      _buildFilterSection(
+                        l10n.items_filter_member,
+                        _members
+                            .map((m) => FilterChip(
+                                  label: Text(m.name),
+                                  selected: _selectedMemberId == m.id,
+                                  onSelected: (val) {
+                                    setState(() =>
+                                        _selectedMemberId = val ? m.id : null);
+                                    setModalState(() {});
+                                  },
+                                ))
+                            .toList(),
+                      ),
+
+                      const SizedBox(height: 32),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                          child: const Text('Apply Filters'),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildFilterSection(String title, List<Widget> chips) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        const SizedBox(height: 8),
+        Wrap(spacing: 8, runSpacing: 8, children: chips),
+        const SizedBox(height: 24),
+      ],
+    );
   }
 
   @override
@@ -220,15 +540,11 @@ class _ItemsScreenState extends State<ItemsScreen> {
       appBar: SeasonBoxAppBar(
         title: AppLocalizations.of(context)!.items_title,
         subtitle: subtitle,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: Colors.white),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: _isLoading
-          ? _buildLoadingSkeleton(theme)
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
           : RefreshIndicator(
               onRefresh: _loadItems,
               child: SingleChildScrollView(
@@ -270,97 +586,20 @@ class _ItemsScreenState extends State<ItemsScreen> {
                         onChanged: (value) => setState(() {}),
                       ),
                     ),
-                    // Filter Chips
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
+                    // Filter Row
+                    Padding(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                       child: Row(
                         children: [
-                          SeasonBoxFilterChip(
-                            label: AppLocalizations.of(context)!
-                                .items_filterAllItems,
-                            isSelected: _selectedFilter == 'All Items',
-                            onTap: () =>
-                                setState(() => _selectedFilter = 'All Items'),
-                          ),
-                          SeasonBoxFilterChip(
-                            label:
-                                AppLocalizations.of(context)!.items_filterInUse,
-                            isSelected: _selectedFilter == 'In Use',
-                            onTap: () =>
-                                setState(() => _selectedFilter = 'In Use'),
-                          ),
-                          SeasonBoxFilterChip(
-                            label: AppLocalizations.of(context)!
-                                .items_filterStored,
-                            isSelected: _selectedFilter == 'Stored',
-                            onTap: () =>
-                                setState(() => _selectedFilter = 'Stored'),
-                          ),
-                          SeasonBoxFilterChip(
-                            label: AppLocalizations.of(context)!
-                                .items_filterWinter,
-                            isSelected: _selectedFilter == 'Winter',
-                            onTap: () =>
-                                setState(() => _selectedFilter = 'Winter'),
-                          ),
-                          SeasonBoxFilterChip(
-                            label: AppLocalizations.of(context)!
-                                .items_filterSummer,
-                            isSelected: _selectedFilter == 'Summer',
-                            onTap: () =>
-                                setState(() => _selectedFilter = 'Summer'),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Quick Filters
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                AppLocalizations.of(context)!
-                                    .items_quickFilters,
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                          _buildFilterButton(theme),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: _buildActiveFilterChips(context),
                               ),
-                              TextButton(
-                                onPressed: _clearAllFilters,
-                                child: Text(AppLocalizations.of(context)!
-                                    .items_clearAll),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              _buildQuickFilterCard(
-                                  AppLocalizations.of(context)!
-                                      .items_filterClothes,
-                                  Icons.checkroom,
-                                  theme,
-                                  'Clothes'),
-                              const SizedBox(width: 12),
-                              _buildQuickFilterCard(
-                                  AppLocalizations.of(context)!
-                                      .items_filterShoes,
-                                  Icons.do_not_step,
-                                  theme,
-                                  'Shoes'),
-                              const SizedBox(width: 12),
-                              _buildQuickFilterCard(
-                                  AppLocalizations.of(context)!
-                                      .items_filterAccessories,
-                                  Icons.style,
-                                  theme,
-                                  'Accessories'),
-                            ],
+                            ),
                           ),
                         ],
                       ),
@@ -386,6 +625,9 @@ class _ItemsScreenState extends State<ItemsScreen> {
                           direction: canDelete
                               ? DismissDirection.endToStart
                               : DismissDirection.none,
+                          dismissThresholds: const {
+                            DismissDirection.endToStart: 0.7,
+                          },
                           background: canDelete
                               ? Container(
                                   alignment: Alignment.centerRight,
@@ -467,6 +709,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
               ),
             ),
       floatingActionButton: SeasonBoxAddButton(
+        heroTag: 'add_item_fab',
         onPressed: () {
           context.push(
             '/add-item',
@@ -475,56 +718,6 @@ class _ItemsScreenState extends State<ItemsScreen> {
             },
           ).then((_) => _loadItems());
         },
-      ),
-    );
-  }
-
-  Widget _buildQuickFilterCard(
-      String title, IconData icon, ThemeData theme, String category) {
-    final isSelected = _selectedCategory == category;
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _selectedCategory = isSelected ? null : category;
-          });
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? theme.colorScheme.primary
-                : (isDark ? const Color(0xFF334155) : theme.cardColor),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color:
-                  isSelected ? theme.colorScheme.primary : Colors.transparent,
-              width: isSelected ? 2 : 1,
-            ),
-          ),
-          child: Column(
-            children: [
-              Icon(
-                icon,
-                color: isSelected
-                    ? Colors.white
-                    : (isDark ? Colors.grey.shade400 : Colors.grey.shade600),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: isSelected
-                      ? Colors.white
-                      : (isDark ? Colors.grey.shade300 : Colors.grey.shade600),
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -636,7 +829,10 @@ class _ItemsScreenState extends State<ItemsScreen> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        _buildStatusChip(item.status, isDark),
+                        if (context
+                            .read<UserProfileProvider>()
+                            .statusTrackingEnabled)
+                          _buildQuickStatusToggle(item),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -677,7 +873,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
                             child: Text(
                               '#$tag',
                               style: TextStyle(
-                                fontSize: 10,
+                                fontSize: 12,
                                 color: theme.colorScheme.primary,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -688,13 +884,6 @@ class _ItemsScreenState extends State<ItemsScreen> {
                     ],
                   ],
                 ),
-              ),
-              // Menu
-              IconButton(
-                icon: Icon(Icons.more_vert, color: Colors.grey.shade400),
-                onPressed: () {},
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
               ),
             ],
           ),
@@ -801,59 +990,41 @@ class _ItemsScreenState extends State<ItemsScreen> {
         style: TextStyle(
           color: textColor,
           fontSize: 12,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );
   }
 
-  Widget _buildLoadingSkeleton(ThemeData theme) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        // Filter Chips Skeleton
-        Row(
-          children: List.generate(
-            4,
-            (index) => Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: SkeletonContainer.rectangular(
-                width: 80,
-                height: 32,
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 24),
-        // Quick Filters Skeleton
-        Row(
-          children: List.generate(
-            3,
-            (index) => Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(right: index < 2 ? 12 : 0),
-                child: SkeletonContainer.rectangular(
-                  height: 80,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 24),
-        // Items Skeleton
-        ...List.generate(
-          3,
-          (index) => Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: SkeletonContainer.rectangular(
-              height: 140,
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
-        ),
-      ],
+  Widget _buildQuickStatusToggle(Item item) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isStored = item.status.toLowerCase() == 'stored';
+
+    return GestureDetector(
+      onTap: () async {
+        final newStatus = isStored ? 'In Use' : 'Stored';
+        final updatedItem = item.copyWith(
+          status: newStatus,
+          lastUsedAt: newStatus == 'In Use' ? DateTime.now() : item.lastUsedAt,
+        );
+
+        try {
+          await context.read<ItemRepository>().updateItem(updatedItem);
+          setState(() {
+            final index = _items.indexWhere((i) => i.id == item.id);
+            if (index != -1) {
+              _items[index] = updatedItem;
+            }
+          });
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to update status: $e')),
+            );
+          }
+        }
+      },
+      child: _buildStatusChip(item.status, isDark),
     );
   }
 }

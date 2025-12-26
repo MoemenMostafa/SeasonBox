@@ -301,7 +301,14 @@ class _HomeScreenState extends State<HomeScreen> {
       itemBuilder: (context, index) {
         final member = _members[index];
         // Calculate age from birthdate
-        final age = DateTime.now().difference(member.birthdate).inDays ~/ 365;
+        final age = member.birthdate != null
+            ? DateTime.now().difference(member.birthdate!).inDays ~/ 365
+            : null;
+
+        // Display string for age
+        final ageDisplay = age != null
+            ? AppLocalizations.of(context)!.home_member_age(age)
+            : '?';
 
         // Get clothing size
         final size = member.clothingSize ?? 'N/A';
@@ -313,7 +320,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return _buildMemberCard(
           context,
           member.name,
-          '${AppLocalizations.of(context)!.home_member_age(age)} • ${AppLocalizations.of(context)!.home_member_size(size)}',
+          '$ageDisplay • ${AppLocalizations.of(context)!.home_member_size(size)}',
           AppLocalizations.of(context)!.home_member_items(itemCount),
           'Active',
           Colors.purple,

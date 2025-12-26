@@ -22,6 +22,8 @@ import 'package:seasonbox/core/constants/size_constants.dart';
 import 'package:seasonbox/app/providers/user_profile_provider.dart';
 import 'package:seasonbox/core/enums/gender.dart';
 import 'package:seasonbox/data/services/posthog_service.dart';
+import 'package:seasonbox/core/enums/item_type.dart';
+import 'package:seasonbox/widgets/loading/boxy_saving_indicator.dart';
 
 class AddItemScreen extends StatefulWidget {
   final Item? item; // Optional item for editing
@@ -138,6 +140,23 @@ class _AddItemScreenState extends State<AddItemScreen> {
         return l10n.addItem_season_fall;
       default:
         return season;
+    }
+  }
+
+  ItemType _mapCategoryToItemType(String category) {
+    switch (category.toLowerCase()) {
+      case 'clothes':
+        return ItemType.clothes;
+      case 'shoes':
+        return ItemType.shoes;
+      case 'toys':
+        return ItemType.toys;
+      case 'gear':
+        return ItemType.gear;
+      case 'accessories':
+        return ItemType.decoration;
+      default:
+        return ItemType.other;
     }
   }
 
@@ -500,13 +519,38 @@ class _AddItemScreenState extends State<AddItemScreen> {
       // Combine existing photos with new ones
       final allPhotos = [..._existingPhotos, ...newPhotoMaps];
 
+      final sizeString =
+          _isCustomSize ? _customSizeController.text.trim() : _selectedSize;
+
+      // Parse size range if numeric
+      Map<String, num>? parsedSizeRange;
+      final numberRegex = RegExp(r'(\d+([\.,]\d+)?)');
+      final matches = numberRegex.allMatches(sizeString).toList();
+      if (matches.isNotEmpty) {
+        if (matches.length == 1) {
+          final val =
+              double.tryParse(matches[0].group(0)!.replaceAll(',', '.')) ?? 0.0;
+          parsedSizeRange = {'min': val, 'max': val};
+        } else {
+          final val1 =
+              double.tryParse(matches[0].group(0)!.replaceAll(',', '.')) ?? 0.0;
+          final val2 =
+              double.tryParse(matches[1].group(0)!.replaceAll(',', '.')) ?? 0.0;
+          parsedSizeRange = {
+            'min': val1 < val2 ? val1 : val2,
+            'max': val1 < val2 ? val2 : val1,
+          };
+        }
+      }
+
       final item = Item(
         id: itemId,
         familyId: familyId,
         title: _titleController.text.trim(),
         category: _selectedCategory,
         gender: _selectedGender,
-        size: _isCustomSize ? _customSizeController.text.trim() : _selectedSize,
+        size: sizeString,
+        sizeRange: parsedSizeRange,
         seasonTags: _selectedSeasons.toList(),
         tags: _tags,
         storageLocationId: _storageLocationId!,
@@ -660,9 +704,16 @@ class _AddItemScreenState extends State<AddItemScreen> {
           ],
         ),
         body: _isSaving
-            ? const Center(child: CircularProgressIndicator())
+            ? Center(
+                child: BoxySavingIndicator(
+                  itemType: _mapCategoryToItemType(_selectedCategory),
+                  size: 200,
+                ),
+              )
             : !_isTransitionComplete
-                ? _buildLoadingSkeleton()
+                ? const Center(
+                    child: CircularProgressIndicator(),
+                  )
                 : SingleChildScrollView(
                     padding: const EdgeInsets.all(16.0),
                     child: Form(
@@ -1421,15 +1472,17 @@ class _AddItemScreenState extends State<AddItemScreen> {
                             child: OutlinedButton(
                               onPressed: () => context.pop(),
                               style: OutlinedButton.styleFrom(
-                                side: BorderSide(color: Colors.grey.shade700),
+                                side: BorderSide(color: theme.dividerColor),
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12)),
                               ),
                               child: Text(
-                                  AppLocalizations.of(context)!.common_cancel,
-                                  style: const TextStyle(
-                                      color: Colors
-                                          .white)), // Assuming dark theme button text needs white or dynamic
+                                AppLocalizations.of(context)!.common_cancel,
+                                style: TextStyle(
+                                  color: theme.colorScheme.onSurface,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ),
                           const SizedBox(height: 24),
@@ -1442,79 +1495,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
   }
 
   // _buildLoadingSkeleton and _buildGenderSelector remain same or similar
-  Widget _buildLoadingSkeleton() {
-    return const SingleChildScrollView(
-      padding: EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Photos Section
-          SkeletonContainer.rectangular(
-            width: 100,
-            height: 24,
-            borderRadius: BorderRadius.all(Radius.circular(4)),
-          ),
-          SizedBox(height: 8),
-          SkeletonContainer.rectangular(
-            height: 100,
-            borderRadius: BorderRadius.all(Radius.circular(12)),
-          ),
-          SizedBox(height: 24),
-
-          // Item Details Section
-          SkeletonContainer.rectangular(
-            width: 120,
-            height: 24,
-            borderRadius: BorderRadius.all(Radius.circular(4)),
-          ),
-          SizedBox(height: 8),
-          SkeletonContainer.rectangular(
-            height: 200,
-            borderRadius: BorderRadius.all(Radius.circular(12)),
-          ),
-          SizedBox(height: 24),
-
-          // Size Section
-          SkeletonContainer.rectangular(
-            width: 100,
-            height: 24,
-            borderRadius: BorderRadius.all(Radius.circular(4)),
-          ),
-          SizedBox(height: 8),
-          SkeletonContainer.rectangular(
-            height: 150,
-            borderRadius: BorderRadius.all(Radius.circular(12)),
-          ),
-          SizedBox(height: 24),
-
-          // Season & Member Section
-          SkeletonContainer.rectangular(
-            width: 140,
-            height: 24,
-            borderRadius: BorderRadius.all(Radius.circular(4)),
-          ),
-          SizedBox(height: 8),
-          SkeletonContainer.rectangular(
-            height: 180,
-            borderRadius: BorderRadius.all(Radius.circular(12)),
-          ),
-          SizedBox(height: 24),
-
-          // Storage Location Section
-          SkeletonContainer.rectangular(
-            width: 130,
-            height: 24,
-            borderRadius: BorderRadius.all(Radius.circular(4)),
-          ),
-          SizedBox(height: 8),
-          SkeletonContainer.rectangular(
-            height: 120,
-            borderRadius: BorderRadius.all(Radius.circular(12)),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildGenderSelector(ThemeData theme) {
     return Row(

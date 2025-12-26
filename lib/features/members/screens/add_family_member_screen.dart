@@ -59,7 +59,7 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
       _nameController.text = widget.member!.name;
       _notesController.text = widget.member!.notes ?? '';
       _gender = widget.member!.gender;
-      _birthdate = widget.member!.birthdate;
+      _birthdate = widget.member!.birthdate ?? DateTime.now();
       _clothesSize = widget.member!.clothingSize;
       _shoeSize = widget.member!.shoeSize;
       _clothingSizeController.text = _clothesSize ?? '';
@@ -409,7 +409,9 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
               : null,
         ),
         body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? const Center(
+                child: CircularProgressIndicator(),
+              )
             : SingleChildScrollView(
                 padding: const EdgeInsets.all(16.0),
                 child: Form(
@@ -454,10 +456,41 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                             const SizedBox(height: 8),
                             _buildGenderSelector(theme),
                             const SizedBox(height: 16),
-                            Text(
-                                AppLocalizations.of(context)!
-                                    .addMember_field_birthdate,
-                                style: const TextStyle(fontSize: 14)),
+                            Row(
+                              children: [
+                                Text(
+                                    AppLocalizations.of(context)!
+                                        .addMember_field_birthdate,
+                                    style: const TextStyle(fontSize: 14)),
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  icon:
+                                      const Icon(Icons.info_outline, size: 20),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  visualDensity: VisualDensity.compact,
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        title: Text(
+                                            AppLocalizations.of(context)!
+                                                .addMember_field_birthdate),
+                                        content: Text(AppLocalizations.of(
+                                                context)!
+                                            .addMember_field_birthdate_explanation),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => context.pop(),
+                                            child: const Text('OK'),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
                             const SizedBox(height: 8),
                             InkWell(
                               onTap: () => _selectDate(context),
@@ -478,9 +511,38 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
                       const SizedBox(height: 24),
 
                       // Current Sizes Section
-                      Text(
-                          AppLocalizations.of(context)!.addMember_section_sizes,
-                          style: theme.textTheme.titleMedium),
+                      Row(
+                        children: [
+                          Text(
+                              AppLocalizations.of(context)!
+                                  .addMember_section_sizes,
+                              style: theme.textTheme.titleMedium),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(Icons.info_outline, size: 20),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            visualDensity: VisualDensity.compact,
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text(AppLocalizations.of(context)!
+                                      .addMember_section_sizes),
+                                  content: Text(AppLocalizations.of(context)!
+                                      .addMember_section_sizes_explanation),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => context.pop(),
+                                      child: const Text('OK'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 8),
                       AppCard(
                         child: Column(

@@ -53,6 +53,28 @@ class UserProfileProvider with ChangeNotifier {
 
   bool get isMetric => measurementSystem == 'metric';
 
+  bool get statusTrackingEnabled {
+    if (_userData == null || _userData!['preferences'] == null) {
+      return false; // Default: disabled
+    }
+    return _userData!['preferences']['statusTrackingEnabled'] ?? false;
+  }
+
+  Future<void> toggleStatusTracking() async {
+    final currentUser = _authService.currentUser;
+    if (currentUser == null) return;
+
+    final currentPrefs =
+        _userData?['preferences'] as Map<String, dynamic>? ?? {};
+    final newPrefs = Map<String, dynamic>.from(currentPrefs);
+    newPrefs['statusTrackingEnabled'] = !statusTrackingEnabled;
+
+    await _userService.updateUserProfile(
+      uid: currentUser.uid,
+      preferences: newPrefs,
+    );
+  }
+
   @override
   void dispose() {
     _userSubscription?.cancel();

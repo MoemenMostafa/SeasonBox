@@ -65,6 +65,8 @@ class _GrowthChartScreenState extends State<GrowthChartScreen> {
             _buildLegend(theme, l10n),
             const SizedBox(height: 24),
             _buildInsightCard(theme, l10n),
+            const SizedBox(height: 32),
+            _buildReferenceText(theme, l10n),
           ],
         ),
       ),
@@ -135,8 +137,9 @@ class _GrowthChartScreenState extends State<GrowthChartScreen> {
   }
 
   LineChartData _buildChartData(ThemeData theme, AppLocalizations l10n) {
-    final currentAgeMonths =
-        DateTime.now().difference(widget.member.birthdate).inDays / 30.0;
+    final currentAgeMonths = widget.member.birthdate != null
+        ? DateTime.now().difference(widget.member.birthdate!).inDays / 30.0
+        : 0.0;
     final currentSize = double.tryParse(_showClothes
             ? (widget.member.clothingSize ?? '0.0')
             : (widget.member.shoeSize ?? '0.0')) ??
@@ -153,9 +156,10 @@ class _GrowthChartScreenState extends State<GrowthChartScreen> {
     for (var entry in history) {
       if (entry['category'] == (_showClothes ? 'clothes' : 'shoes')) {
         final date = (entry['date'] as Timestamp).toDate();
-        final ageAtDate =
-            date.difference(widget.member.birthdate).inDays / 30.0;
-        final size = (entry['size'] as num).toDouble();
+        final ageAtDate = widget.member.birthdate != null
+            ? date.difference(widget.member.birthdate!).inDays / 30.0
+            : 0.0;
+        final size = double.tryParse(entry['size']?.toString() ?? '0.0') ?? 0.0;
         actualSpots.add(FlSpot(ageAtDate, size));
       }
     }
@@ -193,24 +197,77 @@ class _GrowthChartScreenState extends State<GrowthChartScreen> {
       }
     }
 
+    // Calculate bounds
+    double minX = currentAgeMonths;
+    double maxX = currentAgeMonths + 24;
+
+    if (actualSpots.isNotEmpty) {
+      minX = actualSpots.map((s) => s.x).reduce((a, b) => a < b ? a : b);
+    }
+
+    double minY = currentSize;
+    double maxY = currentSize;
+
+    final allSpots = [...actualSpots, ...expectedSpots];
+    if (allSpots.isNotEmpty) {
+      minY = allSpots.map((s) => s.y).reduce((a, b) => a < b ? a : b);
+      maxY = allSpots.map((s) => s.y).reduce((a, b) => a > b ? a : b);
+    }
+
+    // Add buffers
+    final range = maxY - minY;
+    final buffer = range > 20 ? 10.0 : 2.0;
+
+    minY = (minY - buffer).floor().toDouble();
+    if (minY < 0) minY = 0;
+    maxY = (maxY + buffer).ceil().toDouble();
+
+    // Ensure nice intervals
+    double yInterval = (maxY - minY) / 5;
+    if (yInterval < 1) yInterval = 1;
+
     return LineChartData(
-      gridData: const FlGridData(show: true, drawVerticalLine: false),
+      minX: minX,
+      maxX: maxX,
+      minY: minY,
+      maxY: maxY,
+      gridData: FlGridData(
+        show: true,
+        drawVerticalLine: false,
+        horizontalInterval: yInterval,
+      ),
       titlesData: FlTitlesData(
         bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
+            interval: 12, // Every year
             getTitlesWidget: (value, meta) {
-              if (value % 12 == 0) {
-                return Text('${(value / 12).toInt()}y',
-                    style: const TextStyle(fontSize: 10));
-              }
-              return const SizedBox();
+              if (value < minX || value > maxX) return const SizedBox();
+              // Prevent label duplication at the very end
+              if (value > maxX - 6) return const SizedBox();
+
+              return Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Text('${(value / 12).toInt()}y',
+                    style: const TextStyle(fontSize: 10, color: Colors.grey)),
+              );
             },
-            reservedSize: 22,
+            reservedSize: 30,
           ),
         ),
-        leftTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: true, reservedSize: 30),
+        leftTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            reservedSize: 40,
+            interval: yInterval,
+            getTitlesWidget: (value, meta) {
+              if (value > maxY || value < minY) return const SizedBox();
+              return Text(
+                value.toInt().toString(),
+                style: const TextStyle(fontSize: 10, color: Colors.grey),
+              );
+            },
+          ),
         ),
         topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         rightTitles:
@@ -244,11 +301,29 @@ class _GrowthChartScreenState extends State<GrowthChartScreen> {
             return touchedSpots.map((spot) {
               final ageYearsStr = (spot.x / 12).toStringAsFixed(1);
               final sizeStr = spot.y.toStringAsFixed(1);
-              final label = spot.barIndex == 1
-                  ? l10n.members_growthChart_actual
-                  : l10n.members_growthChart_expectation;
+              final label = spot.barIndex == 0 && expectedSpots.isNotEmpty
+                  ? (actualSpots.isNotEmpty && spot.barIndex == 1
+                      ? l10n.members_growthChart_actual
+                      : l10n.members_growthChart_expectation)
+                  : (spot.barIndex == 1
+                      ? l10n.members_growthChart_actual
+                      : l10n.members_growthChart_expectation);
+
+              // Note: fl_chart indices for spots depend on order in lineBarsData
+              // expected is index 0 if it exists, actual is index 1 or 0
+              String finalLabel = label;
+              if (expectedSpots.isNotEmpty && actualSpots.isNotEmpty) {
+                finalLabel = spot.barIndex == 0
+                    ? l10n.members_growthChart_expectation
+                    : l10n.members_growthChart_actual;
+              } else if (expectedSpots.isNotEmpty) {
+                finalLabel = l10n.members_growthChart_expectation;
+              } else {
+                finalLabel = l10n.members_growthChart_actual;
+              }
+
               return LineTooltipItem(
-                '$label\n${l10n.home_member_age(double.parse(ageYearsStr).round())}\n${l10n.home_member_size(sizeStr)}',
+                '$finalLabel\n${l10n.home_member_age(double.parse(ageYearsStr).round())}\n${l10n.home_member_size(sizeStr)}',
                 const TextStyle(color: Colors.white),
               );
             }).toList();
@@ -314,10 +389,12 @@ class _GrowthChartScreenState extends State<GrowthChartScreen> {
                 ),
                 const SizedBox(height: 4),
                 Builder(builder: (context) {
-                  final ageMonths = DateTime.now()
-                          .difference(widget.member.birthdate)
-                          .inDays /
-                      30.0;
+                  final ageMonths = widget.member.birthdate != null
+                      ? DateTime.now()
+                              .difference(widget.member.birthdate!)
+                              .inDays /
+                          30.0
+                      : 0.0;
                   final sizeStr = _showClothes
                       ? widget.member.clothingSize
                       : widget.member.shoeSize;
@@ -349,6 +426,19 @@ class _GrowthChartScreenState extends State<GrowthChartScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildReferenceText(ThemeData theme, AppLocalizations l10n) {
+    return Center(
+      child: Text(
+        l10n.members_growthChart_reference,
+        textAlign: TextAlign.center,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
+          fontSize: 10,
+        ),
       ),
     );
   }

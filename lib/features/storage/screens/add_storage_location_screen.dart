@@ -235,7 +235,9 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
             : null,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Form(

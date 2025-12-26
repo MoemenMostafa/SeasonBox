@@ -121,7 +121,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get home_stats_members => 'Membres';
 
   @override
-  String get home_search_hint => 'Rechercher des articles, emplacements...';
+  String get home_search_hint => 'Rechercher articles, tailles ou #tag';
+
+  @override
+  String get home_search_hint_revamped =>
+      'Rechercher par titre, taille ou #tag';
 
   @override
   String get home_section_quickActions => 'Actions Rapides';
@@ -435,6 +439,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Changer la langue de l\'application';
 
   @override
+  String get profile_setting_statusTracking => 'Activer le suivi d\'état';
+
+  @override
+  String get profile_setting_statusTrackingSubtitle =>
+      'Savoir si les articles sont utilisés ou stockés';
+
+  @override
   String get profile_data_exportData => 'Exporter les Données';
 
   @override
@@ -615,7 +626,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get addMember_field_birthdateHint => 'jj/mm/aaaa';
 
   @override
+  String get addMember_field_birthdate_explanation =>
+      'La date de naissance est utilisée pour calculer l\'âge et fournir des prévisions de croissance spécifiques à l\'âge.';
+
+  @override
   String get addMember_section_sizes => 'Tailles Actuelles';
+
+  @override
+  String get addMember_section_sizes_explanation =>
+      'Les tailles actuelles sont utilisées comme base pour prédire les tailles futures en fonction des modèles de croissance.';
 
   @override
   String get addMember_field_clothingSize => 'Taille de Vêtement';
@@ -975,6 +994,32 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get members_birthdate_notSet => 'Date de naissance non définie';
+
+  @override
+  String get members_dialog_birthdateRequired_title =>
+      'Date de naissance requise';
+
+  @override
+  String get members_dialog_birthdateRequired_message =>
+      'Une date de naissance est nécessaire pour calculer l\'âge du membre et fournir des prévisions de croissance et des jalons précis sur les graphiques.';
+
+  @override
+  String get members_dialog_birthdateRequired_button =>
+      'Définir la date de naissance';
+
+  @override
+  String get members_dialog_sizeRequired_title =>
+      'Information de taille requise';
+
+  @override
+  String get members_dialog_sizeRequired_message =>
+      'Les tailles actuelles des vêtements ou des chaussures sont nécessaires comme base pour prédire les tailles futures en fonction des modèles de croissance.';
+
+  @override
+  String get members_dialog_sizeRequired_button => 'Définir les tailles';
+
+  @override
   String members_born(String date) {
     return 'Né(e): $date';
   }
@@ -1011,8 +1056,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String members_growthChart_noGrowth(String name) {
-    return 'Il n\'y a pas de croissance prévue au cours des 12 prochains mois pour $name.';
+    return '$name a atteint sa maturité physique. La croissance standard se termine généralement après 18 ans.';
   }
+
+  @override
+  String get members_growthChart_reference =>
+      'Les modèles de croissance sont basés sur les normes de croissance de l\'enfant de l\'Organisation mondiale de la Santé (OMS).';
 
   @override
   String get members_tooltipEdit => 'Modifier';
@@ -1064,6 +1113,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String items_sizeLabel(String size, String gender) {
     return 'Taille $size • $gender';
   }
+
+  @override
+  String get items_filter_title => 'Filtres';
+
+  @override
+  String get items_filter_category => 'Catégorie';
+
+  @override
+  String get items_filter_gender => 'Genre';
+
+  @override
+  String get items_filter_status => 'État';
+
+  @override
+  String get items_filter_member => 'Membre';
+
+  @override
+  String get items_filter_active => 'Filtres actifs';
 
   @override
   String get items_noSeasonTags => 'Pas d\'étiquette de saison';

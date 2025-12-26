@@ -33,13 +33,13 @@ class _AppFooterState extends State<AppFooter> {
     return Center(
       child: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.purple.shade50,
-              borderRadius: BorderRadius.circular(12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Image.asset(
+              'assets/images/app_icon.png',
+              height: 64,
+              width: 64,
             ),
-            child: Icon(Icons.inventory_2, color: Colors.purple.shade700),
           ),
           const SizedBox(height: 12),
           const Text(

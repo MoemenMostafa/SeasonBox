@@ -1,5 +1,14 @@
 # Changelog
  
+## 1.5.0+30
+- **Magic Upload Animation**:
+    - **Boxy Masterpiece**: Implemented a high-polish, custom-painted "Magic Upload" animation with Boxy tossing data particles into a magical glowing box.
+    - **Adaptive Details**: Animation particles dynamically change based on the item category (Clothes, Shoes, Toys, etc.).
+    - **Visual Feedback**: Added a magical upload beam and expressive character behaviors (blinking, breathing) during wait states.
+- **UX Standardization & Cleanup**:
+    - **Standard Indicators**: Reverted non-critical loading states in `AddFamilyMemberScreen`, `ItemsScreen`, and `AddStorageLocationScreen` to standard Material `CircularProgressIndicator` for a cleaner UI.
+    - **System Refactor**: Removed the legacy and over-engineered `contextual_loading_indicator.dart` system.
+ 
 ## 1.4.0+29
 - **Logging & Monitoring Architecture**:
     - **Service Wrappers**: Implemented consistent logging for all core services (`FirestoreService`, `StorageService`, `AuthService`, `BiometricService`, `UserService`).

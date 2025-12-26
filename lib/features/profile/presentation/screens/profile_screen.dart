@@ -14,6 +14,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:seasonbox/core/enums/user_role.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:seasonbox/data/services/posthog_service.dart';
+import 'package:seasonbox/app/providers/user_profile_provider.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -765,6 +766,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
             });
             // TODO: Implement auto sync functionality
             _showComingSoon(context);
+          },
+        ),
+        const SizedBox(height: 12),
+        Consumer<UserProfileProvider>(
+          builder: (context, userProfile, child) {
+            return _buildToggleTile(
+              context,
+              icon: Icons.assignment_turned_in,
+              iconColor: Colors.green,
+              iconBgColor: Colors.green.shade50,
+              title:
+                  AppLocalizations.of(context)!.profile_setting_statusTracking,
+              subtitle: AppLocalizations.of(context)!
+                  .profile_setting_statusTrackingSubtitle,
+              value: userProfile.statusTrackingEnabled,
+              onChanged: (val) async {
+                await userProfile.toggleStatusTracking();
+              },
+            );
           },
         ),
         const SizedBox(height: 12),

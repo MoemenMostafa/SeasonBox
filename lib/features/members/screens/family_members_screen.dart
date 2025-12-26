@@ -93,7 +93,8 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
   }
 
   Widget _buildMemberCard(FamilyMember member, ThemeData theme) {
-    final age = _calculateAge(member.birthdate);
+    final age =
+        member.birthdate != null ? _calculateAge(member.birthdate!) : null;
     final isDark = theme.brightness == Brightness.dark;
 
     // Calculate actual item count for this member
@@ -138,7 +139,10 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            AppLocalizations.of(context)!.members_ageYears(age),
+                            age != null
+                                ? AppLocalizations.of(context)!
+                                    .members_ageYears(age)
+                                : '?',
                             style: const TextStyle(
                                 color: Colors.pink,
                                 fontWeight: FontWeight.bold,
@@ -148,8 +152,14 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                       ],
                     ),
                     Text(
-                      AppLocalizations.of(context)!.members_born(
-                          member.birthdate.toLocal().toString().split(' ')[0]),
+                      member.birthdate != null
+                          ? AppLocalizations.of(context)!.members_born(member
+                              .birthdate!
+                              .toLocal()
+                              .toString()
+                              .split(' ')[0])
+                          : AppLocalizations.of(context)!
+                              .members_birthdate_notSet,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.textTheme.bodySmall?.color
                             ?.withValues(alpha: 0.7),
@@ -260,9 +270,23 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                 ),
                 child: IconButton(
                   onPressed: () {
-                    context.push('/growth-chart', extra: member);
+                    if (member.birthdate == null) {
+                      _showBirthdatePrompt(member);
+                    } else if (member.clothingSize == null &&
+                        member.shoeSize == null) {
+                      _showSizePrompt(member);
+                    } else {
+                      context.push('/growth-chart', extra: member);
+                    }
                   },
-                  icon: Icon(Icons.show_chart, color: theme.iconTheme.color),
+                  icon: Icon(
+                    Icons.show_chart,
+                    color: (member.birthdate == null ||
+                            (member.clothingSize == null &&
+                                member.shoeSize == null))
+                        ? theme.disabledColor
+                        : theme.iconTheme.color,
+                  ),
                   tooltip:
                       AppLocalizations.of(context)!.members_tooltipGrowthChart,
                 ),
@@ -310,6 +334,60 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSizePrompt(FamilyMember member) {
+    final l10n = AppLocalizations.of(context)!;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.members_dialog_sizeRequired_title),
+        content: Text(l10n.members_dialog_sizeRequired_message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.common_cancel),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context
+                  .push('/add-member', extra: member)
+                  .then((_) => _loadMembers());
+            },
+            child: Text(l10n.members_dialog_sizeRequired_button),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showBirthdatePrompt(FamilyMember member) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppLocalizations.of(context)!
+            .members_dialog_birthdateRequired_title),
+        content: Text(AppLocalizations.of(context)!
+            .members_dialog_birthdateRequired_message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(AppLocalizations.of(context)!.common_cancel),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              context
+                  .push('/add-member', extra: member)
+                  .then((_) => _loadMembers());
+            },
+            child: Text(AppLocalizations.of(context)!
+                .members_dialog_birthdateRequired_button),
           ),
         ],
       ),
@@ -424,6 +502,7 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
         _members,
       )
           ? SeasonBoxAddButton(
+              heroTag: 'add_member_fab',
               onPressed: () =>
                   context.push('/add-member').then((_) => _loadMembers()),
             )
