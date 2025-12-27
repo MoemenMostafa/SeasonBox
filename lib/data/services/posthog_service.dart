@@ -165,6 +165,29 @@ class PostHogService {
     }
   }
 
+  /// Get the value of a feature flag
+  Future<dynamic> getFeatureFlag(String key) async {
+    if (!_initialized) return null;
+    try {
+      return await Posthog().getFeatureFlag(key);
+    } catch (e) {
+      logError('posthog_getFeatureFlag_failed', e, context: {'key': key});
+      return null;
+    }
+  }
+
+  /// Get the payload associated with a feature flag
+  Future<dynamic> getFeatureFlagPayload(String key) async {
+    if (!_initialized) return null;
+    try {
+      return await Posthog().getFeatureFlagPayload(key);
+    } catch (e) {
+      logError('posthog_getFeatureFlagPayload_failed', e,
+          context: {'key': key});
+      return null;
+    }
+  }
+
   /// Reset PostHog (call on logout)
   Future<void> reset() async {
     if (!_initialized) return;

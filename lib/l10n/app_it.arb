@@ -43,6 +43,12 @@
   },
   "home_stats_totalItems": "Articoli Totali",
   "home_stats_members": "Membri",
+  "home_subscription_itemLimit": "Limite articoli: {count} / {limit}",
+  "home_subscription_upgradeForUnlimited": "Passa a illimitato",
+  "home_subscription_limitReached": "Limite articoli raggiunto! Passa ora a Premium.",
+  "home_premium_banner_title": "Sblocca un Potenziale Illimitato",
+  "home_premium_banner_subtitle": "Gestisci articoli e membri della famiglia illimitati con SeasonBox Premium.",
+  "home_premium_banner_button": "Passa a Premium",
   "home_search_hint": "Cerca articoli, taglie o #tag",
   "home_search_hint_revamped": "Cerca per titolo, taglia o #tag",
   "home_section_quickActions": "Azioni Rapide",
@@ -121,6 +127,9 @@
   "profile_button_editProfile": "Modifica Profilo",
   "profile_role_familyAdmin": "Amministratore Famiglia",
   "profile_section_familyManagement": "Gestione Famiglia",
+  "profile_setting_subscription": "Abbonamento",
+  "profile_subscription_statusFree": "Piano Gratuito",
+  "profile_subscription_statusPremium": "Piano Premium",
   "profile_section_appSettings": "Impostazioni App",
   "profile_section_dataPrivacy": "Dati e Privacy",
   "profile_section_support": "Supporto",
@@ -143,6 +152,8 @@
   "profile_setting_languageSubtitle": "Cambia lingua dell'app",
   "profile_setting_statusTracking": "Attiva monitoraggio stato",
   "profile_setting_statusTrackingSubtitle": "Sapere se gli articoli sono in uso o archiviati",
+  "profile_setting_quickAddItem": "Aggiunta Rapida Articolo",
+  "profile_setting_quickAddItemSubtitle": "Avvia automaticamente con la fotocamera per i nuovi articoli",
   "profile_data_exportData": "Esporta Dati",
   "profile_data_exportDataSubtitle": "Scarica le tue informazioni",
   "profile_data_backupData": "Backup Dati",
@@ -412,5 +423,50 @@
   "notifications_success_joined": "Unito alla famiglia con successo!",
   "notifications_success_rejected": "Invito rifiutato.",
   "notifications_error_joining": "Errore durante l'adesione alla famiglia: {error}",
-  "notifications_error_rejecting": "Errore durante il rifiuto dell'invito: {error}"
+  "notifications_error_rejecting": "Errore durante il rifiuto dell'invito: {error}",
+  "subscription_title": "Abbonamento",
+  "subscription_subtitle": "Scegli il piano migliore per la tua famiglia",
+  "subscription_billing_monthly": "Mensile",
+  "subscription_billing_yearly": "Annuale",
+  "subscription_tier_freeTitle": "Livello Gratuito",
+  "subscription_tier_premiumTitle": "Livello Premium",
+  "subscription_tier_freePrice": "Gratis",
+  "subscription_tier_premiumPrice": "€{price}{period}",
+  "@subscription_tier_premiumPrice": {
+    "placeholders": {
+      "price": {"type": "String"},
+      "period": {"type": "String"}
+    }
+  },
+  "subscription_tier_freeDesc": "Ottimo per iniziare",
+  "subscription_tier_premiumDesc": "Accesso illimitato per famiglie impegnate",
+  "subscription_feature_items_free": "Fino a 50 articoli",
+  "subscription_feature_photos_free": "3 foto per articolo",
+  "subscription_feature_storage_free": "Monitoraggio standard dello storage",
+  "subscription_feature_items_premium": "Articoli illimitati",
+  "subscription_feature_members_premium": "Membri della famiglia illimitati",
+  "subscription_feature_sharing_premium": "Condivisione familiare completa",
+  "subscription_feature_growth_premium": "Previsioni di crescita e consigli",
+  "subscription_feature_reminders_premium": "Promemoria stagionali",
+  "subscription_currentPlan": "Piano Attuale",
+  "subscription_selectPlan": "Seleziona Piano",
+  "subscription_savingsLabel": "Risparmia il {percent}%",
+  "@subscription_savingsLabel": {
+    "placeholders": {
+      "percent": {"type": "String"}
+    }
+  },
+  "subscription_bestValue": "MIGLIOR VALORE",
+  "subscription_cancelAnytime": "Annulla in qualsiasi momento. Gli articoli esistenti rimangono visibili anche dopo l'annullamento.",
+
+  "members_tooltip_editPermission": "Solo gli amministratori possono modificare altri membri",
+  "members_button_filter": "Filtra",
+  "members_dialog_limitReached_title": "Limite Raggiunto",
+  "members_dialog_limitReached_message": "Il livello gratuito è limitato a 4 membri. Passa a Pagamento per membri illimitati e condivisione familiare completa!",
+  "members_dialog_limitReached_maybeLater": "Forse Più Tardi",
+  "members_dialog_limitReached_viewPricing": "Visualizza Prezzi",
+
+  "growthChart_premium_title": "Le Previsioni di Crescita sono Premium",
+  "growthChart_premium_message": "Passa al piano a pagamento per vedere come stanno crescendo i tuoi figli e ricevere consigli su quando acquistare le prossime taglie.",
+  "growthChart_premium_viewPricing": "Visualizza Prezzi"
 }

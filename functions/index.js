@@ -274,3 +274,229 @@ exports.createUserAndJoinFamily = onCall(async (request) => {
     throw new HttpsError('internal', error.message);
   }
 });
+
+/**
+ * Triggered by a write to an item document.
+ * Updates the 'itemCount' in the parent family document.
+ */
+exports.countItems = onDocumentWritten(
+  {
+    document: "families/{familyId}/items/{itemId}",
+  },
+  async (event) => {
+    const familyId = event.params.familyId;
+    const firestore = admin.firestore();
+    const familyRef = firestore.collection("families").doc(familyId);
+
+    // Increment if created, decrement if deleted
+    let change = 0;
+    if (!event.data.before.exists && event.data.after.exists) {
+      change = 1;
+    } else if (event.data.before.exists && !event.data.after.exists) {
+      change = -1;
+    }
+
+    if (change !== 0) {
+      try {
+        await familyRef.update({
+          itemCount: admin.firestore.FieldValue.increment(change),
+        });
+        console.log(`Updated itemCount for family ${familyId} by ${change}`);
+      } catch (error) {
+        console.error(`Error updating itemCount for family ${familyId}:`, error);
+        // If family doc doesn't exist, we might need to create it or ignore
+      }
+    }
+
+    return null;
+  }
+);
+
+/**
+ * Triggered by a write to a family member document.
+ * Updates the 'memberCount' in the parent family document.
+ */
+exports.countMembers = onDocumentWritten(
+  {
+    document: "families/{familyId}/members/{memberId}",
+  },
+  async (event) => {
+    const familyId = event.params.familyId;
+    const firestore = admin.firestore();
+    const familyRef = firestore.collection("families").doc(familyId);
+
+    // Increment if created, decrement if deleted
+    let change = 0;
+    if (!event.data.before.exists && event.data.after.exists) {
+      change = 1;
+    } else if (event.data.before.exists && !event.data.after.exists) {
+      change = -1;
+    }
+
+    if (change !== 0) {
+      try {
+        await familyRef.update({
+          memberCount: admin.firestore.FieldValue.increment(change),
+        });
+        console.log(`Updated memberCount for family ${familyId} by ${change}`);
+      } catch (error) {
+        console.error(`Error updating memberCount for family ${familyId}:`, error);
+      }
+    }
+
+    return null;
+  }
+);
+
+/**
+ * Callable function to update user profile securely.
+ */
+exports.updateUserProfile = onCall(async (request) => {
+  const { uid, displayName, phoneNumber, photoURL, familyName, role, preferences } = request.data;
+
+  // Verify the caller is authenticated and matches the UID
+  if (!request.auth || request.auth.uid !== uid) {
+    throw new HttpsError(
+      'unauthenticated',
+      'User must be authenticated and match the provided UID'
+    );
+  }
+
+  const firestore = admin.firestore();
+  const userRef = firestore.collection('users').doc(uid);
+
+  const updateData = {};
+  if (displayName !== undefined) updateData.displayName = displayName;
+  if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber;
+  if (photoURL !== undefined) updateData.photoURL = photoURL;
+  if (familyName !== undefined) updateData.familyName = familyName;
+  if (role !== undefined) updateData.role = role;
+  if (preferences !== undefined) updateData.preferences = preferences;
+
+  if (Object.keys(updateData).length === 0) {
+    return { success: true, message: "No data to update" };
+  }
+
+  try {
+    await userRef.update(updateData);
+    console.log(`User profile updated for UID: ${uid}`);
+    return { success: true };
+  } catch (error) {
+    console.error('Error in updateUserProfile:', error);
+    throw new HttpsError('internal', error.message);
+  }
+});
+
+/**
+ * Callable function to join a family securely.
+ */
+exports.joinFamily = onCall(async (request) => {
+  const { uid, email, familyCode } = request.data;
+
+  if (!request.auth || request.auth.uid !== uid) {
+    throw new HttpsError('unauthenticated', 'Unauthorized access');
+  }
+
+  const firestore = admin.firestore();
+
+  try {
+    const familyRef = firestore.collection('families').doc(familyCode);
+    const familyDoc = await familyRef.get();
+    if (!familyDoc.exists) {
+      throw new HttpsError('not-found', 'Invalid Family Code');
+    }
+
+    // Verify invitation
+    const inviteQuery = await familyRef
+      .collection('members')
+      .where('inviteEmail', '==', email)
+      .where('inviteStatus', '==', 'pending')
+      .limit(1)
+      .get();
+
+    if (inviteQuery.empty) {
+      throw new HttpsError('permission-denied', 'No active invitation found');
+    }
+
+    const userRef = firestore.collection('users').doc(uid);
+    const userDoc = await userRef.get();
+    const displayName = userDoc.data()?.displayName || 'Member';
+
+    const batch = firestore.batch();
+
+    // 1. Delete invite
+    batch.delete(inviteQuery.docs[0].ref);
+
+    // 2. Add to Family Members
+    batch.set(familyRef.collection('members').doc(uid), {
+      id: uid,
+      userId: uid,
+      familyId: familyCode,
+      name: displayName,
+      role: 'member',
+      birthdate: admin.firestore.Timestamp.fromDate(new Date()),
+      gender: 'Unisex',
+    });
+
+    // 3. Update User's familyId
+    batch.update(userRef, { familyId: familyCode });
+
+    await batch.commit();
+    return { success: true };
+  } catch (error) {
+    console.error('Error in joinFamily:', error);
+    if (error.code) throw error;
+    throw new HttpsError('internal', error.message);
+  }
+});
+
+/**
+ * Callable function to leave current family and revert to personal family.
+ */
+exports.leaveFamily = onCall(async (request) => {
+  const { uid, currentFamilyId } = request.data;
+
+  if (!request.auth || request.auth.uid !== uid) {
+    throw new HttpsError('unauthenticated', 'Unauthorized access');
+  }
+
+  const firestore = admin.firestore();
+
+  try {
+    const batch = firestore.batch();
+    const userRef = firestore.collection('users').doc(uid);
+
+    if (uid === currentFamilyId) {
+      // Disband own family
+      const membersQuery = await firestore.collection('families').doc(uid).collection('members').get();
+      membersQuery.forEach(doc => batch.delete(doc.ref));
+    } else {
+      // Regular leave
+      batch.delete(firestore.collection('families').doc(currentFamilyId).collection('members').doc(uid));
+    }
+
+    // Ensure they are admin of personal family
+    const userDoc = await userRef.get();
+    const displayName = userDoc.data()?.displayName || 'Admin';
+
+    batch.set(firestore.collection('families').doc(uid), { id: uid, settings: {} }, { merge: true });
+    batch.set(firestore.collection('families').doc(uid).collection('members').doc(uid), {
+      id: uid,
+      userId: uid,
+      familyId: uid,
+      name: displayName,
+      role: 'admin',
+      birthdate: admin.firestore.Timestamp.fromDate(new Date()),
+      gender: 'Unisex',
+    });
+
+    // Reset user document
+    batch.update(userRef, { familyId: uid });
+
+    await batch.commit();
+    return { success: true };
+  } catch (error) {
+    console.error('Error in leaveFamily:', error);
+    throw new HttpsError('internal', error.message);
+  }
+});

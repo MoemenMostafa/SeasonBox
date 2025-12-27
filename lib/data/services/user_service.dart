@@ -2,11 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
-import '../models/family.dart';
-import '../models/family_member.dart';
-import '../../core/enums/gender.dart';
-import '../repositories/family_repository.dart';
-
 import 'firestore_service.dart';
 import 'posthog_service.dart';
 
@@ -14,9 +9,8 @@ import 'posthog_service.dart';
 /// Uses Cloud Functions for registration to bypass permission issues.
 class UserService {
   final FirestoreService _firestoreService;
-  final FamilyRepository _familyRepository;
 
-  UserService(this._firestoreService, this._familyRepository);
+  UserService(this._firestoreService);
 
   Future<void> createUserAndLinkFamily(User firebaseUser,
       {String? familyId, String? inviteCode}) async {
@@ -71,125 +65,46 @@ class UserService {
   }
 
   /// Helper to join a family for an existing user
+  /// Now calls a Cloud Function to handle updates securely.
   Future<void> joinFamily(String uid, String email, String familyCode) async {
-    final familyDoc = await _firestoreService.getDocument(
-      docRef: _firestoreService.families.doc(familyCode),
-    );
-    if (!familyDoc.exists) {
-      throw Exception('Invalid Family Code');
+    final functions = FirebaseFunctions.instance;
+    try {
+      await PostHogService().trackLatency('joinFamily_function', () async {
+        return await functions.httpsCallable('joinFamily').call({
+          'uid': uid,
+          'email': email,
+          'familyCode': familyCode,
+        });
+      });
+      PostHogService.log('Joined family successfully via function');
+    } catch (e) {
+      PostHogService.log('Error joining family via function: $e',
+          level: LogLevel.error);
+      rethrow;
     }
-
-    // Verify invitation
-    final invitedMemberQuerySnapshot = await _firestoreService.getCollection(
-      query: _firestoreService
-          .familyMembers(familyCode)
-          .where('inviteEmail', isEqualTo: email)
-          .where('inviteStatus', isEqualTo: 'pending')
-          .limit(1),
-    );
-
-    if (invitedMemberQuerySnapshot.docs.isEmpty) {
-      throw Exception('No active invitation found for this family.');
-    }
-
-    // Clean up pending invite
-    // Start a batch
-    final batch = _firestoreService.batch();
-
-    // 1. Delete the pending invite
-    batch.delete(invitedMemberQuerySnapshot.docs.first.reference);
-
-    // 2. Add to Family Members
-    // Fetch current user display name for the member name
-    final userDoc = await _firestoreService.getDocument(
-      docRef: _firestoreService.users.doc(uid),
-    );
-    final displayName =
-        (userDoc.data() as Map<String, dynamic>?)?['displayName'] ?? 'Member';
-
-    final member = FamilyMember(
-      id: uid,
-      userId: uid,
-      familyId: familyCode,
-      name: displayName,
-      role: 'member',
-      birthdate: DateTime.now(),
-      gender: Gender.unisex,
-    );
-
-    // Manual set to include in batch
-    batch.set(
-      _firestoreService.familyMembers(familyCode).doc(uid),
-      member.toMap(),
-    );
-
-    // 3. Update User's familyId
-    batch.update(_firestoreService.users.doc(uid), {'familyId': familyCode});
-
-    // Commit all changes atomically
-    await _firestoreService.commitBatch(batch);
   }
 
   /// Helper to leave current family and revert to personal family
+  /// Now calls a Cloud Function to handle updates securely.
   Future<void> leaveFamily(String uid, String currentFamilyId) async {
-    final batch = _firestoreService.batch();
-
-    // If leaving own family (disbanding/resetting to solo)
-    if (uid == currentFamilyId) {
-      // Logic: "Leave" means reverting to a true solo state.
-      // If there are other members, we should remove them (Disband).
-      final membersQuery = await _firestoreService.getCollection(
-        query: _firestoreService.familyMembers(currentFamilyId),
-      );
-      for (var doc in membersQuery.docs) {
-        batch.delete(doc.reference);
-      }
-    } else {
-      // Regular leave: Remove self from old family
-      batch.delete(_firestoreService.familyMembers(currentFamilyId).doc(uid));
+    final functions = FirebaseFunctions.instance;
+    try {
+      await PostHogService().trackLatency('leaveFamily_function', () async {
+        return await functions.httpsCallable('leaveFamily').call({
+          'uid': uid,
+          'currentFamilyId': currentFamilyId,
+        });
+      });
+      PostHogService.log('Left family successfully via function');
+    } catch (e) {
+      PostHogService.log('Error leaving family via function: $e',
+          level: LogLevel.error);
+      rethrow;
     }
-
-    // Ensure personal family exists
-    var personalFamily = await _familyRepository.getFamily(uid);
-    if (personalFamily == null) {
-      final family = Family(
-        id: uid,
-        settings: const {},
-      );
-      // Manually set in batch to ensure atomicity
-      batch.set(_firestoreService.families.doc(uid), family.toMap());
-    }
-
-    // Ensure they are a member of their personal family (as Admin)
-    // We will blindly overwrite/set the user as admin in personal family to ensure they are there.
-    // This avoids the 'exists' check which might be stale or slow.
-
-    // Fetch current user display name (if needed) - read before batch
-    final userDoc = await _firestoreService.getDocument(
-      docRef: _firestoreService.users.doc(uid),
-    );
-    final displayName =
-        (userDoc.data() as Map<String, dynamic>?)?['displayName'] ?? 'Admin';
-
-    final member = FamilyMember(
-      id: uid,
-      userId: uid,
-      familyId: uid,
-      name: displayName,
-      role: 'admin',
-      birthdate: DateTime.now(),
-      gender: Gender.unisex,
-    );
-
-    batch.set(_firestoreService.familyMembers(uid).doc(uid), member.toMap());
-
-    // Update User to point to personal family
-    batch.update(_firestoreService.users.doc(uid), {'familyId': uid});
-
-    await _firestoreService.commitBatch(batch);
   }
 
   /// Updates the user's profile information in Firestore.
+  /// Now calls a Cloud Function to handle updates securely.
   Future<void> updateUserProfile({
     required String uid,
     String? displayName,
@@ -199,19 +114,25 @@ class UserService {
     String? role,
     Map<String, dynamic>? preferences,
   }) async {
-    final Map<String, dynamic> data = {};
-    if (displayName != null) data['displayName'] = displayName;
-    if (phoneNumber != null) data['phoneNumber'] = phoneNumber;
-    if (photoURL != null) data['photoURL'] = photoURL;
-    if (familyName != null) data['familyName'] = familyName;
-    if (role != null) data['role'] = role;
-    if (preferences != null) data['preferences'] = preferences;
-
-    if (data.isNotEmpty) {
-      await _firestoreService.updateDocument(
-        docRef: _firestoreService.users.doc(uid),
-        data: data,
-      );
+    final functions = FirebaseFunctions.instance;
+    try {
+      await PostHogService().trackLatency('updateUserProfile_function',
+          () async {
+        return await functions.httpsCallable('updateUserProfile').call({
+          'uid': uid,
+          if (displayName != null) 'displayName': displayName,
+          if (phoneNumber != null) 'phoneNumber': phoneNumber,
+          if (photoURL != null) 'photoURL': photoURL,
+          if (familyName != null) 'familyName': familyName,
+          if (role != null) 'role': role,
+          if (preferences != null) 'preferences': preferences,
+        });
+      });
+      PostHogService.log('User profile updated successfully via function');
+    } catch (e) {
+      PostHogService.log('Error updating user profile via function: $e',
+          level: LogLevel.error);
+      rethrow;
     }
   }
 }

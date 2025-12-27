@@ -216,6 +216,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         children: [
                           _buildProfileCard(context, userData, user),
                           const SizedBox(height: 24),
+                          _buildSubscriptionSection(context),
+                          const SizedBox(height: 24),
                           _buildFamilyManagement(context, userData),
                         ],
                       );
@@ -676,6 +678,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Widget _buildSubscriptionSection(BuildContext context) {
+    final userProvider = context.watch<UserProfileProvider>();
+    final isPremium = userProvider.isPremium;
+    final l10n = AppLocalizations.of(context)!;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle(l10n.profile_setting_subscription),
+        _buildListTile(
+          context,
+          icon: isPremium ? Icons.stars : Icons.stars_outlined,
+          iconColor: isPremium ? Colors.orange : Colors.grey,
+          iconBgColor: isPremium ? Colors.orange.shade50 : Colors.grey.shade100,
+          title: isPremium
+              ? l10n.profile_subscription_statusPremium
+              : l10n.profile_subscription_statusFree,
+          subtitle: isPremium
+              ? l10n.subscription_tier_premiumDesc
+              : l10n.subscription_tier_freeDesc,
+          onTap: () => context.push('/subscription'),
+        ),
+      ],
+    );
+  }
+
   Widget _buildAppSettings(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -771,19 +799,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SizedBox(height: 12),
         Consumer<UserProfileProvider>(
           builder: (context, userProfile, child) {
-            return _buildToggleTile(
-              context,
-              icon: Icons.assignment_turned_in,
-              iconColor: Colors.green,
-              iconBgColor: Colors.green.shade50,
-              title:
-                  AppLocalizations.of(context)!.profile_setting_statusTracking,
-              subtitle: AppLocalizations.of(context)!
-                  .profile_setting_statusTrackingSubtitle,
-              value: userProfile.statusTrackingEnabled,
-              onChanged: (val) async {
-                await userProfile.toggleStatusTracking();
-              },
+            return Column(
+              children: [
+                _buildToggleTile(
+                  context,
+                  icon: Icons.assignment_turned_in,
+                  iconColor: Colors.green,
+                  iconBgColor: Colors.green.shade50,
+                  title: AppLocalizations.of(context)!
+                      .profile_setting_statusTracking,
+                  subtitle: AppLocalizations.of(context)!
+                      .profile_setting_statusTrackingSubtitle,
+                  value: userProfile.statusTrackingEnabled,
+                  onChanged: (val) async {
+                    await userProfile.toggleStatusTracking();
+                  },
+                ),
+                const SizedBox(height: 12),
+                _buildToggleTile(
+                  context,
+                  icon: Icons.camera_alt,
+                  iconColor: Colors.pink,
+                  iconBgColor: Colors.pink.shade50,
+                  title: AppLocalizations.of(context)!
+                      .profile_setting_quickAddItem,
+                  subtitle: AppLocalizations.of(context)!
+                      .profile_setting_quickAddItemSubtitle,
+                  value: userProfile.quickAddItemEnabled,
+                  onChanged: (val) async {
+                    await userProfile.toggleQuickAddItem();
+                  },
+                ),
+              ],
             );
           },
         ),

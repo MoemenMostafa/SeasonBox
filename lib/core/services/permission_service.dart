@@ -95,9 +95,11 @@ class PermissionService {
   static bool canChangeRole(
     String? currentUserId,
     String? familyId,
-    List<FamilyMember> members,
-  ) {
-    return isAdmin(currentUserId, familyId, members);
+    List<FamilyMember> members, {
+    bool isPremium = false,
+  }) {
+    if (!isAdmin(currentUserId, familyId, members)) return false;
+    return isPremium;
   }
 
   /// Check if the current user can delete a specific item
@@ -142,13 +144,21 @@ class PermissionService {
 
   /// Check if the current user can add new family members
   ///
-  /// Only admins and co-admins can add new members
+  /// Only admins and co-admins can add new members.
+  /// Additionally, must be a Premium user to invite others.
   static bool canAddMember(
     String? currentUserId,
     String? familyId,
-    List<FamilyMember> members,
-  ) {
-    return isAdmin(currentUserId, familyId, members);
+    List<FamilyMember> members, {
+    bool isPremium = false,
+  }) {
+    if (!isAdmin(currentUserId, familyId, members)) return false;
+
+    // Premium users have unlimited members
+    if (isPremium) return true;
+
+    // Free tier is limited to 4 members total
+    return members.length < 4;
   }
 
   /// Get the current user's role as a string

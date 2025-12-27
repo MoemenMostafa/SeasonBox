@@ -43,6 +43,12 @@
   },
   "home_stats_totalItems": "Articles Totaux",
   "home_stats_members": "Membres",
+  "home_subscription_itemLimit": "Limite d'articles : {count} / {limit}",
+  "home_subscription_upgradeForUnlimited": "Passer à l'illimité",
+  "home_subscription_limitReached": "Limite atteinte ! Améliorez maintenant.",
+  "home_premium_banner_title": "Débloquez un Potentiel Illimité",
+  "home_premium_banner_subtitle": "Gérez un nombre illimité d'articles et de membres de la famille avec SeasonBox Premium.",
+  "home_premium_banner_button": "Passer à Premium",
   "home_search_hint": "Rechercher articles, tailles ou #tag",
   "home_search_hint_revamped": "Rechercher par titre, taille ou #tag",
   "home_section_quickActions": "Actions Rapides",
@@ -121,6 +127,9 @@
   "profile_button_editProfile": "Modifier le Profil",
   "profile_role_familyAdmin": "Administrateur Familial",
   "profile_section_familyManagement": "Gestion Familiale",
+  "profile_setting_subscription": "Abonnement",
+  "profile_subscription_statusFree": "Plan Gratuit",
+  "profile_subscription_statusPremium": "Plan Premium",
   "profile_section_appSettings": "Paramètres de l'Application",
   "profile_section_dataPrivacy": "Données et Confidentialité",
   "profile_section_support": "Support",
@@ -143,6 +152,8 @@
   "profile_setting_languageSubtitle": "Changer la langue de l'application",
   "profile_setting_statusTracking": "Activer le suivi d'état",
   "profile_setting_statusTrackingSubtitle": "Savoir si les articles sont utilisés ou stockés",
+  "profile_setting_quickAddItem": "Ajout Rapide d'Article",
+  "profile_setting_quickAddItemSubtitle": "Démarrer automatiquement avec l'appareil photo pour les nouveaux articles",
   "profile_data_exportData": "Exporter les Données",
   "profile_data_exportDataSubtitle": "Télécharger vos informations",
   "profile_data_backupData": "Sauvegarder les Données",
@@ -411,5 +422,50 @@
   "notifications_success_joined": "Famille rejointe avec succès !",
   "notifications_success_rejected": "Invitation refusée.",
   "notifications_error_joining": "Erreur lors de l'adhésion à la famille : {error}",
-  "notifications_error_rejecting": "Erreur lors du refus de l'invitation : {error}"
+  "notifications_error_rejecting": "Erreur lors du refus de l'invitation : {error}",
+  "subscription_title": "Abonnement",
+  "subscription_subtitle": "Choisissez le meilleur plan pour votre famille",
+  "subscription_billing_monthly": "Mensuel",
+  "subscription_billing_yearly": "Annuel",
+  "subscription_tier_freeTitle": "Niveau Gratuit",
+  "subscription_tier_premiumTitle": "Niveau Premium",
+  "subscription_tier_freePrice": "Gratuit",
+  "subscription_tier_premiumPrice": "€{price}{period}",
+  "@subscription_tier_premiumPrice": {
+    "placeholders": {
+      "price": {"type": "String"},
+      "period": {"type": "String"}
+    }
+  },
+  "subscription_tier_freeDesc": "Idéal pour commencer",
+  "subscription_tier_premiumDesc": "Accès illimité pour les familles occupées",
+  "subscription_feature_items_free": "Jusqu'à 50 articles",
+  "subscription_feature_photos_free": "3 photos par article",
+  "subscription_feature_storage_free": "Suivi du stockage standard",
+  "subscription_feature_items_premium": "Articles illimités",
+  "subscription_feature_members_premium": "Membres de la famille illimités",
+  "subscription_feature_sharing_premium": "Partage familial complet",
+  "subscription_feature_growth_premium": "Prédictions de croissance et conseils",
+  "subscription_feature_reminders_premium": "Rappels saisonniers",
+  "subscription_currentPlan": "Plan Actuel",
+  "subscription_selectPlan": "Choisir ce Plan",
+  "subscription_savingsLabel": "Économisez {percent}%",
+  "@subscription_savingsLabel": {
+    "placeholders": {
+      "percent": {"type": "String"}
+    }
+  },
+  "subscription_bestValue": "MEILLEURE OFFRE",
+  "subscription_cancelAnytime": "Annulez à tout moment. Les articles existants restent visibles même après l'annulation.",
+
+  "members_tooltip_editPermission": "Seuls les administrateurs peuvent modifier d'autres membres",
+  "members_button_filter": "Filtrer",
+  "members_dialog_limitReached_title": "Limite Atteinte",
+  "members_dialog_limitReached_message": "Le niveau gratuit est limité à 4 membres. Passez au plan payant pour des membres illimités et un partage familial complet !",
+  "members_dialog_limitReached_maybeLater": "Peut-être Plus Tard",
+  "members_dialog_limitReached_viewPricing": "Voir les Tarifs",
+
+  "growthChart_premium_title": "Les Prédictions de Croissance sont Premium",
+  "growthChart_premium_message": "Passez au plan payant pour voir comment vos enfants grandissent et obtenir des conseils sur quand acheter les prochaines tailles.",
+  "growthChart_premium_viewPricing": "Voir les Tarifs"
 }

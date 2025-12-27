@@ -296,6 +296,42 @@ abstract class AppLocalizations {
   /// **'Members'**
   String get home_stats_members;
 
+  /// No description provided for @home_subscription_itemLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Item Limit: {count} / {limit}'**
+  String home_subscription_itemLimit(int count, int limit);
+
+  /// No description provided for @home_subscription_upgradeForUnlimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade for Unlimited'**
+  String get home_subscription_upgradeForUnlimited;
+
+  /// No description provided for @home_subscription_limitReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Item limit reached! Upgrade now.'**
+  String get home_subscription_limitReached;
+
+  /// No description provided for @home_premium_banner_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Unlimited Potential'**
+  String get home_premium_banner_title;
+
+  /// No description provided for @home_premium_banner_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage unlimited items and family members with SeasonBox Premium.'**
+  String get home_premium_banner_subtitle;
+
+  /// No description provided for @home_premium_banner_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade Now'**
+  String get home_premium_banner_button;
+
   /// No description provided for @home_search_hint.
   ///
   /// In en, this message translates to:
@@ -752,6 +788,24 @@ abstract class AppLocalizations {
   /// **'Family Management'**
   String get profile_section_familyManagement;
 
+  /// No description provided for @profile_setting_subscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription'**
+  String get profile_setting_subscription;
+
+  /// No description provided for @profile_subscription_statusFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free Plan'**
+  String get profile_subscription_statusFree;
+
+  /// No description provided for @profile_subscription_statusPremium.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium Plan'**
+  String get profile_subscription_statusPremium;
+
   /// No description provided for @profile_section_appSettings.
   ///
   /// In en, this message translates to:
@@ -883,6 +937,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Track if items are in use or stored'**
   String get profile_setting_statusTrackingSubtitle;
+
+  /// No description provided for @profile_setting_quickAddItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Add Item'**
+  String get profile_setting_quickAddItem;
+
+  /// No description provided for @profile_setting_quickAddItemSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically start with camera for new items'**
+  String get profile_setting_quickAddItemSubtitle;
 
   /// No description provided for @profile_data_exportData.
   ///
@@ -2323,6 +2389,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error rejecting invitation: {error}'**
   String notifications_error_rejecting(String error);
+
+  /// No description provided for @subscription_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription'**
+  String get subscription_title;
+
+  /// No description provided for @subscription_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the best plan for your family'**
+  String get subscription_subtitle;
+
+  /// No description provided for @subscription_billing_monthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get subscription_billing_monthly;
+
+  /// No description provided for @subscription_billing_yearly.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly'**
+  String get subscription_billing_yearly;
+
+  /// No description provided for @subscription_tier_freeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Free Tier'**
+  String get subscription_tier_freeTitle;
+
+  /// No description provided for @subscription_tier_premiumTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium Tier'**
+  String get subscription_tier_premiumTitle;
+
+  /// No description provided for @subscription_tier_freePrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get subscription_tier_freePrice;
+
+  /// No description provided for @subscription_tier_premiumPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'€{price}{period}'**
+  String subscription_tier_premiumPrice(String price, String period);
+
+  /// No description provided for @subscription_tier_freeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Great for getting started'**
+  String get subscription_tier_freeDesc;
+
+  /// No description provided for @subscription_tier_premiumDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited access for busy families'**
+  String get subscription_tier_premiumDesc;
+
+  /// No description provided for @subscription_feature_items_free.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to 50 items'**
+  String get subscription_feature_items_free;
+
+  /// No description provided for @subscription_feature_photos_free.
+  ///
+  /// In en, this message translates to:
+  /// **'3 photos per item'**
+  String get subscription_feature_photos_free;
+
+  /// No description provided for @subscription_feature_storage_free.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard storage tracking'**
+  String get subscription_feature_storage_free;
+
+  /// No description provided for @subscription_feature_items_premium.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited items'**
+  String get subscription_feature_items_premium;
+
+  /// No description provided for @subscription_feature_members_premium.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited family members'**
+  String get subscription_feature_members_premium;
+
+  /// No description provided for @subscription_feature_sharing_premium.
+  ///
+  /// In en, this message translates to:
+  /// **'Full family sharing'**
+  String get subscription_feature_sharing_premium;
+
+  /// No description provided for @subscription_feature_growth_premium.
+  ///
+  /// In en, this message translates to:
+  /// **'Growth predictions & advice'**
+  String get subscription_feature_growth_premium;
+
+  /// No description provided for @subscription_feature_reminders_premium.
+  ///
+  /// In en, this message translates to:
+  /// **'Seasonal reminders'**
+  String get subscription_feature_reminders_premium;
+
+  /// No description provided for @subscription_currentPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Plan'**
+  String get subscription_currentPlan;
+
+  /// No description provided for @subscription_selectPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Plan'**
+  String get subscription_selectPlan;
+
+  /// No description provided for @subscription_savingsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Save {percent}%'**
+  String subscription_savingsLabel(String percent);
+
+  /// No description provided for @subscription_bestValue.
+  ///
+  /// In en, this message translates to:
+  /// **'BEST VALUE'**
+  String get subscription_bestValue;
+
+  /// No description provided for @subscription_cancelAnytime.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel anytime. Grandfathered items stay visible even after cancellation.'**
+  String get subscription_cancelAnytime;
+
+  /// No description provided for @members_tooltip_editPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Only admins can edit other members'**
+  String get members_tooltip_editPermission;
+
+  /// No description provided for @members_button_filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get members_button_filter;
+
+  /// No description provided for @members_dialog_limitReached_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Limit Reached'**
+  String get members_dialog_limitReached_title;
+
+  /// No description provided for @members_dialog_limitReached_message.
+  ///
+  /// In en, this message translates to:
+  /// **'The Free tier is limited to 4 members. Upgrade to Paid for unlimited members and full family sharing!'**
+  String get members_dialog_limitReached_message;
+
+  /// No description provided for @members_dialog_limitReached_maybeLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Maybe Later'**
+  String get members_dialog_limitReached_maybeLater;
+
+  /// No description provided for @members_dialog_limitReached_viewPricing.
+  ///
+  /// In en, this message translates to:
+  /// **'View Pricing'**
+  String get members_dialog_limitReached_viewPricing;
+
+  /// No description provided for @growthChart_premium_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Growth Predictions are Premium'**
+  String get growthChart_premium_title;
+
+  /// No description provided for @growthChart_premium_message.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to the Paid plan to see how your children are growing and get advice on when to buy next sizes.'**
+  String get growthChart_premium_message;
+
+  /// No description provided for @growthChart_premium_viewPricing.
+  ///
+  /// In en, this message translates to:
+  /// **'View Pricing'**
+  String get growthChart_premium_viewPricing;
 }
 
 class _AppLocalizationsDelegate

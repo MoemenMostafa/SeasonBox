@@ -903,21 +903,39 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
             prefixIcon: Icon(Icons.security),
           ),
           items: UserRole.values.map((role) {
+            final isPremium = context.watch<UserProfileProvider>().isPremium;
+            final isRestricted = !isPremium &&
+                (role == UserRole.admin || role == UserRole.coAdmin);
+
             return DropdownMenuItem(
               value: role.toShortString(),
-              child: Text(role.getLocalizedName(context)),
+              enabled: !isRestricted,
+              child: Text(
+                role.getLocalizedName(context),
+                style: TextStyle(
+                  color: isRestricted ? Colors.grey : null,
+                ),
+              ),
             );
           }).toList(),
           onChanged: (value) {
+            final isPremium = context.read<UserProfileProvider>().isPremium;
             if (value != null &&
                 PermissionService.canChangeRole(
                   _currentUserId,
                   _familyId,
                   _allMembers,
+                  isPremium: isPremium,
                 )) {
               setState(() {
                 _role = value;
               });
+            } else if (value != null) {
+              // Show upgrade dialog or snackbar
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                    content: Text('Upgrade to Paid to add more Admins!')),
+              );
             }
           },
           disabledHint: Text(

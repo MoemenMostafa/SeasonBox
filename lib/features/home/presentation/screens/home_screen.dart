@@ -10,10 +10,12 @@ import 'package:seasonbox/data/models/storage_location.dart';
 import 'package:seasonbox/data/repositories/family_member_repository.dart';
 import 'package:seasonbox/data/repositories/item_repository.dart';
 import 'package:seasonbox/data/repositories/storage_location_repository.dart';
+import 'package:seasonbox/app/providers/user_profile_provider.dart';
 import 'package:seasonbox/features/auth/data/auth_service.dart';
 import 'package:seasonbox/widgets/image_gallery_viewer.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
 import 'package:seasonbox/data/services/user_service.dart';
+import 'package:seasonbox/widgets/season_box_network_image.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -210,31 +212,102 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildStatsRow(BuildContext context) {
-    return Row(
+    final userProvider = context.watch<UserProfileProvider>();
+    final isPremium = userProvider.isPremium;
+    final l10n = AppLocalizations.of(context)!;
+
+    final itemsCount = _items.length;
+    const itemsLimit = 50;
+    final itemsProgress = (itemsCount / itemsLimit).clamp(0.0, 1.0);
+
+    final membersCount = _members.length;
+    const membersLimit = 4;
+    final membersProgress = (membersCount / membersLimit).clamp(0.0, 1.0);
+
+    return Column(
       children: [
-        Expanded(
-          child: _buildStatCard(
-            context,
-            icon: Icons.checkroom,
-            count: '${_items.length}',
-            label: AppLocalizations.of(context)!.home_stats_totalItems,
-            color: Colors.purple.shade100,
-            iconColor: Colors.purple,
-            onTap: () => context.push('/items'),
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                context,
+                icon: Icons.checkroom,
+                count: '$itemsCount',
+                label: l10n.home_stats_totalItems,
+                color: Colors.purple.shade100,
+                iconColor: Colors.purple,
+                onTap: () => context.push('/items'),
+                progress: !isPremium ? itemsProgress : null,
+                limitLabel: !isPremium ? '$itemsCount/$itemsLimit' : null,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildStatCard(
+                context,
+                icon: Icons.people,
+                count: '$membersCount',
+                label: l10n.home_stats_members,
+                color: Colors.teal.shade100,
+                iconColor: Colors.teal,
+                onTap: () => context.push('/members'),
+                progress: !isPremium ? membersProgress : null,
+                limitLabel: !isPremium ? '$membersCount/$membersLimit' : null,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _buildStatCard(
-            context,
-            icon: Icons.people,
-            count: '${_members.length}',
-            label: AppLocalizations.of(context)!.home_stats_members,
-            color: Colors.teal.shade100,
-            iconColor: Colors.teal,
-            onTap: () => context.push('/members'),
+        if (!isPremium) ...[
+          const SizedBox(height: 16),
+          AppCard(
+            onTap: () => context.push('/subscription'),
+            backgroundColor: Theme.of(context)
+                .colorScheme
+                .primaryContainer
+                .withValues(alpha: 0.3),
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.auto_awesome, color: Colors.white),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.home_premium_banner_title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        l10n.home_premium_banner_subtitle,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Icon(
+                  Icons.chevron_right,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ],
+            ),
           ),
-        ),
+        ],
       ],
     );
   }
@@ -245,42 +318,86 @@ class _HomeScreenState extends State<HomeScreen> {
       required String label,
       required Color color,
       required Color iconColor,
-      required VoidCallback onTap}) {
+      required VoidCallback onTap,
+      double? progress,
+      String? limitLabel}) {
     return AppCard(
       padding: const EdgeInsets.all(16),
       onTap: onTap,
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? iconColor.withValues(alpha: 0.2)
-                  : color,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: iconColor),
-          ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
             children: [
-              Text(
-                count,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? iconColor.withValues(alpha: 0.2)
+                      : color,
+                  borderRadius: BorderRadius.circular(12),
                 ),
+                child: Icon(icon, color: iconColor),
               ),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.grey,
-                  fontSize: 12,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text(
+                          count,
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (limitLabel != null)
+                          Text(
+                            limitLabel,
+                            style: TextStyle(
+                              fontSize: 22,
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? Colors.grey.shade400
+                                  : Colors.grey.shade700,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                      ],
+                    ),
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        color: Colors.grey,
+                        fontSize: 12,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
+          if (progress != null) ...[
+            const SizedBox(height: 12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(2),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 4,
+                backgroundColor: iconColor.withValues(alpha: 0.1),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  progress >= 1.0 ? Colors.red : iconColor,
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -351,7 +468,7 @@ class _HomeScreenState extends State<HomeScreen> {
             label: AppLocalizations.of(context)!.home_action_scanQR,
             color: Colors.teal.shade50,
             iconColor: Colors.teal,
-            onTap: () {}, // TODO: QR Scanner
+            onTap: () => context.push('/qr-scanner'),
           ),
         ),
       ],
@@ -533,19 +650,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 }
               },
-              child: Image.network(
-                imageUrl,
+              child: SeasonBoxNetworkImage(
+                imageUrl: imageUrl,
                 height: 120,
                 width: double.infinity,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    height: 120,
-                    color: Colors.grey.shade200,
-                    child:
-                        const Icon(Icons.image, size: 48, color: Colors.grey),
-                  );
-                },
               ),
             ),
           ),
@@ -576,6 +685,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildSeasonalReminder(BuildContext context) {
+    final userProvider = context.read<UserProfileProvider>();
+    if (!userProvider.isPremium) return const SizedBox.shrink();
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return AppCard(
       padding: const EdgeInsets.all(16),

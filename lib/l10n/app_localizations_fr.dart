@@ -121,6 +121,28 @@ class AppLocalizationsFr extends AppLocalizations {
   String get home_stats_members => 'Membres';
 
   @override
+  String home_subscription_itemLimit(int count, int limit) {
+    return 'Limite d\'articles : $count / $limit';
+  }
+
+  @override
+  String get home_subscription_upgradeForUnlimited => 'Passer à l\'illimité';
+
+  @override
+  String get home_subscription_limitReached =>
+      'Limite atteinte ! Améliorez maintenant.';
+
+  @override
+  String get home_premium_banner_title => 'Débloquez un Potentiel Illimité';
+
+  @override
+  String get home_premium_banner_subtitle =>
+      'Gérez un nombre illimité d\'articles et de membres de la famille avec SeasonBox Premium.';
+
+  @override
+  String get home_premium_banner_button => 'Passer à Premium';
+
+  @override
   String get home_search_hint => 'Rechercher articles, tailles ou #tag';
 
   @override
@@ -372,6 +394,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get profile_section_familyManagement => 'Gestion Familiale';
 
   @override
+  String get profile_setting_subscription => 'Abonnement';
+
+  @override
+  String get profile_subscription_statusFree => 'Plan Gratuit';
+
+  @override
+  String get profile_subscription_statusPremium => 'Plan Premium';
+
+  @override
   String get profile_section_appSettings => 'Paramètres de l\'Application';
 
   @override
@@ -444,6 +475,13 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get profile_setting_statusTrackingSubtitle =>
       'Savoir si les articles sont utilisés ou stockés';
+
+  @override
+  String get profile_setting_quickAddItem => 'Ajout Rapide d\'Article';
+
+  @override
+  String get profile_setting_quickAddItemSubtitle =>
+      'Démarrer automatiquement avec l\'appareil photo pour les nouveaux articles';
 
   @override
   String get profile_data_exportData => 'Exporter les Données';
@@ -1253,4 +1291,113 @@ class AppLocalizationsFr extends AppLocalizations {
   String notifications_error_rejecting(String error) {
     return 'Erreur lors du refus de l\'invitation : $error';
   }
+
+  @override
+  String get subscription_title => 'Abonnement';
+
+  @override
+  String get subscription_subtitle =>
+      'Choisissez le meilleur plan pour votre famille';
+
+  @override
+  String get subscription_billing_monthly => 'Mensuel';
+
+  @override
+  String get subscription_billing_yearly => 'Annuel';
+
+  @override
+  String get subscription_tier_freeTitle => 'Niveau Gratuit';
+
+  @override
+  String get subscription_tier_premiumTitle => 'Niveau Premium';
+
+  @override
+  String get subscription_tier_freePrice => 'Gratuit';
+
+  @override
+  String subscription_tier_premiumPrice(String price, String period) {
+    return '€$price$period';
+  }
+
+  @override
+  String get subscription_tier_freeDesc => 'Idéal pour commencer';
+
+  @override
+  String get subscription_tier_premiumDesc =>
+      'Accès illimité pour les familles occupées';
+
+  @override
+  String get subscription_feature_items_free => 'Jusqu\'à 50 articles';
+
+  @override
+  String get subscription_feature_photos_free => '3 photos par article';
+
+  @override
+  String get subscription_feature_storage_free => 'Suivi du stockage standard';
+
+  @override
+  String get subscription_feature_items_premium => 'Articles illimités';
+
+  @override
+  String get subscription_feature_members_premium =>
+      'Membres de la famille illimités';
+
+  @override
+  String get subscription_feature_sharing_premium => 'Partage familial complet';
+
+  @override
+  String get subscription_feature_growth_premium =>
+      'Prédictions de croissance et conseils';
+
+  @override
+  String get subscription_feature_reminders_premium => 'Rappels saisonniers';
+
+  @override
+  String get subscription_currentPlan => 'Plan Actuel';
+
+  @override
+  String get subscription_selectPlan => 'Choisir ce Plan';
+
+  @override
+  String subscription_savingsLabel(String percent) {
+    return 'Économisez $percent%';
+  }
+
+  @override
+  String get subscription_bestValue => 'MEILLEURE OFFRE';
+
+  @override
+  String get subscription_cancelAnytime =>
+      'Annulez à tout moment. Les articles existants restent visibles même après l\'annulation.';
+
+  @override
+  String get members_tooltip_editPermission =>
+      'Seuls les administrateurs peuvent modifier d\'autres membres';
+
+  @override
+  String get members_button_filter => 'Filtrer';
+
+  @override
+  String get members_dialog_limitReached_title => 'Limite Atteinte';
+
+  @override
+  String get members_dialog_limitReached_message =>
+      'Le niveau gratuit est limité à 4 membres. Passez au plan payant pour des membres illimités et un partage familial complet !';
+
+  @override
+  String get members_dialog_limitReached_maybeLater => 'Peut-être Plus Tard';
+
+  @override
+  String get members_dialog_limitReached_viewPricing => 'Voir les Tarifs';
+
+  @override
+  String get growthChart_premium_title =>
+      'Les Prédictions de Croissance sont Premium';
+
+  @override
+  String get growthChart_premium_message =>
+      'Passez au plan payant pour voir comment vos enfants grandissent et obtenir des conseils sur quand acheter les prochaines tailles.';
+
+  @override
+  String get growthChart_premium_viewPricing => 'Voir les Tarifs';
 }

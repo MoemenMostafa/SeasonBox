@@ -12,6 +12,7 @@ import '../../../widgets/app_card.dart';
 import '../../../widgets/skeleton_container.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
 import '../../../core/services/permission_service.dart';
+import '../../../app/providers/user_profile_provider.dart';
 
 class FamilyMembersScreen extends StatefulWidget {
   const FamilyMembersScreen({super.key});
@@ -330,7 +331,8 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                     _members,
                   )
                       ? AppLocalizations.of(context)!.members_tooltipEdit
-                      : 'Only admins can edit other members',
+                      : AppLocalizations.of(context)!
+                          .members_tooltip_editPermission,
                 ),
               ),
             ],
@@ -481,7 +483,8 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                               icon: Icon(Icons.filter_list,
                                   size: 18, color: theme.colorScheme.primary),
                               label: Text(
-                                'Filter',
+                                AppLocalizations.of(context)!
+                                    .members_button_filter,
                                 style:
                                     TextStyle(color: theme.colorScheme.primary),
                               ),
@@ -496,17 +499,57 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                       ],
                     ),
             ),
-      floatingActionButton: PermissionService.canAddMember(
-        _currentUserId,
-        _familyId,
-        _members,
-      )
-          ? SeasonBoxAddButton(
-              heroTag: 'add_member_fab',
-              onPressed: () =>
-                  context.push('/add-member').then((_) => _loadMembers()),
-            )
-          : null,
+      floatingActionButton:
+          PermissionService.isAdmin(_currentUserId, _familyId, _members)
+              ? SeasonBoxAddButton(
+                  heroTag: 'add_member_fab',
+                  onPressed: () {
+                    final isPremium =
+                        context.read<UserProfileProvider>().isPremium;
+                    if (!isPremium && _members.length >= 4) {
+                      _showUpgradeDialog();
+                    } else {
+                      context.push('/add-member').then((_) => _loadMembers());
+                    }
+                  },
+                )
+              : null,
+    );
+  }
+
+  void _showUpgradeDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.stars, color: Colors.blue),
+            const SizedBox(width: 8),
+            Text(AppLocalizations.of(context)!
+                .members_dialog_limitReached_title),
+          ],
+        ),
+        content: Text(
+            AppLocalizations.of(context)!.members_dialog_limitReached_message),
+        actions: [
+          TextButton(
+            onPressed: () => context.pop(),
+            child: Text(AppLocalizations.of(context)!
+                .members_dialog_limitReached_maybeLater),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              context.pop();
+              context.push('/subscription');
+            },
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+            child: Text(AppLocalizations.of(context)!
+                .members_dialog_limitReached_viewPricing),
+          ),
+        ],
+      ),
     );
   }
 

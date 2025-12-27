@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:go_router/go_router.dart';
 
 class AppFooter extends StatefulWidget {
   final VoidCallback? onSignOut;
@@ -12,6 +13,7 @@ class AppFooter extends StatefulWidget {
 
 class _AppFooterState extends State<AppFooter> {
   String _version = '';
+  int _clickCount = 0;
 
   @override
   void initState() {
@@ -25,6 +27,17 @@ class _AppFooterState extends State<AppFooter> {
       setState(() {
         _version = info.version;
       });
+    }
+  }
+
+  void _handleVersionClick() {
+    setState(() {
+      _clickCount++;
+    });
+
+    if (_clickCount >= 5) {
+      _clickCount = 0;
+      context.push('/easter-egg');
     }
   }
 
@@ -49,11 +62,18 @@ class _AppFooterState extends State<AppFooter> {
               fontSize: 16,
             ),
           ),
-          Text(
-            'Version $_version',
-            style: const TextStyle(
-              color: Colors.grey,
-              fontSize: 12,
+          GestureDetector(
+            onTap: _handleVersionClick,
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                'Version $_version',
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontSize: 12,
+                ),
+              ),
             ),
           ),
           if (widget.onSignOut != null) ...[

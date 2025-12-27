@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import 'package:seasonbox/data/models/family_member.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
 import 'package:seasonbox/widgets/season_box_app_bar.dart';
@@ -8,6 +9,8 @@ import 'package:seasonbox/core/services/growth_prediction_service.dart';
 import 'package:seasonbox/data/services/user_service.dart';
 import 'package:seasonbox/features/auth/data/auth_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
+import 'package:seasonbox/app/providers/user_profile_provider.dart';
 
 class GrowthChartScreen extends StatefulWidget {
   final FamilyMember member;
@@ -48,25 +51,66 @@ class _GrowthChartScreenState extends State<GrowthChartScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+    final userProvider = context.watch<UserProfileProvider>();
 
     return Scaffold(
       appBar: SeasonBoxAppBar(
         title: '${widget.member.name} - ${l10n.members_tooltipGrowthChart}',
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+      body: !userProvider.isPremium
+          ? _buildUpgradeOverlay(l10n)
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildTypeToggle(),
+                  const SizedBox(height: 24),
+                  _buildChartCard(theme, l10n),
+                  const SizedBox(height: 24),
+                  _buildLegend(theme, l10n),
+                  const SizedBox(height: 24),
+                  _buildInsightCard(theme, l10n),
+                  const SizedBox(height: 32),
+                  _buildReferenceText(theme, l10n),
+                ],
+              ),
+            ),
+    );
+  }
+
+  Widget _buildUpgradeOverlay(AppLocalizations l10n) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildTypeToggle(),
+            const Icon(Icons.lock_outline, size: 64, color: Colors.purple),
             const SizedBox(height: 24),
-            _buildChartCard(theme, l10n),
-            const SizedBox(height: 24),
-            _buildLegend(theme, l10n),
-            const SizedBox(height: 24),
-            _buildInsightCard(theme, l10n),
+            Text(
+              l10n.growthChart_premium_title,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              l10n.growthChart_premium_message,
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 32),
-            _buildReferenceText(theme, l10n),
+            ElevatedButton(
+              onPressed: () => context.push('/subscription'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.purple,
+                foregroundColor: Colors.white,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              ),
+              child: Text(l10n.growthChart_premium_viewPricing),
+            ),
           ],
         ),
       ),

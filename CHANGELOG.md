@@ -1,5 +1,14 @@
 # Changelog
  
+## 1.6.0+31
+- **Premium Localization**:
+    - **Family Members**: Localized "Limit Reached" dialogs and edit permissions tooltips.
+    - **Growth Charts**: Localized premium status messages and "View Pricing" calls to action.
+    - **Language Support**: All new premium UI elements are fully translated into English, Spanish, French, German, and Italian.
+- **UI & UX**:
+    - **Responsive Buttons**: Adjusted button padding in upgrade dialogs to comfortably fit longer translated text (e.g., "Ver Precios").
+    - **Growth Chart Polish**: Refined the layout and messaging for the premium growth prediction overlay.
+
 ## 1.5.0+30
 - **Magic Upload Animation**:
     - **Boxy Masterpiece**: Implemented a high-polish, custom-painted "Magic Upload" animation with Boxy tossing data particles into a magical glowing box.

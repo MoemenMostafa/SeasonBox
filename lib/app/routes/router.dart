@@ -17,6 +17,8 @@ import 'package:seasonbox/features/qr_scanner/screens/qr_scanner_screen.dart';
 import 'package:seasonbox/features/notifications/screens/notifications_screen.dart';
 import 'package:seasonbox/features/members/screens/growth_chart_screen.dart';
 import 'package:seasonbox/features/profile/presentation/screens/profile_screen.dart';
+import 'package:seasonbox/features/easter_egg/presentation/screens/easter_egg_screen.dart';
+import 'package:seasonbox/features/subscription/screens/subscription_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -101,6 +103,12 @@ class AppRouter {
               GrowthChartScreen(member: state.extra as FamilyMember)),
       GoRoute(
           path: '/profile', builder: (context, state) => const ProfileScreen()),
+      GoRoute(
+          path: '/easter-egg',
+          builder: (context, state) => const EasterEggScreen()),
+      GoRoute(
+          path: '/subscription',
+          builder: (context, state) => const SubscriptionScreen()),
     ],
   );
 }

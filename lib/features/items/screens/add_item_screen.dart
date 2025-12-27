@@ -8,9 +8,11 @@ import 'package:seasonbox/data/models/family_member.dart';
 import 'package:seasonbox/data/models/item.dart';
 import 'package:seasonbox/data/models/storage_location.dart';
 import 'package:seasonbox/data/repositories/family_member_repository.dart';
+import 'package:seasonbox/data/repositories/family_repository.dart';
 import 'package:seasonbox/data/repositories/item_repository.dart';
 import 'package:seasonbox/data/repositories/storage_location_repository.dart';
 import 'package:seasonbox/data/services/storage_service.dart';
+import 'package:seasonbox/data/services/subscription_service.dart';
 import 'package:seasonbox/features/auth/data/auth_service.dart';
 import 'package:seasonbox/widgets/app_card.dart';
 import 'package:seasonbox/widgets/season_box_app_bar.dart';
@@ -24,6 +26,7 @@ import 'package:seasonbox/core/enums/gender.dart';
 import 'package:seasonbox/data/services/posthog_service.dart';
 import 'package:seasonbox/core/enums/item_type.dart';
 import 'package:seasonbox/widgets/loading/boxy_saving_indicator.dart';
+import 'package:seasonbox/widgets/season_box_network_image.dart';
 
 class AddItemScreen extends StatefulWidget {
   final Item? item; // Optional item for editing
@@ -63,6 +66,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
   bool _isTransitionComplete = false;
   bool _isSaving = false;
   bool _isDirty = false;
+  bool _quickAddTriggered = false;
   final Map<String, Map<String, File>> _processedImages = {};
   final Map<String, bool> _processingStatus = {};
 
@@ -216,6 +220,15 @@ class _AddItemScreenState extends State<AddItemScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           _loadData();
+
+          // Auto-trigger camera if quick add is enabled and it's a new item
+          final userProfile = context.read<UserProfileProvider>();
+          if (widget.item == null &&
+              userProfile.quickAddItemEnabled &&
+              !_quickAddTriggered) {
+            _quickAddTriggered = true;
+            _pickImage(ImageSource.camera);
+          }
         }
       });
     }
@@ -343,6 +356,14 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
   // --- Image Picker Logic ---
   Future<void> _pickImage(ImageSource source) async {
+    final currentPhotoCount = _existingPhotos.length + _selectedImages.length;
+    if (currentPhotoCount >= 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Maximum 3 photos per item allowed.')),
+      );
+      return;
+    }
+
     try {
       final XFile? image = await _picker.pickImage(source: source);
       if (image != null && mounted) {
@@ -458,7 +479,29 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
   Future<void> _saveItem({bool stayOnScreen = false}) async {
     if (!_formKey.currentState!.validate()) return;
-    // ... (Validation logic)
+
+    final userProvider = context.read<UserProfileProvider>();
+    final authService = context.read<AuthService>();
+    final familyRepo = context.read<FamilyRepository>();
+
+    // Check item count limit for new items
+    if (widget.item == null) {
+      final familyId = await authService.getCurrentUserFamilyId();
+      if (familyId != null) {
+        final family = await familyRepo.getFamily(familyId);
+        if (family != null) {
+          final subscriptionService = context.read<SubscriptionService>();
+          final appUser = userProvider.appUser;
+          if (appUser != null &&
+              !subscriptionService.canAddItem(appUser, family)) {
+            if (mounted) {
+              _showUpgradeDialog();
+            }
+            return;
+          }
+        }
+      }
+    }
     if (_storageLocationId == null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(
@@ -593,6 +636,30 @@ class _AddItemScreenState extends State<AddItemScreen> {
         setState(() => _isSaving = false);
       }
     }
+  }
+
+  void _showUpgradeDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Item Limit Reached'),
+        content: const Text(
+            'You have reached the limit of 50 items for the free tier. Upgrade to Paid for unlimited items!'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.push('/subscription');
+            },
+            child: const Text('View Plans'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _resetForm({required bool keepDefaults}) {
@@ -806,16 +873,21 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                       margin: const EdgeInsets.only(right: 12),
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(16),
-                                        image: DecorationImage(
-                                          image: NetworkImage(
-                                              photoMap['thumb'] ??
-                                                  photoMap['full'] ??
-                                                  ''),
-                                          fit: BoxFit.cover,
-                                        ),
                                       ),
                                       child: Stack(
                                         children: [
+                                          ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                            child: SeasonBoxNetworkImage(
+                                              imageUrl: photoMap['thumb'] ??
+                                                  photoMap['full'] ??
+                                                  '',
+                                              height: double.infinity,
+                                              width: double.infinity,
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
                                           Positioned(
                                             top: 4,
                                             right: 4,

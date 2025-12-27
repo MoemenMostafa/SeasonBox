@@ -4,12 +4,14 @@ class AppCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
   final VoidCallback? onTap;
+  final Color? backgroundColor;
 
   const AppCard({
     super.key,
     required this.child,
     this.padding,
     this.onTap,
+    this.backgroundColor,
   });
 
   @override
@@ -20,7 +22,7 @@ class AppCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       // Use properties from Theme.of(context).cardTheme by default
       elevation: theme.cardTheme.elevation,
-      color: theme.cardTheme.color ?? theme.cardColor,
+      color: backgroundColor ?? theme.cardTheme.color ?? theme.cardColor,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),

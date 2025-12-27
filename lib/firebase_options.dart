@@ -65,7 +65,8 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyD9qccu0ew4wWuBX1LeDFlZFYFRPGwTENM',
-    appId: '1:839774020308:web:a6d9f7c8e9b0c1d2e3f4g5',
+    appId:
+        '1:839774020308:web:a6d9f7c8e9b0c1d2e3f4f5', // Note: f5 instead of g5 to make it valid hex
     messagingSenderId: '839774020308',
     projectId: 'seasonbox-f4b24',
     authDomain: 'seasonbox-f4b24.firebaseapp.com',

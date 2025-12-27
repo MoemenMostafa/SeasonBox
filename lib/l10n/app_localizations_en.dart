@@ -118,6 +118,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get home_stats_members => 'Members';
 
   @override
+  String home_subscription_itemLimit(int count, int limit) {
+    return 'Item Limit: $count / $limit';
+  }
+
+  @override
+  String get home_subscription_upgradeForUnlimited => 'Upgrade for Unlimited';
+
+  @override
+  String get home_subscription_limitReached =>
+      'Item limit reached! Upgrade now.';
+
+  @override
+  String get home_premium_banner_title => 'Unlock Unlimited Potential';
+
+  @override
+  String get home_premium_banner_subtitle =>
+      'Manage unlimited items and family members with SeasonBox Premium.';
+
+  @override
+  String get home_premium_banner_button => 'Upgrade Now';
+
+  @override
   String get home_search_hint => 'Search tiles, sizes, or #tag';
 
   @override
@@ -366,6 +388,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profile_section_familyManagement => 'Family Management';
 
   @override
+  String get profile_setting_subscription => 'Subscription';
+
+  @override
+  String get profile_subscription_statusFree => 'Free Plan';
+
+  @override
+  String get profile_subscription_statusPremium => 'Premium Plan';
+
+  @override
   String get profile_section_appSettings => 'App Settings';
 
   @override
@@ -436,6 +467,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get profile_setting_statusTrackingSubtitle =>
       'Track if items are in use or stored';
+
+  @override
+  String get profile_setting_quickAddItem => 'Quick Add Item';
+
+  @override
+  String get profile_setting_quickAddItemSubtitle =>
+      'Automatically start with camera for new items';
 
   @override
   String get profile_data_exportData => 'Export Data';
@@ -1229,4 +1267,110 @@ class AppLocalizationsEn extends AppLocalizations {
   String notifications_error_rejecting(String error) {
     return 'Error rejecting invitation: $error';
   }
+
+  @override
+  String get subscription_title => 'Subscription';
+
+  @override
+  String get subscription_subtitle => 'Choose the best plan for your family';
+
+  @override
+  String get subscription_billing_monthly => 'Monthly';
+
+  @override
+  String get subscription_billing_yearly => 'Yearly';
+
+  @override
+  String get subscription_tier_freeTitle => 'Free Tier';
+
+  @override
+  String get subscription_tier_premiumTitle => 'Premium Tier';
+
+  @override
+  String get subscription_tier_freePrice => 'Free';
+
+  @override
+  String subscription_tier_premiumPrice(String price, String period) {
+    return '€$price$period';
+  }
+
+  @override
+  String get subscription_tier_freeDesc => 'Great for getting started';
+
+  @override
+  String get subscription_tier_premiumDesc =>
+      'Unlimited access for busy families';
+
+  @override
+  String get subscription_feature_items_free => 'Up to 50 items';
+
+  @override
+  String get subscription_feature_photos_free => '3 photos per item';
+
+  @override
+  String get subscription_feature_storage_free => 'Standard storage tracking';
+
+  @override
+  String get subscription_feature_items_premium => 'Unlimited items';
+
+  @override
+  String get subscription_feature_members_premium => 'Unlimited family members';
+
+  @override
+  String get subscription_feature_sharing_premium => 'Full family sharing';
+
+  @override
+  String get subscription_feature_growth_premium =>
+      'Growth predictions & advice';
+
+  @override
+  String get subscription_feature_reminders_premium => 'Seasonal reminders';
+
+  @override
+  String get subscription_currentPlan => 'Current Plan';
+
+  @override
+  String get subscription_selectPlan => 'Select Plan';
+
+  @override
+  String subscription_savingsLabel(String percent) {
+    return 'Save $percent%';
+  }
+
+  @override
+  String get subscription_bestValue => 'BEST VALUE';
+
+  @override
+  String get subscription_cancelAnytime =>
+      'Cancel anytime. Grandfathered items stay visible even after cancellation.';
+
+  @override
+  String get members_tooltip_editPermission =>
+      'Only admins can edit other members';
+
+  @override
+  String get members_button_filter => 'Filter';
+
+  @override
+  String get members_dialog_limitReached_title => 'Limit Reached';
+
+  @override
+  String get members_dialog_limitReached_message =>
+      'The Free tier is limited to 4 members. Upgrade to Paid for unlimited members and full family sharing!';
+
+  @override
+  String get members_dialog_limitReached_maybeLater => 'Maybe Later';
+
+  @override
+  String get members_dialog_limitReached_viewPricing => 'View Pricing';
+
+  @override
+  String get growthChart_premium_title => 'Growth Predictions are Premium';
+
+  @override
+  String get growthChart_premium_message =>
+      'Upgrade to the Paid plan to see how your children are growing and get advice on when to buy next sizes.';
+
+  @override
+  String get growthChart_premium_viewPricing => 'View Pricing';
 }

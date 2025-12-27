@@ -22,7 +22,10 @@ import 'package:seasonbox/data/repositories/family_member_repository.dart';
 import 'package:seasonbox/data/repositories/item_repository.dart';
 import 'package:seasonbox/data/repositories/storage_location_repository.dart';
 import 'package:seasonbox/data/services/storage_service.dart';
+import 'package:seasonbox/data/services/subscription_service.dart';
 import 'package:seasonbox/app/providers/user_profile_provider.dart';
+import 'package:seasonbox/data/services/remote_config_service.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 
 void main() async {
   // Run app in error-catching zone
@@ -37,6 +40,11 @@ void main() async {
     final postHogService = PostHogService();
     await postHogService.initialize();
 
+    // Initialize Remote Config
+    final remoteConfigService =
+        RemoteConfigService(FirebaseRemoteConfig.instance);
+    await remoteConfigService.initialize();
+
     // Set up global error handlers
     FlutterError.onError = (FlutterErrorDetails details) {
       // Log Flutter framework errors to PostHog
@@ -46,15 +54,25 @@ void main() async {
       FlutterError.presentError(details);
     };
 
-    runApp(SeasonBox(postHogService: postHogService));
+    runApp(SeasonBox(
+      postHogService: postHogService,
+      remoteConfigService: remoteConfigService,
+    ));
   }, (error, stackTrace) {
     // Catch errors that occur outside of Flutter framework
     // This includes async errors, platform errors, etc.
-    PostHogService.log('Uncaught error: $error', level: LogLevel.error);
-    PostHogService.log('Stack trace: $stackTrace', level: LogLevel.error);
+    // ignore: avoid_print
+    print('Uncaught error: $error');
+    // ignore: avoid_print
+    print('Stack trace: $stackTrace');
+
+    // Display error in the console but also try to show it on screen
+    // This helps "un-stick" the app from the splash screen
+    runApp(MaterialApp(
+      home: InitializationErrorScreen(error: error),
+    ));
 
     // Try to log to PostHog if possible
-    // Note: PostHog might not be initialized if error occurs during startup
     try {
       final postHog = PostHogService();
       postHog.logError(
@@ -70,10 +88,78 @@ void main() async {
   });
 }
 
+class InitializationErrorScreen extends StatelessWidget {
+  final dynamic error;
+
+  const InitializationErrorScreen({super.key, required this.error});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, color: Colors.red, size: 64),
+              const SizedBox(height: 16),
+              const Text(
+                'Initialization Error',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'The app failed to start due to a configuration error.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
+              const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: SelectableText(
+                  error.toString(),
+                  style: const TextStyle(
+                    fontFamily: 'monospace',
+                    color: Colors.red,
+                  ),
+                ),
+              ),
+              if (error.toString().contains('firebase_options.dart') ||
+                  error.toString().contains('appId')) ...[
+                const SizedBox(height: 24),
+                const Text(
+                  'Possible Fix:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                const SelectableText(
+                  'Run "flutterfire configure" in your terminal to regenerate your Firebase configuration.',
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class SeasonBox extends StatelessWidget {
   final PostHogService postHogService;
+  final RemoteConfigService remoteConfigService;
 
-  const SeasonBox({super.key, required this.postHogService});
+  const SeasonBox({
+    super.key,
+    required this.postHogService,
+    required this.remoteConfigService,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -87,6 +173,11 @@ class SeasonBox extends StatelessWidget {
         Provider<BiometricService>(create: (_) => BiometricService()),
         Provider<StorageService>(create: (_) => StorageService()),
         Provider<PostHogService>.value(value: postHogService),
+        Provider<RemoteConfigService>.value(value: remoteConfigService),
+        ProxyProvider<RemoteConfigService, SubscriptionService>(
+          update: (_, remoteConfigService, __) =>
+              SubscriptionService(remoteConfigService),
+        ),
         ProxyProvider<FirestoreService, FamilyRepository>(
           update: (_, firestoreService, __) =>
               FamilyRepository(firestoreService),
@@ -102,20 +193,23 @@ class SeasonBox extends StatelessWidget {
           update: (_, firestoreService, __) =>
               StorageLocationRepository(firestoreService),
         ),
-        ProxyProvider2<FirestoreService, FamilyRepository, UserService>(
-          update: (_, firestoreService, familyRepository, __) => UserService(
+        ProxyProvider<FirestoreService, UserService>(
+          update: (_, firestoreService, __) => UserService(
             firestoreService,
-            familyRepository,
           ),
         ),
-        ChangeNotifierProxyProvider2<UserService, AuthService,
-            UserProfileProvider>(
+        ChangeNotifierProxyProvider3<UserService, AuthService,
+            SubscriptionService, UserProfileProvider>(
           create: (context) => UserProfileProvider(
             Provider.of<UserService>(context, listen: false),
             Provider.of<AuthService>(context, listen: false),
+            Provider.of<SubscriptionService>(context, listen: false),
           ),
-          update: (_, userService, authService, previous) =>
-              previous ?? UserProfileProvider(userService, authService),
+          update:
+              (_, userService, authService, subscriptionService, previous) =>
+                  previous ??
+                  UserProfileProvider(
+                      userService, authService, subscriptionService),
         ),
       ],
       child: Consumer<ThemeProvider>(

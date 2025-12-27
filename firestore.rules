@@ -49,6 +49,32 @@ service cloud.firestore {
       );
     }
 
+    // --- Subscription Helpers ---
+
+    function getSubscriptionTier() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.subscriptionTier;
+    }
+
+    function isPaid() {
+      return getSubscriptionTier() == 'paid';
+    }
+
+    function getFamilyItemCount(familyId) {
+      return get(/databases/$(database)/documents/families/$(familyId)).data.itemCount;
+    }
+
+    function getFamilyMemberCount(familyId) {
+      return get(/databases/$(database)/documents/families/$(familyId)).data.memberCount;
+    }
+
+    function canAddMoreItems(familyId) {
+      return isPaid() || getFamilyItemCount(familyId) < 50;
+    }
+
+    function canAddMoreMembers(familyId) {
+      return isPaid() || getFamilyMemberCount(familyId) < 4;
+    }
+
     // --- Collection Rules ---
 
     // 1. Users Collection
@@ -57,7 +83,8 @@ service cloud.firestore {
     // Actual family data access is secured at the families/members level.
     // A user can set any familyId, but won't access family data without a valid member doc.
     match /users/{userId} {
-      allow read, write: if isOwner(userId);
+      allow read: if isOwner(userId);
+      allow write: if false; // Protected: Only updated via Cloud Functions to prevent tampering (e.g., subscription tier)
     }
 
     // 2. Families Collection
@@ -82,12 +109,13 @@ service cloud.firestore {
         
         // Create: 
         // 1. Admin/Co-Admin can add members (send invites - no userId required for pending invites).
+        //    - Must be a Paid user to invite others.
         // 2. User can add themselves IF:
         //    - memberId matches their UID
         //    - userId field matches their UID (secure link)
         //    - EITHER: They're creating personal family (familyId == uid, can be admin)
         //    - OR: They're joining existing family (must set role = 'member')
-        allow create: if isFamilyAdmin(familyId) || 
+        allow create: if (isFamilyAdmin(familyId) && (isPaid() || canAddMoreMembers(familyId) || request.auth.uid == memberId)) || 
                          (
                            request.auth.uid == memberId && 
                            request.resource.data.userId == request.auth.uid &&
@@ -136,14 +164,20 @@ service cloud.firestore {
         // Create:
         // 1. Admins/Co-Admins can create items for anyone.
         // 2. Members can create items ONLY for themselves.
-        allow create: if isFamilyAdmin(familyId) || 
-                         (isFamilyMember(familyId) && request.resource.data.ownerId == request.auth.uid);
+        // LIMIT: isPaid() OR itemCount < 50
+        // PHOTO LIMIT: 3 photos max
+        allow create: if (isFamilyAdmin(familyId) || (isFamilyMember(familyId) && request.resource.data.ownerId == request.auth.uid)) &&
+                         canAddMoreItems(familyId) &&
+                         request.resource.data.photos.size() <= 3;
         
         // Update/Delete:
         // 1. Admins/Co-Admins can manage all items.
         // 2. Members can manage ONLY their own items.
-        allow update, delete: if isFamilyAdmin(familyId) || 
-                                 (isFamilyMember(familyId) && resource.data.ownerId == request.auth.uid);
+        // PHOTO LIMIT: 3 photos max on update
+        allow update: if (isFamilyAdmin(familyId) || (isFamilyMember(familyId) && resource.data.ownerId == request.auth.uid)) &&
+                         request.resource.data.photos.size() <= 3;
+        allow delete: if isFamilyAdmin(familyId) || 
+                         (isFamilyMember(familyId) && resource.data.ownerId == request.auth.uid);
       }
       
       // 2c. Locations Subcollection
