@@ -1,0 +1,29 @@
+{
+    "name": "firestore-rules-tests",
+    "version": "1.0.0",
+    "description": "Comprehensive test suite for SeasonBox Firestore security rules",
+    "scripts": {
+        "test": "mocha --timeout 10000 'tests/**/*.test.js'",
+        "test:users": "mocha --timeout 10000 tests/users.test.js",
+        "test:families": "mocha --timeout 10000 tests/families.test.js",
+        "test:members": "mocha --timeout 10000 tests/members.test.js",
+        "test:items": "mocha --timeout 10000 tests/items.test.js",
+        "test:locations": "mocha --timeout 10000 tests/locations.test.js",
+        "test:subscription": "mocha --timeout 10000 tests/subscription-limits.test.js",
+        "test:security": "mocha --timeout 10000 tests/security.test.js",
+        "test:collection-group": "mocha --timeout 10000 tests/collection-group.test.js"
+    },
+    "keywords": [
+        "firebase",
+        "firestore",
+        "security-rules",
+        "testing"
+    ],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@firebase/rules-unit-testing": "^3.0.4",
+        "mocha": "^10.8.2",
+        "chai": "^4.5.0"
+    }
+}

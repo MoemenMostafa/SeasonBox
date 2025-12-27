@@ -1,0 +1,10 @@
+{
+    "require": [
+        "helpers/test-helpers.js"
+    ],
+    "timeout": 10000,
+    "slow": 2000,
+    "reporter": "spec",
+    "color": true,
+    "exit": true
+}
