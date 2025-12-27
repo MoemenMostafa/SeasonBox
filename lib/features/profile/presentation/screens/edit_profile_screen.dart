@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:seasonbox/widgets/season_box_app_bar.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:provider/provider.dart';
 import 'package:seasonbox/data/services/storage_service.dart';
 import 'package:seasonbox/data/services/user_service.dart';
@@ -24,7 +24,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _nameController;
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
-  File? _imageFile;
+  Uint8List? _imageBytes;
+  XFile? _pickedXFile;
   bool _isLoading = false;
 
   // Preferences State
@@ -68,14 +69,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       if (pickedFile != null && mounted) {
         final storageService = context.read<StorageService>();
-        final originalFile = File(pickedFile.path);
 
-        // Resize image to thumbnail
-        final thumbnailFile =
-            await storageService.generateThumbnail(originalFile);
+        // Resize image to thumbnail and get bytes
+        final thumbnailBytes =
+            await storageService.generateThumbnail(pickedFile);
 
         setState(() {
-          _imageFile = thumbnailFile;
+          _pickedXFile = pickedFile;
+          _imageBytes = thumbnailBytes;
         });
       }
     } catch (e) {
@@ -98,9 +99,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (user == null) throw Exception('User not logged in');
 
       String? photoURL;
-      if (_imageFile != null) {
+      if (_pickedXFile != null) {
         photoURL = await storageService.uploadProfileImage(
-          file: _imageFile!,
+          file: _pickedXFile!,
           userId: user.uid,
         );
       }
@@ -207,8 +208,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final currentPhotoUrl = widget.userData?['photoURL'];
     ImageProvider? imageProvider;
 
-    if (_imageFile != null) {
-      imageProvider = FileImage(_imageFile!);
+    if (_imageBytes != null) {
+      imageProvider = MemoryImage(_imageBytes!);
     } else if (currentPhotoUrl != null) {
       imageProvider = NetworkImage(currentPhotoUrl);
     } else {

@@ -1328,6 +1328,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Monitoraggio standard dello storage';
 
   @override
+  String get subscription_feature_members_free =>
+      'Fino a 4 membri della famiglia';
+
+  @override
   String get subscription_feature_items_premium => 'Articoli illimitati';
 
   @override

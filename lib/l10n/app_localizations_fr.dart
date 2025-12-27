@@ -1336,6 +1336,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get subscription_feature_storage_free => 'Suivi du stockage standard';
 
   @override
+  String get subscription_feature_members_free =>
+      'Jusqu\'à 4 membres de la famille';
+
+  @override
   String get subscription_feature_items_premium => 'Articles illimités';
 
   @override

@@ -260,7 +260,8 @@ class _HomeScreenState extends State<HomeScreen> {
         if (!isPremium) ...[
           const SizedBox(height: 16),
           AppCard(
-            onTap: () => context.push('/subscription'),
+            onTap: () =>
+                context.push('/subscription?source=home_premium_banner'),
             backgroundColor: Theme.of(context)
                 .colorScheme
                 .primaryContainer
@@ -432,7 +433,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
         // Calculate item count for this member
         final itemCount =
-            _items.where((item) => item.memberId == member.id).length;
+            _items.where((item) => item.ownerId == member.id).length;
 
         return _buildMemberCard(
           context,

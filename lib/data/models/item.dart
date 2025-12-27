@@ -12,7 +12,8 @@ class Item {
   final Map<String, num>? sizeRange; // {min: number, max: number}
   final List<String> seasonTags;
   final String storageLocationId;
-  final String? memberId; // ID of the family member who owns this item
+  final String?
+      ownerId; // ID of the family member who owns this item (renamed from memberId)
   final int quantity;
   final String notes;
   final DateTime addedAt;
@@ -32,7 +33,7 @@ class Item {
     this.sizeRange,
     this.seasonTags = const [],
     required this.storageLocationId,
-    this.memberId,
+    this.ownerId,
     this.quantity = 1,
     this.notes = '',
     required this.addedAt,
@@ -54,7 +55,7 @@ class Item {
       'sizeRange': sizeRange,
       'seasonTags': seasonTags,
       'storageLocationId': storageLocationId,
-      'memberId': memberId,
+      'ownerId': ownerId,
       'quantity': quantity,
       'notes': notes,
       'addedAt': addedAt.toIso8601String(),
@@ -94,7 +95,7 @@ class Item {
           : null,
       seasonTags: List<String>.from(map['seasonTags'] ?? []),
       storageLocationId: map['storageLocationId'] ?? '',
-      memberId: map['memberId'],
+      ownerId: map['ownerId'] ?? map['memberId'], // Backward compatibility
       quantity: map['quantity'] ?? 1,
       notes: map['notes'] ?? '',
       addedAt:
@@ -118,7 +119,7 @@ class Item {
     Map<String, num>? sizeRange,
     List<String>? seasonTags,
     String? storageLocationId,
-    String? memberId,
+    String? ownerId,
     int? quantity,
     String? notes,
     DateTime? addedAt,
@@ -138,7 +139,7 @@ class Item {
       sizeRange: sizeRange ?? this.sizeRange,
       seasonTags: seasonTags ?? this.seasonTags,
       storageLocationId: storageLocationId ?? this.storageLocationId,
-      memberId: memberId ?? this.memberId,
+      ownerId: ownerId ?? this.ownerId,
       quantity: quantity ?? this.quantity,
       notes: notes ?? this.notes,
       addedAt: addedAt ?? this.addedAt,

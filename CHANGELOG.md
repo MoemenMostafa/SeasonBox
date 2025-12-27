@@ -1,5 +1,24 @@
 # Changelog
  
+## 1.6.1+32
+- **Bug Fixes & Security**:
+    - **Item Ownership**: Fixed critical Firestore permission errors by standardizing item ownership field from `memberId` to `ownerId` to match security rules.
+    - **Permission Service**: Updated `canDeleteItem` and `canEditItem` methods to use the correct `ownerId` field.
+    - **Firestore Rules**: Enhanced security rules for better item access control and validation.
+- **Error Handling**:
+    - **Structured Exceptions**: Introduced `AppException` class for consistent error handling across the application.
+    - **Service Layer**: Improved error handling in `FirestoreService`, `StorageService`, and `RemoteConfigService`.
+- **Subscription & Pricing**:
+    - **Remote Config Integration**: Enhanced subscription screen to dynamically fetch pricing from Firebase Remote Config.
+    - **UI Improvements**: Updated subscription screen layout and pricing display for better user experience.
+    - **Localization**: Added and updated subscription-related strings across all supported languages.
+- **Website Updates**:
+    - **Landing Page**: Refined styling and layout for improved visual appeal and responsiveness.
+    - **Localization**: Updated website translations and improved language switching functionality.
+- **Testing Infrastructure**:
+    - **Firestore Tests**: Added comprehensive test suite for Firestore security rules using the Firebase emulator.
+    - **Test Helpers**: Created reusable test utilities for authentication and Firestore operations.
+
 ## 1.6.0+31
 - **Premium Localization**:
     - **Family Members**: Localized "Limit Reached" dialogs and edit permissions tooltips.

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'posthog_service.dart';
+import '../../core/errors/app_exception.dart';
 
 /// Centralised Firestore access used throughout the app.
 class FirestoreService {
@@ -24,75 +25,91 @@ class FirestoreService {
 
   // --- Logging Wrappers ---
 
+  Future<T> _handleFirestoreOperation<T>(Future<T> Function() operation,
+      String operationName, Map<String, dynamic> context) async {
+    try {
+      await PostHogService.log('Firestore $operationName START',
+          level: LogLevel.info, context: context);
+      final result = await operation();
+      return result;
+    } catch (e) {
+      String message = 'An unexpected error occurred. Please try again.';
+      String code = 'unknown';
+
+      if (e is FirebaseException) {
+        code = e.code;
+        switch (e.code) {
+          case 'permission-denied':
+            message = 'You do not have permission to perform this action.';
+            break;
+          case 'unavailable':
+            message =
+                'Service is currently unavailable. Please checking your internet connection.';
+            break;
+          case 'not-found':
+            message = 'The requested resource was not found.';
+            break;
+          default:
+            message = 'Database error: ${e.message ?? "Unknown error"}';
+        }
+      }
+
+      PostHogService().logError(
+          'firestore_${operationName.toLowerCase()}_failed', e,
+          context: {...context, 'code': code});
+
+      throw AppException(message, code: code, originalError: e);
+    }
+  }
+
   Future<void> setDocument({
     required DocumentReference docRef,
     required Map<String, dynamic> data,
   }) async {
-    try {
-      await PostHogService.log('Firestore SET: ${docRef.path}',
-          level: LogLevel.info, context: {'path': docRef.path});
-      await docRef.set(data);
-    } catch (e) {
-      PostHogService()
-          .logError('firestore_set_failed', e, context: {'path': docRef.path});
-      rethrow;
-    }
+    await _handleFirestoreOperation(
+      () => docRef.set(data),
+      'SET',
+      {'path': docRef.path},
+    );
   }
 
   Future<void> updateDocument({
     required DocumentReference docRef,
     required Map<String, dynamic> data,
   }) async {
-    try {
-      await PostHogService.log('Firestore UPDATE: ${docRef.path}',
-          level: LogLevel.info, context: {'path': docRef.path});
-      await docRef.update(data);
-    } catch (e) {
-      PostHogService().logError('firestore_update_failed', e,
-          context: {'path': docRef.path});
-      rethrow;
-    }
+    await _handleFirestoreOperation(
+      () => docRef.update(data),
+      'UPDATE',
+      {'path': docRef.path},
+    );
   }
 
   Future<void> deleteDocument({required DocumentReference docRef}) async {
-    try {
-      await PostHogService.log('Firestore DELETE: ${docRef.path}',
-          level: LogLevel.info, context: {'path': docRef.path});
-      await docRef.delete();
-    } catch (e) {
-      PostHogService().logError('firestore_delete_failed', e,
-          context: {'path': docRef.path});
-      rethrow;
-    }
+    await _handleFirestoreOperation(
+      () => docRef.delete(),
+      'DELETE',
+      {'path': docRef.path},
+    );
   }
 
   Future<DocumentReference> addDocument({
     required CollectionReference collectionRef,
     required Map<String, dynamic> data,
   }) async {
-    try {
-      await PostHogService.log('Firestore ADD: ${collectionRef.path}',
-          level: LogLevel.info, context: {'path': collectionRef.path});
-      final docRef = await collectionRef.add(data);
-      return docRef;
-    } catch (e) {
-      PostHogService().logError('firestore_add_failed', e,
-          context: {'path': collectionRef.path});
-      rethrow;
-    }
+    return await _handleFirestoreOperation(
+      () => collectionRef.add(data),
+      'ADD',
+      {'path': collectionRef.path},
+    );
   }
 
   Future<DocumentSnapshot> getDocument(
       {required DocumentReference docRef}) async {
-    try {
-      await PostHogService.log('Firestore GET: ${docRef.path}',
-          level: LogLevel.debug, context: {'path': docRef.path});
-      return await docRef.get();
-    } catch (e) {
-      PostHogService().logError('firestore_get_doc_failed', e,
-          context: {'path': docRef.path});
-      rethrow;
-    }
+    return await _handleFirestoreOperation(
+      () => docRef.get(),
+      'GET',
+      {'path': docRef.path},
+    );
   }
 
   Future<QuerySnapshot> getCollection({required Query query}) async {
@@ -100,19 +117,14 @@ class FirestoreService {
     if (query is CollectionReference) {
       path = query.path;
     } else {
-      // For general queries, we might not have a simple path
       path = query.toString();
     }
 
-    try {
-      await PostHogService.log('Firestore GET_COLL: $path',
-          level: LogLevel.debug, context: {'path': path});
-      return await query.get();
-    } catch (e) {
-      PostHogService()
-          .logError('firestore_get_coll_failed', e, context: {'path': path});
-      rethrow;
-    }
+    return await _handleFirestoreOperation(
+      () => query.get(),
+      'GET_COLL',
+      {'path': path},
+    );
   }
 
   WriteBatch batch() {
@@ -125,8 +137,12 @@ class FirestoreService {
       await PostHogService.log('Firestore BATCH COMMIT', level: LogLevel.info);
       await batch.commit();
     } catch (e) {
+      String message = 'Failed to save changes. Please try again.';
+      if (e is FirebaseException && e.code == 'permission-denied') {
+        message = 'You do not have permission to perform this action.';
+      }
       PostHogService().logError('firestore_batch_commit_failed', e);
-      rethrow;
+      throw AppException(message, code: 'batch_failed', originalError: e);
     }
   }
 }

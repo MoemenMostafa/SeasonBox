@@ -119,7 +119,7 @@ class PermissionService {
     if (isAdmin(currentUserId, familyId, members)) return true;
 
     // Users can delete their own items
-    return item.memberId == currentUserId;
+    return item.ownerId == currentUserId;
   }
 
   /// Check if the current user can edit a specific item
@@ -139,7 +139,7 @@ class PermissionService {
     if (isAdmin(currentUserId, familyId, members)) return true;
 
     // Users can edit their own items
-    return item.memberId == currentUserId;
+    return item.ownerId == currentUserId;
   }
 
   /// Check if the current user can add new family members

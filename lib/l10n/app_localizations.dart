@@ -2468,6 +2468,12 @@ abstract class AppLocalizations {
   /// **'Standard storage tracking'**
   String get subscription_feature_storage_free;
 
+  /// No description provided for @subscription_feature_members_free.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to 4 family members'**
+  String get subscription_feature_members_free;
+
   /// No description provided for @subscription_feature_items_premium.
   ///
   /// In en, this message translates to:

@@ -698,7 +698,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           subtitle: isPremium
               ? l10n.subscription_tier_premiumDesc
               : l10n.subscription_tier_freeDesc,
-          onTap: () => context.push('/subscription'),
+          onTap: () => context.push('/subscription?source=profile'),
         ),
       ],
     );

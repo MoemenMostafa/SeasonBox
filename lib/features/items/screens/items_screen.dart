@@ -150,9 +150,8 @@ class _ItemsScreenState extends State<ItemsScreen> {
     final statusTrackingEnabled = userProfile.statusTrackingEnabled;
 
     return _items.where((item) {
-      // Member filter
       bool matchesMemberFilter =
-          _selectedMemberId == null || item.memberId == _selectedMemberId;
+          _selectedMemberId == null || item.ownerId == _selectedMemberId;
 
       // Storage location filter
       bool matchesStorageFilter = _selectedStorageLocationId == null ||
@@ -736,9 +735,9 @@ class _ItemsScreenState extends State<ItemsScreen> {
     );
 
     // Find family member
-    final member = item.memberId != null
+    final member = item.ownerId != null
         ? _members.firstWhere(
-            (m) => m.id == item.memberId,
+            (m) => m.id == item.ownerId,
             orElse: () => FamilyMember(
               id: '',
               familyId: '',

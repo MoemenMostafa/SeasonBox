@@ -1311,6 +1311,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get subscription_feature_storage_free => 'Standard storage tracking';
 
   @override
+  String get subscription_feature_members_free => 'Up to 4 family members';
+
+  @override
   String get subscription_feature_items_premium => 'Unlimited items';
 
   @override

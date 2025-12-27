@@ -42,8 +42,8 @@ service cloud.firestore {
         (
           memberDocExists(familyId) &&
           (
-            getMemberDoc(familyId).data.role == 'admin' ||
-            getMemberDoc(familyId).data.role == 'co-admin'
+            getMemberDoc(familyId).data.get('role', 'member') == 'admin' ||
+            getMemberDoc(familyId).data.get('role', 'member') == 'co-admin'
           )
         )
       );
@@ -52,27 +52,37 @@ service cloud.firestore {
     // --- Subscription Helpers ---
 
     function getSubscriptionTier() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.subscriptionTier;
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('subscriptionTier', 'free');
     }
 
     function isPaid() {
       return getSubscriptionTier() == 'paid';
     }
 
+    // New helper: Check the subscription tier of the family owner (familyId matches owner's UID)
+    function getFamilyOwnerSubscriptionTier(familyId) {
+      return get(/databases/$(database)/documents/users/$(familyId)).data.get('subscriptionTier', 'free');
+    }
+
+    // New helper: Family is paid if the current user OR the family owner is paid
+    function isFamilyPaid(familyId) {
+      return isPaid() || getFamilyOwnerSubscriptionTier(familyId) == 'paid';
+    }
+
     function getFamilyItemCount(familyId) {
-      return get(/databases/$(database)/documents/families/$(familyId)).data.itemCount;
+      return get(/databases/$(database)/documents/families/$(familyId)).data.get('itemCount', 0);
     }
 
     function getFamilyMemberCount(familyId) {
-      return get(/databases/$(database)/documents/families/$(familyId)).data.memberCount;
+      return get(/databases/$(database)/documents/families/$(familyId)).data.get('memberCount', 0);
     }
 
     function canAddMoreItems(familyId) {
-      return isPaid() || getFamilyItemCount(familyId) < 50;
+      return isFamilyPaid(familyId) || getFamilyItemCount(familyId) < 50;
     }
 
     function canAddMoreMembers(familyId) {
-      return isPaid() || getFamilyMemberCount(familyId) < 4;
+      return isFamilyPaid(familyId) || getFamilyMemberCount(familyId) < 4;
     }
 
     // --- Collection Rules ---
@@ -153,9 +163,9 @@ service cloud.firestore {
       match /items/{itemId} {
         // Read individual item: 
         // 1. Admins/Co-Admins see ALL items.
-        // 2. Members see ONLY items where ownerId == their UID.
+        // 2. Members see ONLY items where ownerId (or legacy memberId) == their UID.
         allow read: if isFamilyAdmin(familyId) || 
-                       (isFamilyMember(familyId) && resource.data.ownerId == request.auth.uid);
+                       (isFamilyMember(familyId) && (resource.data.get('ownerId', resource.data.get('memberId', '')) == request.auth.uid));
         
         // List/Query items:
         // Allow members to query items (app will filter by ownerId in the query)
@@ -168,16 +178,16 @@ service cloud.firestore {
         // PHOTO LIMIT: 3 photos max
         allow create: if (isFamilyAdmin(familyId) || (isFamilyMember(familyId) && request.resource.data.ownerId == request.auth.uid)) &&
                          canAddMoreItems(familyId) &&
-                         request.resource.data.photos.size() <= 3;
+                         (!('photos' in request.resource.data) || request.resource.data.photos.size() <= 3);
         
         // Update/Delete:
         // 1. Admins/Co-Admins can manage all items.
         // 2. Members can manage ONLY their own items.
         // PHOTO LIMIT: 3 photos max on update
-        allow update: if (isFamilyAdmin(familyId) || (isFamilyMember(familyId) && resource.data.ownerId == request.auth.uid)) &&
-                         request.resource.data.photos.size() <= 3;
+        allow update: if (isFamilyAdmin(familyId) || (isFamilyMember(familyId) && (resource.data.get('ownerId', resource.data.get('memberId', '')) == request.auth.uid))) &&
+                         (!('photos' in request.resource.data) || request.resource.data.photos.size() <= 3);
         allow delete: if isFamilyAdmin(familyId) || 
-                         (isFamilyMember(familyId) && resource.data.ownerId == request.auth.uid);
+                         (isFamilyMember(familyId) && (resource.data.get('ownerId', resource.data.get('memberId', '')) == request.auth.uid));
       }
       
       // 2c. Locations Subcollection

@@ -1336,6 +1336,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Seguimiento de almacenamiento estándar';
 
   @override
+  String get subscription_feature_members_free =>
+      'Hasta 4 miembros de la familia';
+
+  @override
   String get subscription_feature_items_premium => 'Artículos ilimitados';
 
   @override

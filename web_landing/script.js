@@ -1,3 +1,19 @@
+// Firebase Configuration
+const firebaseConfig = {
+    apiKey: 'AIzaSyD9qccu0ew4wWuBX1LeDFlZFYFRPGwTENM',
+    appId: '1:839774020308:web:a6d9f7c8e9b0c1d2e3f4f5',
+    messagingSenderId: '839774020308',
+    projectId: 'seasonbox-f4b24',
+    authDomain: 'seasonbox-f4b24.firebaseapp.com',
+    storageBucket: 'seasonbox-f4b24.firebasestorage.app',
+};
+
+// Global pricing state
+let pricingConfig = {
+    monthly: '4.99',
+    yearly: '49.99'
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     const languageSelect = document.getElementById('languageSelect');
 
@@ -76,7 +92,82 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = `mailto:support@seasonbox.app?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
         });
     }
+
+    // Initialize Firebase
+    initFirebase();
+
+    // Setup Pricing Toggle
+    const billingToggle = document.getElementById('billingToggle');
+    if (billingToggle) {
+        billingToggle.addEventListener('change', () => {
+            updatePricingDisplay();
+            // Track toggle event
+            if (typeof posthog !== 'undefined') {
+                posthog.capture('web_pricing_toggle_changed', {
+                    billing_period: billingToggle.checked ? 'yearly' : 'monthly'
+                });
+            }
+        });
+    }
 });
+
+async function initFirebase() {
+    try {
+        // Load Firebase SDKs dynamically to avoid blocking
+        const scripts = [
+            'https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js',
+            'https://www.gstatic.com/firebasejs/10.7.1/firebase-remote-config-compat.js'
+        ];
+
+        for (const src of scripts) {
+            await new Promise((resolve) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = resolve;
+                document.head.appendChild(script);
+            });
+        }
+
+        // Initialize App
+        const app = firebase.initializeApp(firebaseConfig);
+        const remoteConfig = firebase.remoteConfig();
+
+        remoteConfig.settings = {
+            minimumFetchIntervalMillis: 600000, // 10 minutes
+        };
+
+        remoteConfig.defaultConfig = {
+            'subscription_pricing': JSON.stringify(pricingConfig)
+        };
+
+        await remoteConfig.fetchAndActivate();
+
+        const val = remoteConfig.getString('subscription_pricing');
+        if (val) {
+            pricingConfig = JSON.parse(val);
+            updatePricingDisplay();
+        }
+    } catch (error) {
+        console.error("Firebase Initialization Error:", error);
+    }
+}
+
+function updatePricingDisplay() {
+    const isYearly = document.getElementById('billingToggle')?.checked;
+    const priceElement = document.getElementById('premiumPrice');
+    const suffixElement = document.getElementById('priceSuffix');
+    const lang = localStorage.getItem('seasonbox_lang') || 'en';
+
+    if (priceElement && suffixElement) {
+        const price = isYearly ? pricingConfig.yearly : pricingConfig.monthly;
+        priceElement.innerText = price;
+
+        const suffixKey = isYearly ? 'pricing_suffix_yearly' : 'pricing_suffix_monthly';
+        if (l10n[lang] && l10n[lang][suffixKey]) {
+            suffixElement.innerHTML = l10n[lang][suffixKey];
+        }
+    }
+}
 
 function updateUrl(lang, replace = false) {
     const supportedLangs = ['en', 'de', 'es', 'fr', 'it'];
@@ -157,6 +248,9 @@ function updateLanguage(lang) {
 
     // Update HTML lang attribute
     document.documentElement.lang = lang;
+
+    // Update dynamic pricing labels
+    updatePricingDisplay();
 
     // Update Google Play Badge
     const badge = document.getElementById('googlePlayBadge');

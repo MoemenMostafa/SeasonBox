@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -12,6 +13,7 @@ import 'package:seasonbox/data/repositories/family_repository.dart';
 import 'package:seasonbox/data/repositories/item_repository.dart';
 import 'package:seasonbox/data/repositories/storage_location_repository.dart';
 import 'package:seasonbox/data/services/storage_service.dart';
+import 'package:seasonbox/core/errors/app_exception.dart';
 import 'package:seasonbox/data/services/subscription_service.dart';
 import 'package:seasonbox/features/auth/data/auth_service.dart';
 import 'package:seasonbox/widgets/app_card.dart';
@@ -67,7 +69,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
   bool _isSaving = false;
   bool _isDirty = false;
   bool _quickAddTriggered = false;
-  final Map<String, Map<String, File>> _processedImages = {};
+  final Map<String, Map<String, Uint8List>> _processedImages = {};
   final Map<String, bool> _processingStatus = {};
 
   final List<String> _categories = [
@@ -202,7 +204,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
         _selectedGender = widget.item!.gender;
         _selectedSize = widget.item!.size;
         _quantity = widget.item!.quantity;
-        _assignedChildId = widget.item!.memberId;
+        _assignedChildId = widget.item!.ownerId;
         _storageLocationId = widget.item!.storageLocationId;
         _selectedSeasons.clear();
         _selectedSeasons.addAll(widget.item!.seasonTags);
@@ -305,11 +307,16 @@ class _AddItemScreenState extends State<AddItemScreen> {
         }
       }
     } catch (e) {
+      PostHogService.log('Error loading data in AddItemScreen: $e',
+          level: LogLevel.error);
       if (mounted) {
         setState(() => _isLoadingData = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(AppLocalizations.of(context)!
-                .addItem_error_loadingData(e.toString()))));
+        String message = 'Error loading data. Please try again.';
+        if (e is AppException) {
+          message = e.message;
+        }
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(message)));
       }
     }
   }
@@ -367,7 +374,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
     try {
       final XFile? image = await _picker.pickImage(source: source);
       if (image != null && mounted) {
-        final imageFile = File(image.path);
         final imagePath = image.path;
 
         setState(() {
@@ -380,8 +386,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
         final storageService = context.read<StorageService>();
 
         try {
-          final compressed = await storageService.compressImage(imageFile);
-          final thumb = await storageService.generateThumbnail(imageFile);
+          final compressed = await storageService.compressImage(image);
+          final thumb = await storageService.generateThumbnail(image);
 
           if (mounted) {
             setState(() {
@@ -401,11 +407,14 @@ class _AddItemScreenState extends State<AddItemScreen> {
         }
       }
     } catch (e) {
+      PostHogService.log('Error picking image: $e', level: LogLevel.error);
       if (mounted) {
+        String message = 'Error picking image. Please try again.';
+        if (e is AppException) {
+          message = e.message;
+        }
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(AppLocalizations.of(context)!
-                  .addItem_error_pickingImage(e.toString()))),
+          SnackBar(content: Text(message)),
         );
       }
     }
@@ -539,19 +548,16 @@ class _AddItemScreenState extends State<AddItemScreen> {
         Map<String, String> photoUrls;
 
         if (processed != null) {
-          photoUrls = await storageService.uploadPreProcessedImage(
-            fullFile: processed['full']!,
-            thumbFile: processed['thumb']!,
+          photoUrls = await storageService.uploadPreProcessedData(
+            fullData: processed['full']!,
+            thumbData: processed['thumb']!,
             userId: userId,
             itemId: itemId,
           );
-          // Clean up temp files
-          await processed['full']!.delete();
-          await processed['thumb']!.delete();
         } else {
           // Fallback if not processed yet
           photoUrls = await storageService.uploadImageWithThumbnail(
-            file: File(imageFile.path),
+            file: imageFile,
             userId: userId,
             itemId: itemId,
           );
@@ -597,7 +603,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
         seasonTags: _selectedSeasons.toList(),
         tags: _tags,
         storageLocationId: _storageLocationId!,
-        memberId: _assignedChildId,
+        ownerId: _assignedChildId,
         quantity: _quantity,
         notes: _descriptionController.text.trim(),
         addedAt: widget.item?.addedAt ?? DateTime.now(),
@@ -626,10 +632,15 @@ class _AddItemScreenState extends State<AddItemScreen> {
         }
       }
     } catch (e) {
+      PostHogService.log('Error saving item: $e', level: LogLevel.error);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(AppLocalizations.of(context)!
-                .addItem_error_saving(e.toString()))));
+        String message =
+            'Error saving item. Please check your connection or permissions.';
+        if (e is AppException) {
+          message = e.message;
+        }
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(message)));
       }
     } finally {
       if (mounted) {
@@ -653,7 +664,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              context.push('/subscription');
+              context.push('/subscription?source=item_limit');
             },
             child: const Text('View Plans'),
           ),
@@ -727,10 +738,15 @@ class _AddItemScreenState extends State<AddItemScreen> {
           );
         }
       } catch (e) {
+        PostHogService.log('Error deleting item: $e', level: LogLevel.error);
         if (mounted) {
           setState(() => _isSaving = false);
+          String message = 'Error deleting item. Please try again.';
+          if (e is AppException) {
+            message = e.message;
+          }
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error deleting item: $e')),
+            SnackBar(content: Text(message)),
           );
         }
       }
@@ -940,12 +956,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                               final path = image.path;
                                               final processed =
                                                   _processedImages[path];
-                                              if (processed != null) {
-                                                await processed['full']
-                                                    ?.delete();
-                                                await processed['thumb']
-                                                    ?.delete();
-                                              }
                                               setState(() {
                                                 _selectedImages
                                                     .removeAt(imageIndex);

@@ -4,7 +4,9 @@ import 'package:seasonbox/app/providers/user_profile_provider.dart';
 import 'package:seasonbox/data/services/subscription_service.dart';
 import 'package:seasonbox/widgets/app_card.dart';
 import 'package:seasonbox/widgets/season_box_app_bar.dart';
+import 'package:go_router/go_router.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
+import 'package:seasonbox/data/services/posthog_service.dart';
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
@@ -22,6 +24,33 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   void initState() {
     super.initState();
     _fetchPricing();
+    _trackScreenView();
+  }
+
+  void _trackScreenView() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final state = GoRouterState.of(context);
+      final source = state.uri.queryParameters['source'] ?? 'unknown';
+
+      PostHogService().screen('SubscriptionScreen', properties: {
+        'source': source,
+      });
+      PostHogService.log('subscription_screen_viewed', context: {
+        'source': source,
+      });
+    });
+  }
+
+  void _trackPlanSelected(String tier, String price) {
+    final state = GoRouterState.of(context);
+    final source = state.uri.queryParameters['source'] ?? 'unknown';
+
+    PostHogService().captureEvent('subscription_plan_selected', properties: {
+      'plan_tier': tier,
+      'billing_period': _isYearly ? 'yearly' : 'monthly',
+      'price': price,
+      'source': source,
+    });
   }
 
   void _fetchPricing() {
@@ -90,11 +119,17 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                     description: l10n.subscription_tier_freeDesc,
                     features: [
                       l10n.subscription_feature_items_free,
+                      l10n.subscription_feature_members_free,
                       l10n.subscription_feature_photos_free,
                       l10n.subscription_feature_storage_free,
                     ],
                     isCurrent: !isPaid,
                     color: Colors.grey.shade400,
+                    onUpgrade: () {
+                      _trackPlanSelected(
+                          'free', l10n.subscription_tier_freePrice);
+                      // Already on free tier or switching back?
+                    },
                   ),
                   const SizedBox(height: 16),
                   _buildTierCard(
@@ -115,6 +150,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                     savingsLabel:
                         _isYearly ? l10n.subscription_savingsLabel('16') : null,
                     onUpgrade: () {
+                      _trackPlanSelected('premium', currentPrice);
                       // Mock upgrade flow
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(

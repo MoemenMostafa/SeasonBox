@@ -1333,6 +1333,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get subscription_feature_storage_free => 'Standard-Lagerverfolgung';
 
   @override
+  String get subscription_feature_members_free => 'Bis zu 4 Familienmitglieder';
+
+  @override
   String get subscription_feature_items_premium => 'Unbegrenzte Artikel';
 
   @override

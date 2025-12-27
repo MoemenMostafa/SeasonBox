@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:seasonbox/features/auth/presentation/screens/login_screen.dart';
 import 'package:seasonbox/features/auth/presentation/screens/email_login_screen.dart';
@@ -24,6 +25,7 @@ class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation:
         FirebaseAuth.instance.currentUser != null ? '/home' : '/login',
+    observers: [PosthogObserver()],
     routes: [
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(

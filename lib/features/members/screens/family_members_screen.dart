@@ -99,7 +99,7 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     // Calculate actual item count for this member
-    final itemCount = _items.where((item) => item.memberId == member.id).length;
+    final itemCount = _items.where((item) => item.ownerId == member.id).length;
 
     return AppCard(
       child: Column(
@@ -540,7 +540,7 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
           ElevatedButton(
             onPressed: () {
               context.pop();
-              context.push('/subscription');
+              context.push('/subscription?source=member_limit');
             },
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
