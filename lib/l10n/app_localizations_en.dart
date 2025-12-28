@@ -1305,7 +1305,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get subscription_feature_items_free => 'Up to 50 items';
 
   @override
-  String get subscription_feature_photos_free => '3 photos per item';
+  String get subscription_feature_photos_free => '1 photo per item';
+
+  @override
+  String get subscription_feature_photos_premium => '3 photos per item';
 
   @override
   String get subscription_feature_storage_free => 'Standard storage tracking';
@@ -1342,6 +1345,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get subscription_bestValue => 'BEST VALUE';
+
+  @override
+  String get addItem_images_limitReached_title => 'Image Limit Reached';
+
+  @override
+  String addItem_images_limitReached_message(int limit) {
+    return 'The free tier is limited to $limit image per item. Upgrade to Premium for 3 images!';
+  }
 
   @override
   String get subscription_cancelAnytime =>

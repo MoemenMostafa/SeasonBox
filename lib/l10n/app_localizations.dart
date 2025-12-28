@@ -2459,8 +2459,14 @@ abstract class AppLocalizations {
   /// No description provided for @subscription_feature_photos_free.
   ///
   /// In en, this message translates to:
-  /// **'3 photos per item'**
+  /// **'1 photo per item'**
   String get subscription_feature_photos_free;
+
+  /// No description provided for @subscription_feature_photos_premium.
+  ///
+  /// In en, this message translates to:
+  /// **'3 photos per item'**
+  String get subscription_feature_photos_premium;
 
   /// No description provided for @subscription_feature_storage_free.
   ///
@@ -2527,6 +2533,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'BEST VALUE'**
   String get subscription_bestValue;
+
+  /// No description provided for @addItem_images_limitReached_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Image Limit Reached'**
+  String get addItem_images_limitReached_title;
+
+  /// No description provided for @addItem_images_limitReached_message.
+  ///
+  /// In en, this message translates to:
+  /// **'The free tier is limited to {limit} image per item. Upgrade to Premium for 3 images!'**
+  String addItem_images_limitReached_message(int limit);
 
   /// No description provided for @subscription_cancelAnytime.
   ///

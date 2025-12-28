@@ -363,11 +363,18 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
   // --- Image Picker Logic ---
   Future<void> _pickImage(ImageSource source) async {
+    final userProvider = context.read<UserProfileProvider>();
+    final subscriptionService = context.read<SubscriptionService>();
+    final appUser = userProvider.appUser;
+
     final currentPhotoCount = _existingPhotos.length + _selectedImages.length;
-    if (currentPhotoCount >= 3) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Maximum 3 photos per item allowed.')),
-      );
+    final photoLimit =
+        appUser != null ? subscriptionService.getPhotoLimit(appUser) : 1;
+
+    if (currentPhotoCount >= photoLimit) {
+      if (mounted) {
+        _showImageLimitDialog(photoLimit);
+      }
       return;
     }
 
@@ -647,6 +654,32 @@ class _AddItemScreenState extends State<AddItemScreen> {
         setState(() => _isSaving = false);
       }
     }
+  }
+
+  void _showImageLimitDialog(int limit) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+            AppLocalizations.of(context)!.addItem_images_limitReached_title),
+        content: Text(AppLocalizations.of(context)!
+            .addItem_images_limitReached_message(limit)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(AppLocalizations.of(context)!.common_cancel),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.push('/subscription?source=image_limit');
+            },
+            child:
+                Text(AppLocalizations.of(context)!.home_premium_banner_button),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showUpgradeDialog() {

@@ -1326,10 +1326,13 @@ class AppLocalizationsEs extends AppLocalizations {
       'Acceso ilimitado para familias ocupadas';
 
   @override
-  String get subscription_feature_items_free => 'Hasta 50 artículos';
+  String get subscription_feature_items_free => 'Up to 50 items';
 
   @override
-  String get subscription_feature_photos_free => '3 fotos por artículo';
+  String get subscription_feature_photos_free => '1 foto por artículo';
+
+  @override
+  String get subscription_feature_photos_premium => '3 fotos por artículo';
 
   @override
   String get subscription_feature_storage_free =>
@@ -1371,6 +1374,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get subscription_bestValue => 'MEJOR VALOR';
+
+  @override
+  String get addItem_images_limitReached_title =>
+      'Límite de imágenes alcanzado';
+
+  @override
+  String addItem_images_limitReached_message(int limit) {
+    return 'El nivel gratuito está limitado a $limit imagen por artículo. ¡Mejora a Premium para obtener 3 imágenes!';
+  }
 
   @override
   String get subscription_cancelAnytime =>

@@ -1321,7 +1321,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get subscription_feature_items_free => 'Fino a 50 articoli';
 
   @override
-  String get subscription_feature_photos_free => '3 foto per articolo';
+  String get subscription_feature_photos_free => '1 foto per articolo';
+
+  @override
+  String get subscription_feature_photos_premium => '3 foto per articolo';
 
   @override
   String get subscription_feature_storage_free =>
@@ -1362,6 +1365,14 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get subscription_bestValue => 'MIGLIOR VALORE';
+
+  @override
+  String get addItem_images_limitReached_title => 'Limite immagini raggiunto';
+
+  @override
+  String addItem_images_limitReached_message(int limit) {
+    return 'La versione gratuita è limitata a $limit immagine per articolo. Passa a Premium per 3 immagini!';
+  }
 
   @override
   String get subscription_cancelAnytime =>

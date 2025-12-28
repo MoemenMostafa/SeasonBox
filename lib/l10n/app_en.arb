@@ -665,7 +665,8 @@
   "subscription_tier_freeDesc": "Great for getting started",
   "subscription_tier_premiumDesc": "Unlimited access for busy families",
   "subscription_feature_items_free": "Up to 50 items",
-  "subscription_feature_photos_free": "3 photos per item",
+  "subscription_feature_photos_free": "1 photo per item",
+  "subscription_feature_photos_premium": "3 photos per item",
   "subscription_feature_storage_free": "Standard storage tracking",
   "subscription_feature_members_free": "Up to 4 family members",
   "subscription_feature_items_premium": "Unlimited items",
@@ -682,6 +683,13 @@
     }
   },
   "subscription_bestValue": "BEST VALUE",
+  "addItem_images_limitReached_title": "Image Limit Reached",
+  "addItem_images_limitReached_message": "The free tier is limited to {limit} image per item. Upgrade to Premium for 3 images!",
+  "@addItem_images_limitReached_message": {
+    "placeholders": {
+      "limit": {"type": "int"}
+    }
+  },
   "subscription_cancelAnytime": "Cancel anytime. Grandfathered items stay visible even after cancellation.",
 
   "members_tooltip_editPermission": "Only admins can edit other members",

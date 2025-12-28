@@ -441,7 +441,8 @@
   "subscription_tier_freeDesc": "Ottimo per iniziare",
   "subscription_tier_premiumDesc": "Accesso illimitato per famiglie impegnate",
   "subscription_feature_items_free": "Fino a 50 articoli",
-  "subscription_feature_photos_free": "3 foto per articolo",
+  "subscription_feature_photos_free": "1 foto per articolo",
+  "subscription_feature_photos_premium": "3 foto per articolo",
   "subscription_feature_storage_free": "Monitoraggio standard dello storage",
   "subscription_feature_members_free": "Fino a 4 membri della famiglia",
   "subscription_feature_items_premium": "Articoli illimitati",
@@ -458,6 +459,13 @@
     }
   },
   "subscription_bestValue": "MIGLIOR VALORE",
+  "addItem_images_limitReached_title": "Limite immagini raggiunto",
+  "addItem_images_limitReached_message": "La versione gratuita è limitata a {limit} immagine per articolo. Passa a Premium per 3 immagini!",
+  "@addItem_images_limitReached_message": {
+    "placeholders": {
+      "limit": {"type": "int"}
+    }
+  },
   "subscription_cancelAnytime": "Annulla in qualsiasi momento. Gli articoli esistenti rimangono visibili anche dopo l'annullamento.",
 
   "members_tooltip_editPermission": "Solo gli amministratori possono modificare altri membri",

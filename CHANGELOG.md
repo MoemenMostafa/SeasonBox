@@ -1,5 +1,18 @@
 # Changelog
  
+## 1.6.2+33
+- **Premium Tier Enhancements**:
+    - **Tiered Image Limits**: Implemented and restricted image uploads based on subscription tier (1 image for Free, 3 images for Premium).
+    - **Localization**: Added full localization for the "3 photos per item" benefit in the app and website pricing sections across 5 languages (EN, ES, FR, DE, IT).
+    - **UI Visibility**: Updated the Subscription Screen and Website pricing tables to clearly display the new tiered photo benefits.
+- **CI/CD & Infrastructure**:
+    - **Website Deployment**: Created a dedicated GitHub Actions workflow (`deploy-website.yml`) for automatic deployment of the website to Firebase Hosting.
+    - **Folder Restructuring**: Renamed `web_landing` to `website` for better project organization.
+    - **Authentication**: Fixed CI authentication issues by correctly handling base64 encoded service account keys.
+- **Security & Reliability**:
+    - **Firestore Rules**: Enforced the 3-image limit in Firestore security rules to prevent unauthorized uploads.
+    - **CI Permissions**: Resolved service account permission errors in the Firestore deployment pipeline.
+
 ## 1.6.1+32
 - **Bug Fixes & Security**:
     - **Item Ownership**: Fixed critical Firestore permission errors by standardizing item ownership field from `memberId` to `ownerId` to match security rules.
@@ -95,7 +108,7 @@
 
 ## 1.1.18+23
 - **Web Analytics & Enhancements**:
-    - **PostHog for Web**: Integrated PostHog JS snippets into Flutter Web (`index.html`) and all landing pages (`web_landing/`).
+    - **PostHog for Web**: Integrated PostHog JS snippets into Flutter Web (`index.html`) and all landing pages (`website/`).
     - **Unified Web Tracking**: Enabled seamless session replay and analytics tracking across the landing page and main web app.
     - **Web Console Recording**: Enabled `enable_recording_console_log` to capture browser console logs in web session replays.
     - **Optimization**: Disabled `AUTO_INIT` in Android configuration to ensure controlled initialization via `PostHogService`.

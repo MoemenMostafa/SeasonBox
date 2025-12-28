@@ -141,6 +141,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                       l10n.subscription_feature_items_premium,
                       l10n.subscription_feature_members_premium,
                       l10n.subscription_feature_sharing_premium,
+                      l10n.subscription_feature_photos_premium,
                       l10n.subscription_feature_growth_premium,
                       l10n.subscription_feature_reminders_premium,
                     ],

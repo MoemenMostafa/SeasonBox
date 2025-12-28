@@ -5,7 +5,6 @@ import 'remote_config_service.dart';
 class SubscriptionService {
   static const int freeTierItemLimit = 50;
   static const int freeTierMemberLimit = 4;
-  static const int photoLimitPerItem = 3;
 
   final RemoteConfigService _remoteConfigService;
 
@@ -21,6 +20,11 @@ class SubscriptionService {
   bool canAddMember(AppUser user, int currentMemberCount) {
     if (isPremium(user)) return true;
     return currentMemberCount < freeTierMemberLimit;
+  }
+
+  /// Gets the photo limit per item based on user tier.
+  int getPhotoLimit(AppUser user) {
+    return isPremium(user) ? 3 : 1;
   }
 
   /// Checks if a user is Premium.

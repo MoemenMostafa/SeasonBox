@@ -67,7 +67,28 @@ Provider<PostHogService>.value(value: postHogService)
 #### 1. Core Analytics
 - User identification (`PostHogService().identify`)
 - Event tracking (`PostHogService.log`)
-- Screen view tracking
+#### Automatic Screen Tracking (GoRouter)
+
+Automatic screen tracking is enabled by adding the `PosthogObserver` to the router configuration in [`lib/app/routes/router.dart`](file:///Users/m.mostafa/Workspace/code/SeasonBox/lib/app/routes/router.dart):
+
+```dart
+static final GoRouter router = GoRouter(
+  observers: [PosthogObserver()],
+  // ... routes
+);
+```
+
+And ensuring the `MaterialApp` is wrapped with `PostHogWidget` in [`lib/main.dart`](file:///Users/m.mostafa/Workspace/code/SeasonBox/lib/main.dart):
+
+```dart
+return PostHogWidget(
+  child: MaterialApp.router(...),
+);
+```
+
+#### Manual Screen Tracking
+- User identification (`PostHogService().identify`)
+- Event tracking (`PostHogService.log`)
 - User properties
 - Session management
 

@@ -10,7 +10,9 @@
     pkgs.flutter
   ];
   # Sets environment variables in the workspace
-  env = {};
+  env = {
+    PATH = "/Users/m.mostafa/Workspace/code/flutter/bin:/Users/m.mostafa/.nvm/versions/node/v22.14.0/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/bin:/bin:/usr/sbin:/sbin";
+  };
   idx = {
     # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"
     extensions = [
