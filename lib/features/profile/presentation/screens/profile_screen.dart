@@ -894,12 +894,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Future<void> _launchUrl(String path) async {
-    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-    final langCode = themeProvider.locale.languageCode;
-    // user might be on emulator, but we want to open real browser
-    // Assuming standard firebase hosting url
-    final Uri url = Uri.parse('https://seasonbox.app/$langCode$path');
+  Future<void> _launchUrl(String path, {bool isExternal = false}) async {
+    final Uri url;
+    if (path.startsWith('http')) {
+      url = Uri.parse(path);
+    } else {
+      final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+      final langCode = themeProvider.locale.languageCode;
+      url = Uri.parse('https://seasonbox.app/$langCode$path');
+    }
 
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
@@ -1073,8 +1076,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           subtitle:
               AppLocalizations.of(context)!.profile_support_rateAppSubtitle,
           onTap: () {
-            // TODO: Implement rate app
-            _showComingSoon(context);
+            _launchUrl(
+                'https://play.google.com/store/apps/details?id=io.mos.seasonbox',
+                isExternal: true);
           },
         ),
       ],

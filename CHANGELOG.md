@@ -1,5 +1,11 @@
 # Changelog
  
+## 1.6.3+34
+- **UI & UX Refinement**:
+    - **Feature Reordering**: Optimized the display order of free and premium benefits on the website and app, placing the most important features (Items and Photos) first.
+    - **Store Links**: Connected the "Rate App" button in the app and the Android download button on the website directly to the Google Play Store.
+    - **Localization**: Ensured all localized strings are synchronized across the app and website for a consistent experience.
+
 ## 1.6.2+33
 - **Premium Tier Enhancements**:
     - **Tiered Image Limits**: Implemented and restricted image uploads based on subscription tier (1 image for Free, 3 images for Premium).

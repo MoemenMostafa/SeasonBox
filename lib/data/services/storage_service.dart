@@ -5,8 +5,6 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:seasonbox/data/services/posthog_service.dart';
 import 'package:uuid/uuid.dart';
-import 'dart:typed_data';
-import 'package:image_picker/image_picker.dart';
 
 class StorageService {
   final FirebaseStorage _storage = FirebaseStorage.instance;

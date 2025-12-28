@@ -119,8 +119,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                     description: l10n.subscription_tier_freeDesc,
                     features: [
                       l10n.subscription_feature_items_free,
-                      l10n.subscription_feature_members_free,
                       l10n.subscription_feature_photos_free,
+                      l10n.subscription_feature_members_free,
                       l10n.subscription_feature_storage_free,
                     ],
                     isCurrent: !isPaid,

@@ -12,6 +12,7 @@ import 'package:seasonbox/main.dart';
 import 'package:seasonbox/data/services/posthog_service.dart';
 import 'package:seasonbox/data/services/remote_config_service.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:seasonbox/data/services/app_check_service.dart';
 import 'helpers/mock_firebase.dart';
 
 void main() {
@@ -29,6 +30,7 @@ void main() {
     await tester.pumpWidget(SeasonBox(
       postHogService: postHogService,
       remoteConfigService: remoteConfigService,
+      appCheckService: AppCheckService(),
     ));
 
     // Verify that our app starts on LoginScreen or similar and shows the title.

@@ -270,10 +270,16 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="email" data-i18n="help_contact_email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+
+                    <div class="form-group">
                         <label for="type" data-i18n="help_contact_type">Type</label>
                         <select id="type" name="type">
                             <option value="suggestion" data-i18n="help_contact_type_suggestion">Suggestion</option>
                             <option value="bug" data-i18n="help_contact_type_bug">Bug Report</option>
+                            <option value="delete" data-i18n="help_contact_type_delete">Account Deletion</option>
                             <option value="other" data-i18n="help_contact_type_other">Other</option>
                         </select>
                     </div>

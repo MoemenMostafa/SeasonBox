@@ -24,7 +24,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const pathLang = pathSegments.length > 0 && ['en', 'de', 'es', 'fr', 'it'].includes(pathSegments[0]) ? pathSegments[0] : null;
 
     // Store/Retrieve from localStorage
-    const storedLang = localStorage.getItem('seasonbox_lang');
+    let storedLang = null;
+    try {
+        storedLang = localStorage.getItem('seasonbox_lang');
+    } catch (e) {
+        console.warn('LocalStorage not accessible:', e);
+    }
 
     // Detect browser language
     const browserLang = navigator.language.split('-')[0];
@@ -35,8 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
         initialLang = pathLang;
     } else if (storedLang && supportedLangs.includes(storedLang)) {
         initialLang = storedLang;
-        // If we have a stored lang but no path lang, maybe redirect? 
-        // For now, let's just use it to render content.
     } else if (supportedLangs.includes(browserLang)) {
         initialLang = browserLang;
     }
@@ -54,24 +57,30 @@ document.addEventListener('DOMContentLoaded', () => {
     updateLanguage(initialLang);
 
     // Enforce URL structure: /:lang/...
-    // If path doesn't start with correctly supported lang, we redirect/replace to initialLang
-    if (!pathLang || pathLang !== initialLang) {
-        updateUrl(initialLang, true);
+    // Only if not on a local file system
+    if (window.location.protocol !== 'file:') {
+        if (!pathLang || pathLang !== initialLang) {
+            updateUrl(initialLang, true);
+        }
     }
 
-    // Explicitly scroll to hash if present, to handle potential layout shifts or history updates
-    if (window.location.hash) {
+    // Explicitly scroll to hash if present
+    if (window.location.hash && window.location.hash !== '#delete-account') {
         setTimeout(() => {
-            const element = document.querySelector(window.location.hash);
-            if (element) {
-                const headerOffset = 120; // Adjust based on your header height + buffer
-                const elementPosition = element.getBoundingClientRect().top;
-                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+            try {
+                const element = document.querySelector(window.location.hash);
+                if (element) {
+                    const headerOffset = 120;
+                    const elementPosition = element.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
-                window.scrollTo({
-                    top: offsetPosition,
-                    behavior: "smooth"
-                });
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: "smooth"
+                    });
+                }
+            } catch (e) {
+                console.warn('Hash scroll failed:', e);
             }
         }, 100);
     }
@@ -79,17 +88,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // Handle Contact Form Submission
     const contactForm = document.getElementById('contactForm');
     if (contactForm) {
+        // Check hash for pre-selecting account deletion
+        if (window.location.hash === '#delete-account') {
+            const typeSelect = document.getElementById('type');
+            if (typeSelect) {
+                typeSelect.value = 'delete';
+                // Scroll to form after a small delay
+                setTimeout(() => {
+                    contactForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 500);
+            }
+        }
+
         contactForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
             const typeSelect = document.getElementById('type');
-            const type = typeSelect.options[typeSelect.selectedIndex].text; // Use localized text
+            const type = typeSelect.options[typeSelect.selectedIndex].text;
             const message = document.getElementById('message').value;
 
             const subject = `SeasonBox Contact: ${type}`;
-            const body = `Name: ${name}\nType: ${type}\n\nMessage:\n${message}`;
+            const body = `Name: ${name}\nEmail: ${email}\nType: ${type}\n\nMessage:\n${message}`;
 
             window.location.href = `mailto:support@seasonbox.app?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            return false;
         });
     }
 

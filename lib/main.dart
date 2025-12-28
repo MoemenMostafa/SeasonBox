@@ -26,6 +26,7 @@ import 'package:seasonbox/data/services/subscription_service.dart';
 import 'package:seasonbox/app/providers/user_profile_provider.dart';
 import 'package:seasonbox/data/services/remote_config_service.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:seasonbox/data/services/app_check_service.dart';
 
 void main() async {
   // Run app in error-catching zone
@@ -45,6 +46,10 @@ void main() async {
         RemoteConfigService(FirebaseRemoteConfig.instance);
     await remoteConfigService.initialize();
 
+    // Initialize App Check (for Play Integrity)
+    final appCheckService = AppCheckService();
+    await appCheckService.initialize();
+
     // Set up global error handlers
     FlutterError.onError = (FlutterErrorDetails details) {
       // Log Flutter framework errors to PostHog
@@ -57,6 +62,7 @@ void main() async {
     runApp(SeasonBox(
       postHogService: postHogService,
       remoteConfigService: remoteConfigService,
+      appCheckService: appCheckService,
     ));
   }, (error, stackTrace) {
     // Catch errors that occur outside of Flutter framework
@@ -154,11 +160,13 @@ class InitializationErrorScreen extends StatelessWidget {
 class SeasonBox extends StatelessWidget {
   final PostHogService postHogService;
   final RemoteConfigService remoteConfigService;
+  final AppCheckService appCheckService;
 
   const SeasonBox({
     super.key,
     required this.postHogService,
     required this.remoteConfigService,
+    required this.appCheckService,
   });
 
   @override
@@ -174,6 +182,7 @@ class SeasonBox extends StatelessWidget {
         Provider<StorageService>(create: (_) => StorageService()),
         Provider<PostHogService>.value(value: postHogService),
         Provider<RemoteConfigService>.value(value: remoteConfigService),
+        Provider<AppCheckService>.value(value: appCheckService),
         ProxyProvider<RemoteConfigService, SubscriptionService>(
           update: (_, remoteConfigService, __) =>
               SubscriptionService(remoteConfigService),
