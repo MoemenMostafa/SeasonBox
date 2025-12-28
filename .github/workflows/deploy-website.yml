@@ -1,4 +1,5 @@
 name: Deploy Website to Firebase Hosting
+run-name: Deploying Website - ${{ github.ref_name }} (${{ github.sha }})
 
 on:
   push:
