@@ -34,7 +34,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: '21'
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -51,12 +51,25 @@ jobs:
         run: npm install -g firebase-tools
 
       - name: Run Firestore tests in Emulator
-        run: firebase emulators:exec --only firestore "cd firestore-tests && npm test"
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
+        run: |
+          if [ -n "$FIREBASE_SERVICE_ACCOUNT" ]; then
+            # Decode service account key for emulator auth if provided
+            echo "$FIREBASE_SERVICE_ACCOUNT" | base64 --decode > service-account.json
+            export GOOGLE_APPLICATION_CREDENTIALS=service-account.json
+          fi
+          
+          firebase emulators:exec --only firestore "cd firestore-tests && npm test"
+          
+          if [ -f "service-account.json" ]; then
+            rm service-account.json
+          fi
 
   deploy-firestore:
     name: Deploy Firestore Rules and Indexes
     needs: test-firestore
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop')
     runs-on: ubuntu-latest
     
     steps:
