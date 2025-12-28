@@ -40,4 +40,4 @@ To upload and publish the landing page to the live URL:
 ```bash
 firebase deploy --only hosting
 ```
-This will deploy only the contents of `web_landing` as configured in `firebase.json` in the root directory.
+This will deploy only the contents of `website` as configured in `firebase.json` in the root directory.

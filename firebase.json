@@ -38,7 +38,7 @@
         "indexes": "firestore.indexes.json"
     },
     "hosting": {
-        "public": "web_landing",
+        "public": "website",
         "ignore": [
             "firebase.json",
             "**/.*",
