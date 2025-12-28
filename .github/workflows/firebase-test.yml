@@ -55,7 +55,7 @@ jobs:
           echo "🔍 Checking Firebase configuration files..."
           
           # Check Android google-services.json
-          if [ -f "android/app/google-services.json" ]; then
+          if [ -f "${{ github.workspace }}/android/app/google-services.json" ]; then
             echo "✅ Android google-services.json found"
           else
             echo "❌ Android google-services.json NOT found"
@@ -63,14 +63,14 @@ jobs:
           fi
           
           # Check iOS GoogleService-Info.plist (if iOS is configured)
-          if [ -f "ios/Runner/GoogleService-Info.plist" ]; then
+          if [ -f "${{ github.workspace }}/ios/Runner/GoogleService-Info.plist" ]; then
             echo "✅ iOS GoogleService-Info.plist found"
           else
             echo "⚠️  iOS GoogleService-Info.plist not found (iOS may not be configured)"
           fi
           
           # Check firebase_options.dart
-          if [ -f "lib/firebase_options.dart" ]; then
+          if [ -f "${{ github.workspace }}/lib/firebase_options.dart" ]; then
             echo "✅ firebase_options.dart found"
           else
             echo "❌ firebase_options.dart NOT found"
@@ -82,7 +82,7 @@ jobs:
           echo "🔍 Validating google-services.json structure..."
           
           # Check if it's valid JSON
-          if jq empty android/app/google-services.json 2>/dev/null; then
+          if jq empty ${{ github.workspace }}/android/app/google-services.json 2>/dev/null; then
             echo "✅ Valid JSON structure"
           else
             echo "❌ Invalid JSON structure"
@@ -112,21 +112,21 @@ jobs:
           echo "🔍 Validating firebase_options.dart..."
           
           # Check if file contains required Firebase options
-          if grep -q "FirebaseOptions" lib/firebase_options.dart; then
+          if grep -q "FirebaseOptions" ${{ github.workspace }}/lib/firebase_options.dart; then
             echo "✅ FirebaseOptions class found"
           else
             echo "❌ FirebaseOptions class not found"
             exit 1
           fi
           
-          if grep -q "apiKey" lib/firebase_options.dart; then
+          if grep -q "apiKey" ${{ github.workspace }}/lib/firebase_options.dart; then
             echo "✅ API key configuration found"
           else
             echo "❌ API key configuration missing"
             exit 1
           fi
           
-          if grep -q "projectId" lib/firebase_options.dart; then
+          if grep -q "projectId" ${{ github.workspace }}/lib/firebase_options.dart; then
             echo "✅ Project ID configuration found"
           else
             echo "❌ Project ID configuration missing"

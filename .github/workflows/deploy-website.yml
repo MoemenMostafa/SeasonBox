@@ -20,13 +20,13 @@ jobs:
 
       - name: Decode Firebase service account key
         run: |
-          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}" | base64 --decode > firebase-service-account.json
+          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}" | base64 --decode > ${{ github.workspace }}/firebase-service-account.json
 
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: firebase-service-account.json
+          firebaseServiceAccount: ${{ github.workspace }}/firebase-service-account.json
           channelId: live
           projectId: seasonbox-f4b24
         env:
@@ -34,4 +34,4 @@ jobs:
 
       - name: Clean up service account
         if: always()
-        run: rm -f firebase-service-account.json
+        run: rm -f ${{ github.workspace }}/firebase-service-account.json

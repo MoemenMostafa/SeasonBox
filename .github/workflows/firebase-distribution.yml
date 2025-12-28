@@ -83,7 +83,7 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          cat > android/key.properties << EOF
+          cat > ${{ github.workspace }}/android/key.properties << EOF
           storePassword=$KEYSTORE_PASSWORD
           keyPassword=$KEY_PASSWORD
           keyAlias=$KEY_ALIAS
@@ -109,9 +109,9 @@ jobs:
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
           appId: ${{ secrets.FIREBASE_APP_ID }}
-          serviceCredentialsFile: firebase-service-account.json
+          serviceCredentialsFile: ${{ github.workspace }}/firebase-service-account.json
           groups: testers
-          file: build/app/outputs/flutter-apk/app-release.apk
+          file: ${{ github.workspace }}/build/app/outputs/flutter-apk/app-release.apk
           releaseNotes: |
             ${{ steps.extract_changelog.outputs.changelog }}
 
@@ -139,4 +139,4 @@ jobs:
         run: |
           rm -f ${{ github.workspace }}/firebase-service-account.json
           rm -f ${{ github.workspace }}/android/app/release-keystore.jks
-          rm -f android/key.properties
+          rm -f ${{ github.workspace }}/android/key.properties
