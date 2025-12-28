@@ -107,23 +107,6 @@ describe('Items Subcollection Security Rules', () => {
 
             await assertFails(itemsQuery.get());
         });
-
-        it('should support backward compatibility with memberId field', async () => {
-            const memberId = 'member1';
-            const familyId = 'family1';
-            await createTestUser(memberId, 'free');
-            await createTestFamily(familyId);
-            await createTestMember(familyId, memberId, { role: 'member', userId: memberId });
-            // Create item with legacy memberId field (no ownerId)
-            await createTestItem(familyId, 'item1', { memberId: memberId, ownerId: null });
-
-            const context = getAuthenticatedContext(memberId);
-            const itemDoc = context.firestore()
-                .collection('families').doc(familyId)
-                .collection('items').doc('item1');
-
-            await assertSucceeds(itemDoc.get());
-        });
     });
 
     describe('Create Operations', () => {
@@ -231,7 +214,7 @@ describe('Items Subcollection Security Rules', () => {
             );
         });
 
-        it('should deny creating item with more than 3 photos', async () => {
+        it('should deny creating item with more than 1 photo for free user', async () => {
             const memberId = 'member1';
             const familyId = 'family1';
             await createTestUser(memberId, 'free');
@@ -255,9 +238,7 @@ describe('Items Subcollection Security Rules', () => {
                     storageLocationId: 'loc1',
                     photos: [
                         { full: 'url1', thumb: 'url1' },
-                        { full: 'url2', thumb: 'url2' },
-                        { full: 'url3', thumb: 'url3' },
-                        { full: 'url4', thumb: 'url4' }, // 4 photos - exceeds limit
+                        { full: 'url2', thumb: 'url2' }, // 2 photos - exceeds limit for free
                     ],
                     seasonTags: [],
                     quantity: 1,
@@ -270,10 +251,46 @@ describe('Items Subcollection Security Rules', () => {
             );
         });
 
-        it('should allow creating item with exactly 3 photos', async () => {
+        it('should allow creating item with exactly 1 photo for free user', async () => {
             const memberId = 'member1';
             const familyId = 'family1';
             await createTestUser(memberId, 'free');
+            await createTestFamily(familyId, { itemCount: 0 });
+            await createTestMember(familyId, memberId, { role: 'member', userId: memberId });
+
+            const context = getAuthenticatedContext(memberId);
+            const itemDoc = context.firestore()
+                .collection('families').doc(familyId)
+                .collection('items').doc('newitem1');
+
+            await assertSucceeds(
+                itemDoc.set({
+                    id: 'newitem1',
+                    familyId: familyId,
+                    title: 'Test Item',
+                    category: 'clothing',
+                    gender: 'unisex',
+                    size: 'M',
+                    ownerId: memberId,
+                    storageLocationId: 'loc1',
+                    photos: [
+                        { full: 'url1', thumb: 'url1' },
+                    ],
+                    seasonTags: [],
+                    quantity: 1,
+                    notes: '',
+                    status: 'stored',
+                    loanHistory: [],
+                    tags: [],
+                    addedAt: new Date().toISOString(),
+                })
+            );
+        });
+
+        it('should allow creating item with 3 photos for paid user', async () => {
+            const memberId = 'member1';
+            const familyId = 'family1';
+            await createTestUser(memberId, 'paid');
             await createTestFamily(familyId, { itemCount: 0 });
             await createTestMember(familyId, memberId, { role: 'member', userId: memberId });
 
@@ -374,13 +391,13 @@ describe('Items Subcollection Security Rules', () => {
             );
         });
 
-        it('should deny updating item with more than 3 photos', async () => {
+        it('should deny updating item with more than 1 photo for free user', async () => {
             const memberId = 'member1';
             const familyId = 'family1';
             await createTestUser(memberId, 'free');
             await createTestFamily(familyId);
             await createTestMember(familyId, memberId, { role: 'member', userId: memberId });
-            await createTestItem(familyId, 'item1', { ownerId: memberId });
+            await createTestItem(familyId, 'item1', { ownerId: memberId, photos: [{ full: 'url1', thumb: 'url1' }] });
 
             const context = getAuthenticatedContext(memberId);
             const itemDoc = context.firestore()
@@ -392,8 +409,30 @@ describe('Items Subcollection Security Rules', () => {
                     photos: [
                         { full: 'url1', thumb: 'url1' },
                         { full: 'url2', thumb: 'url2' },
+                    ],
+                })
+            );
+        });
+
+        it('should allow updating item with 3 photos for paid user', async () => {
+            const memberId = 'member1';
+            const familyId = 'family1';
+            await createTestUser(memberId, 'paid');
+            await createTestFamily(familyId);
+            await createTestMember(familyId, memberId, { role: 'member', userId: memberId });
+            await createTestItem(familyId, 'item1', { ownerId: memberId });
+
+            const context = getAuthenticatedContext(memberId);
+            const itemDoc = context.firestore()
+                .collection('families').doc(familyId)
+                .collection('items').doc('item1');
+
+            await assertSucceeds(
+                itemDoc.update({
+                    photos: [
+                        { full: 'url1', thumb: 'url1' },
+                        { full: 'url2', thumb: 'url2' },
                         { full: 'url3', thumb: 'url3' },
-                        { full: 'url4', thumb: 'url4' },
                     ],
                 })
             );

@@ -1,20 +1,20 @@
 name: Firebase Connection Test
 
 on:
-  push:
-    branches:
-      - main
-      - develop
-  pull_request:
-    branches:
-      - main
-    paths-ignore:
-      - 'README.md'
-      - 'web_landing/**'
-      - '.agent/**'
-      - '.idx/**'
-      - '.gemini/**'
-      - 'docs/**'
+  # push:
+  #   branches:
+  #     - main
+  #     - develop
+  # pull_request:
+  #   branches:
+  #     - main
+  #   paths-ignore:
+  #     - 'README.md'
+  #     - 'website/**'
+  #     - '.agent/**'
+  #     - '.idx/**'
+  #     - '.gemini/**'
+  #     - 'docs/**'
   workflow_dispatch:
 
 jobs:

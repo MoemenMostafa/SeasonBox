@@ -262,4 +262,112 @@ describe('Subscription Tier Limits', () => {
             );
         });
     });
+
+    describe('Photo Limits', () => {
+        it('should allow free tier user to add 1 photo', async () => {
+            const userId = 'user1';
+            const familyId = 'family1';
+            await createTestUser(userId, 'free');
+            await createTestFamily(familyId);
+            await createTestMember(familyId, userId, { role: 'admin', userId });
+
+            const context = getAuthenticatedContext(userId);
+            const itemDoc = context.firestore()
+                .collection('families').doc(familyId)
+                .collection('items').doc('item1');
+
+            await assertSucceeds(
+                itemDoc.set({
+                    id: 'item1',
+                    familyId: familyId,
+                    title: 'Item 1',
+                    ownerId: userId,
+                    photos: [{ full: 'url1', thumb: 'url1' }],
+                })
+            );
+        });
+
+        it('should deny free tier user from adding 2nd photo', async () => {
+            const userId = 'user1';
+            const familyId = 'family1';
+            await createTestUser(userId, 'free');
+            await createTestFamily(familyId);
+            await createTestMember(familyId, userId, { role: 'admin', userId });
+
+            const context = getAuthenticatedContext(userId);
+            const itemDoc = context.firestore()
+                .collection('families').doc(familyId)
+                .collection('items').doc('item1');
+
+            await assertFails(
+                itemDoc.set({
+                    id: 'item1',
+                    familyId: familyId,
+                    title: 'Item 1',
+                    ownerId: userId,
+                    photos: [
+                        { full: 'url1', thumb: 'url1' },
+                        { full: 'url2', thumb: 'url2' },
+                    ],
+                })
+            );
+        });
+
+        it('should allow paid tier user to add 3 photos', async () => {
+            const userId = 'user1';
+            const familyId = 'family1';
+            await createTestUser(userId, 'paid');
+            await createTestFamily(familyId);
+            await createTestMember(familyId, userId, { role: 'admin', userId });
+
+            const context = getAuthenticatedContext(userId);
+            const itemDoc = context.firestore()
+                .collection('families').doc(familyId)
+                .collection('items').doc('item1');
+
+            await assertSucceeds(
+                itemDoc.set({
+                    id: 'item1',
+                    familyId: familyId,
+                    title: 'Item 1',
+                    ownerId: userId,
+                    photos: [
+                        { full: 'url1', thumb: 'url1' },
+                        { full: 'url2', thumb: 'url2' },
+                        { full: 'url3', thumb: 'url3' },
+                    ],
+                })
+            );
+        });
+
+        it('should allow free tier member to add 3 photos if family owner is paid', async () => {
+            const ownerId = 'owner1';
+            const memberId = 'member1';
+            const familyId = ownerId;
+            await createTestUser(ownerId, 'paid');
+            await createTestUser(memberId, 'free');
+            await createTestFamily(familyId);
+            await createTestMember(familyId, ownerId, { role: 'admin', userId: ownerId });
+            await createTestMember(familyId, memberId, { role: 'member', userId: memberId });
+
+            const context = getAuthenticatedContext(memberId);
+            const itemDoc = context.firestore()
+                .collection('families').doc(familyId)
+                .collection('items').doc('item1');
+
+            await assertSucceeds(
+                itemDoc.set({
+                    id: 'item1',
+                    familyId: familyId,
+                    title: 'Item 1',
+                    ownerId: memberId,
+                    photos: [
+                        { full: 'url1', thumb: 'url1' },
+                        { full: 'url2', thumb: 'url2' },
+                        { full: 'url3', thumb: 'url3' },
+                    ],
+                })
+            );
+        });
+    });
 });

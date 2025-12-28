@@ -50,31 +50,34 @@ service cloud.firestore {
     }
 
     // --- Subscription Helpers ---
-
+ 
     function getSubscriptionTier() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('subscriptionTier', 'free');
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) 
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('subscriptionTier', 'free') 
+        : 'free';
     }
 
     function isPaid() {
       return getSubscriptionTier() == 'paid';
     }
 
-    // New helper: Check the subscription tier of the family owner (familyId matches owner's UID)
-    function getFamilyOwnerSubscriptionTier(familyId) {
-      return get(/databases/$(database)/documents/users/$(familyId)).data.get('subscriptionTier', 'free');
-    }
-
     // New helper: Family is paid if the current user OR the family owner is paid
     function isFamilyPaid(familyId) {
-      return isPaid() || getFamilyOwnerSubscriptionTier(familyId) == 'paid';
+      return isPaid() || 
+             (exists(/databases/$(database)/documents/users/$(familyId)) && 
+              get(/databases/$(database)/documents/users/$(familyId)).data.get('subscriptionTier', 'free') == 'paid');
     }
 
     function getFamilyItemCount(familyId) {
-      return get(/databases/$(database)/documents/families/$(familyId)).data.get('itemCount', 0);
+      return exists(/databases/$(database)/documents/families/$(familyId))
+        ? get(/databases/$(database)/documents/families/$(familyId)).data.get('itemCount', 0)
+        : 0;
     }
 
     function getFamilyMemberCount(familyId) {
-      return get(/databases/$(database)/documents/families/$(familyId)).data.get('memberCount', 0);
+      return exists(/databases/$(database)/documents/families/$(familyId))
+        ? get(/databases/$(database)/documents/families/$(familyId)).data.get('memberCount', 0)
+        : 0;
     }
 
     function canAddMoreItems(familyId) {
@@ -83,6 +86,20 @@ service cloud.firestore {
 
     function canAddMoreMembers(familyId) {
       return isFamilyPaid(familyId) || getFamilyMemberCount(familyId) < 4;
+    }
+
+    function isInviteEmailMatch() {
+      return isSignedIn() && 
+             'inviteEmail' in resource.data && 
+             'email' in request.auth.token && 
+             resource.data.inviteEmail == request.auth.token.email;
+    }
+
+    function isItemOwner() {
+      return isSignedIn() && (
+        resource.data.get('ownerId', '') == request.auth.uid ||
+        resource.data.get('memberId', '') == request.auth.uid
+      );
     }
 
     // --- Collection Rules ---
@@ -112,10 +129,7 @@ service cloud.firestore {
 
       // 2a. Members Subcollection
       match /members/{memberId} {
-        // Read/List: Allow any authenticated user to read/query members
-        // This is needed for registration/join flows to check for pending invites
-        // Actual member creation still requires proper userId validation
-        allow read, list: if isSignedIn();
+        allow read, list: if isFamilyMember(familyId) || isInviteEmailMatch();
         
         // Create: 
         // 1. Admin/Co-Admin can add members (send invites - no userId required for pending invites).
@@ -156,7 +170,7 @@ service cloud.firestore {
         // 3. User can delete a pending invite sent to their email (Reject Invite).
         allow delete: if isFamilyAdmin(familyId) || 
                          request.auth.uid == memberId || 
-                         (isSignedIn() && resource.data.inviteEmail == request.auth.token.email);
+                         isInviteEmailMatch();
       }
 
       // 2b. Items Subcollection
@@ -164,8 +178,7 @@ service cloud.firestore {
         // Read individual item: 
         // 1. Admins/Co-Admins see ALL items.
         // 2. Members see ONLY items where ownerId (or legacy memberId) == their UID.
-        allow read: if isFamilyAdmin(familyId) || 
-                       (isFamilyMember(familyId) && (resource.data.get('ownerId', resource.data.get('memberId', '')) == request.auth.uid));
+        allow read: if isFamilyAdmin(familyId) || (isFamilyMember(familyId) && isItemOwner());
         
         // List/Query items:
         // Allow members to query items (app will filter by ownerId in the query)
@@ -175,19 +188,19 @@ service cloud.firestore {
         // 1. Admins/Co-Admins can create items for anyone.
         // 2. Members can create items ONLY for themselves.
         // LIMIT: isPaid() OR itemCount < 50
-        // PHOTO LIMIT: 3 photos max
+        // PHOTO LIMIT: 3 photos max for paid, 1 for free
         allow create: if (isFamilyAdmin(familyId) || (isFamilyMember(familyId) && request.resource.data.ownerId == request.auth.uid)) &&
                          canAddMoreItems(familyId) &&
-                         (!('photos' in request.resource.data) || request.resource.data.photos.size() <= 3);
+                         (!('photos' in request.resource.data) || request.resource.data.photos.size() <= (isFamilyPaid(familyId) ? 3 : 1));
         
         // Update/Delete:
         // 1. Admins/Co-Admins can manage all items.
         // 2. Members can manage ONLY their own items.
-        // PHOTO LIMIT: 3 photos max on update
-        allow update: if (isFamilyAdmin(familyId) || (isFamilyMember(familyId) && (resource.data.get('ownerId', resource.data.get('memberId', '')) == request.auth.uid))) &&
-                         (!('photos' in request.resource.data) || request.resource.data.photos.size() <= 3);
+        // PHOTO LIMIT: 3 photos max for paid, 1 for free
+        allow update: if (isFamilyAdmin(familyId) || (isFamilyMember(familyId) && isItemOwner())) &&
+                         (!('photos' in request.resource.data) || request.resource.data.photos.size() <= (isFamilyPaid(familyId) ? 3 : 1));
         allow delete: if isFamilyAdmin(familyId) || 
-                         (isFamilyMember(familyId) && (resource.data.get('ownerId', resource.data.get('memberId', '')) == request.auth.uid));
+                         (isFamilyMember(familyId) && isItemOwner());
       }
       
       // 2c. Locations Subcollection
@@ -203,7 +216,7 @@ service cloud.firestore {
     // 3. Collection Group Queries
     // Needed to find pending invites across all families
     match /{path=**}/members/{memberId} {
-      allow read: if isSignedIn() && resource.data.inviteEmail == request.auth.token.email;
+      allow read: if isInviteEmailMatch();
     }
   }
 }

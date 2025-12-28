@@ -220,4 +220,5 @@ module.exports = {
     createMultipleMembers,
     assertFails,
     assertSucceeds,
+    testEnv, // Export testEnv for advanced usage
 };

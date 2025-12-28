@@ -1,0 +1,474 @@
+const { describe, it, before, after, beforeEach } = require('mocha');
+const {
+    setupTestEnvironment,
+    teardownTestEnvironment,
+    clearFirestoreData,
+    getAuthenticatedContext,
+    getUnauthenticatedContext,
+    createTestUser,
+    createTestFamily,
+    createTestMember,
+    createTestItem,
+    assertFails,
+    assertSucceeds,
+} = require('../helpers/test-helpers');
+
+describe('Items Subcollection Security Rules', () => {
+    before(async () => {
+        await setupTestEnvironment();
+    });
+
+    after(async () => {
+        await teardownTestEnvironment();
+    });
+
+    beforeEach(async () => {
+        await clearFirestoreData();
+    });
+
+    describe('Read Operations', () => {
+        it('should allow admin to read all items', async () => {
+            const adminId = 'admin1';
+            const memberId = 'member1';
+            const familyId = 'family1';
+            await createTestUser(adminId, 'free');
+            await createTestFamily(familyId);
+            await createTestMember(familyId, adminId, { role: 'admin', userId: adminId });
+            await createTestItem(familyId, 'item1', { ownerId: memberId });
+
+            const context = getAuthenticatedContext(adminId);
+            const itemDoc = context.firestore()
+                .collection('families').doc(familyId)
+                .collection('items').doc('item1');
+
+            await assertSucceeds(itemDoc.get());
+        });
+
+        it('should allow member to read their own items', async () => {
+            const memberId = 'member1';
+            const familyId = 'family1';
+            await createTestUser(memberId, 'free');
+            await createTestFamily(familyId);
+            await createTestMember(familyId, memberId, { role: 'member', userId: memberId });
+            await createTestItem(familyId, 'item1', { ownerId: memberId });
+
+            const context = getAuthenticatedContext(memberId);
+            const itemDoc = context.firestore()
+                .collection('families').doc(familyId)
+                .collection('items').doc('item1');
+
+            await assertSucceeds(itemDoc.get());
+        });
+
+        it('should deny member from reading other members\' items', async () => {
+            const member1Id = 'member1';
+            const member2Id = 'member2';
+            const familyId = 'family1';
+            await createTestUser(member1Id, 'free');
+            await createTestUser(member2Id, 'free');
+            await createTestFamily(familyId);
+            await createTestMember(familyId, member1Id, { role: 'member', userId: member1Id });
+            await createTestMember(familyId, member2Id, { role: 'member', userId: member2Id });
+            await createTestItem(familyId, 'item1', { ownerId: member2Id });
+
+            const context = getAuthenticatedContext(member1Id);
+            const itemDoc = context.firestore()
+                .collection('families').doc(familyId)
+                .collection('items').doc('item1');
+
+            await assertFails(itemDoc.get());
+        });
+
+        it('should allow family member to list items (query)', async () => {
+            const memberId = 'member1';
+            const familyId = 'family1';
+            await createTestUser(memberId, 'free');
+            await createTestFamily(familyId);
+            await createTestMember(familyId, memberId, { role: 'member', userId: memberId });
+
+            const context = getAuthenticatedContext(memberId);
+            const itemsQuery = context.firestore()
+                .collection('families').doc(familyId)
+                .collection('items');
+
+            await assertSucceeds(itemsQuery.get());
+        });
+
+        it('should deny non-member from listing items', async () => {
+            const userId = 'user1';
+            const familyId = 'family1';
+            await createTestUser(userId, 'free');
+            await createTestFamily(familyId);
+
+            const context = getAuthenticatedContext(userId);
+            const itemsQuery = context.firestore()
+                .collection('families').doc(familyId)
+                .collection('items');
+
+            await assertFails(itemsQuery.get());
+        });
+
+        it('should support backward compatibility with memberId field', async () => {
+            const memberId = 'member1';
+            const familyId = 'family1';
+            await createTestUser(memberId, 'free');
+            await createTestFamily(familyId);
+            await createTestMember(familyId, memberId, { role: 'member', userId: memberId });
+
+            // Create item with legacy memberId field using withSecurityRulesDisabled
+            const { testEnv } = require('../helpers/test-helpers');
+            await testEnv.withSecurityRulesDisabled(async (context) => {
+                await context.firestore()
+                    .collection('families').doc(familyId)
+                    .collection('items').doc('item1')
+                    .set({
+                        id: 'item1',
+                        familyId: familyId,
+                        title: 'Legacy Item',
+                        category: 'clothing',
+                        gender: 'unisex',
+                        size: 'M',
+                        memberId: memberId, // Legacy field
+                        // No ownerId field
+                        storageLocationId: 'loc1',
+                        photos: [],
+                        seasonTags: [],
+                        quantity: 1,
+                        notes: '',
+                        status: 'stored',
+                        loanHistory: [],
+                        tags: [],
+                        addedAt: new Date().toISOString(),
+                    });
+            });
+
+            const context = getAuthenticatedContext(memberId);
+            const itemDoc = context.firestore()
+                .collection('families').doc(familyId)
+                .collection('items').doc('item1');
+
+            await assertSucceeds(itemDoc.get());
+        });
+    });
+    await createTestFamily(familyId, { itemCount: 0 });
+    await createTestMember(familyId, adminId, { role: 'admin', userId: adminId });
+
+    const context = getAuthenticatedContext(adminId);
+    const itemDoc = context.firestore()
+        .collection('families').doc(familyId)
+        .collection('items').doc('newitem1');
+
+    await assertSucceeds(
+        itemDoc.set({
+            id: 'newitem1',
+            familyId: familyId,
+            title: 'Test Item',
+            category: 'clothing',
+            gender: 'unisex',
+            size: 'M',
+            ownerId: memberId, // Creating for another member
+            storageLocationId: 'loc1',
+            photos: [],
+            seasonTags: [],
+            quantity: 1,
+            notes: '',
+            status: 'stored',
+            loanHistory: [],
+            tags: [],
+            addedAt: new Date().toISOString(),
+        })
+    );
+});
+
+it('should allow member to create items for themselves', async () => {
+    const memberId = 'member1';
+    const familyId = 'family1';
+    await createTestUser(memberId, 'free');
+    await createTestFamily(familyId, { itemCount: 0 });
+    await createTestMember(familyId, memberId, { role: 'member', userId: memberId });
+
+    const context = getAuthenticatedContext(memberId);
+    const itemDoc = context.firestore()
+        .collection('families').doc(familyId)
+        .collection('items').doc('newitem1');
+
+    await assertSucceeds(
+        itemDoc.set({
+            id: 'newitem1',
+            familyId: familyId,
+            title: 'My Item',
+            category: 'clothing',
+            gender: 'unisex',
+            size: 'M',
+            ownerId: memberId, // Creating for self
+            storageLocationId: 'loc1',
+            photos: [],
+            seasonTags: [],
+            quantity: 1,
+            notes: '',
+            status: 'stored',
+            loanHistory: [],
+            tags: [],
+            addedAt: new Date().toISOString(),
+        })
+    );
+});
+
+it('should deny member from creating items for other members', async () => {
+    const member1Id = 'member1';
+    const member2Id = 'member2';
+    const familyId = 'family1';
+    await createTestUser(member1Id, 'free');
+    await createTestFamily(familyId, { itemCount: 0 });
+    await createTestMember(familyId, member1Id, { role: 'member', userId: member1Id });
+
+    const context = getAuthenticatedContext(member1Id);
+    const itemDoc = context.firestore()
+        .collection('families').doc(familyId)
+        .collection('items').doc('newitem1');
+
+    await assertFails(
+        itemDoc.set({
+            id: 'newitem1',
+            familyId: familyId,
+            title: 'Test Item',
+            category: 'clothing',
+            gender: 'unisex',
+            size: 'M',
+            ownerId: member2Id, // Trying to create for another member
+            storageLocationId: 'loc1',
+            photos: [],
+            seasonTags: [],
+            quantity: 1,
+            notes: '',
+            status: 'stored',
+            loanHistory: [],
+            tags: [],
+            addedAt: new Date().toISOString(),
+        })
+    );
+});
+
+it('should deny creating item with more than 3 photos', async () => {
+    const memberId = 'member1';
+    const familyId = 'family1';
+    await createTestUser(memberId, 'free');
+    await createTestFamily(familyId, { itemCount: 0 });
+    await createTestMember(familyId, memberId, { role: 'member', userId: memberId });
+
+    const context = getAuthenticatedContext(memberId);
+    const itemDoc = context.firestore()
+        .collection('families').doc(familyId)
+        .collection('items').doc('newitem1');
+
+    await assertFails(
+        itemDoc.set({
+            id: 'newitem1',
+            familyId: familyId,
+            title: 'Test Item',
+            category: 'clothing',
+            gender: 'unisex',
+            size: 'M',
+            ownerId: memberId,
+            storageLocationId: 'loc1',
+            photos: [
+                { full: 'url1', thumb: 'url1' },
+                { full: 'url2', thumb: 'url2' },
+                { full: 'url3', thumb: 'url3' },
+                { full: 'url4', thumb: 'url4' }, // 4 photos - exceeds limit
+            ],
+            seasonTags: [],
+            quantity: 1,
+            notes: '',
+            status: 'stored',
+            loanHistory: [],
+            tags: [],
+            addedAt: new Date().toISOString(),
+        })
+    );
+});
+
+it('should allow creating item with exactly 3 photos', async () => {
+    const memberId = 'member1';
+    const familyId = 'family1';
+    await createTestUser(memberId, 'free');
+    await createTestFamily(familyId, { itemCount: 0 });
+    await createTestMember(familyId, memberId, { role: 'member', userId: memberId });
+
+    const context = getAuthenticatedContext(memberId);
+    const itemDoc = context.firestore()
+        .collection('families').doc(familyId)
+        .collection('items').doc('newitem1');
+
+    await assertSucceeds(
+        itemDoc.set({
+            id: 'newitem1',
+            familyId: familyId,
+            title: 'Test Item',
+            category: 'clothing',
+            gender: 'unisex',
+            size: 'M',
+            ownerId: memberId,
+            storageLocationId: 'loc1',
+            photos: [
+                { full: 'url1', thumb: 'url1' },
+                { full: 'url2', thumb: 'url2' },
+                { full: 'url3', thumb: 'url3' },
+            ],
+            seasonTags: [],
+            quantity: 1,
+            notes: '',
+            status: 'stored',
+            loanHistory: [],
+            tags: [],
+            addedAt: new Date().toISOString(),
+        })
+    );
+});
+});
+
+describe('Update Operations', () => {
+    it('should allow admin to update any item', async () => {
+        const adminId = 'admin1';
+        const memberId = 'member1';
+        const familyId = 'family1';
+        await createTestUser(adminId, 'free');
+        await createTestFamily(familyId);
+        await createTestMember(familyId, adminId, { role: 'admin', userId: adminId });
+        await createTestItem(familyId, 'item1', { ownerId: memberId });
+
+        const context = getAuthenticatedContext(adminId);
+        const itemDoc = context.firestore()
+            .collection('families').doc(familyId)
+            .collection('items').doc('item1');
+
+        await assertSucceeds(
+            itemDoc.update({
+                title: 'Updated Title',
+            })
+        );
+    });
+
+    it('should allow member to update their own items', async () => {
+        const memberId = 'member1';
+        const familyId = 'family1';
+        await createTestUser(memberId, 'free');
+        await createTestFamily(familyId);
+        await createTestMember(familyId, memberId, { role: 'member', userId: memberId });
+        await createTestItem(familyId, 'item1', { ownerId: memberId });
+
+        const context = getAuthenticatedContext(memberId);
+        const itemDoc = context.firestore()
+            .collection('families').doc(familyId)
+            .collection('items').doc('item1');
+
+        await assertSucceeds(
+            itemDoc.update({
+                title: 'My Updated Item',
+            })
+        );
+    });
+
+    it('should deny member from updating other members\' items', async () => {
+        const member1Id = 'member1';
+        const member2Id = 'member2';
+        const familyId = 'family1';
+        await createTestUser(member1Id, 'free');
+        await createTestUser(member2Id, 'free');
+        await createTestFamily(familyId);
+        await createTestMember(familyId, member1Id, { role: 'member', userId: member1Id });
+        await createTestMember(familyId, member2Id, { role: 'member', userId: member2Id });
+        await createTestItem(familyId, 'item1', { ownerId: member2Id });
+
+        const context = getAuthenticatedContext(member1Id);
+        const itemDoc = context.firestore()
+            .collection('families').doc(familyId)
+            .collection('items').doc('item1');
+
+        await assertFails(
+            itemDoc.update({
+                title: 'Hacked Title',
+            })
+        );
+    });
+
+    it('should deny updating item with more than 3 photos', async () => {
+        const memberId = 'member1';
+        const familyId = 'family1';
+        await createTestUser(memberId, 'free');
+        await createTestFamily(familyId);
+        await createTestMember(familyId, memberId, { role: 'member', userId: memberId });
+        await createTestItem(familyId, 'item1', { ownerId: memberId });
+
+        const context = getAuthenticatedContext(memberId);
+        const itemDoc = context.firestore()
+            .collection('families').doc(familyId)
+            .collection('items').doc('item1');
+
+        await assertFails(
+            itemDoc.update({
+                photos: [
+                    { full: 'url1', thumb: 'url1' },
+                    { full: 'url2', thumb: 'url2' },
+                    { full: 'url3', thumb: 'url3' },
+                    { full: 'url4', thumb: 'url4' },
+                ],
+            })
+        );
+    });
+});
+
+describe('Delete Operations', () => {
+    it('should allow admin to delete any item', async () => {
+        const adminId = 'admin1';
+        const memberId = 'member1';
+        const familyId = 'family1';
+        await createTestUser(adminId, 'free');
+        await createTestFamily(familyId);
+        await createTestMember(familyId, adminId, { role: 'admin', userId: adminId });
+        await createTestItem(familyId, 'item1', { ownerId: memberId });
+
+        const context = getAuthenticatedContext(adminId);
+        const itemDoc = context.firestore()
+            .collection('families').doc(familyId)
+            .collection('items').doc('item1');
+
+        await assertSucceeds(itemDoc.delete());
+    });
+
+    it('should allow member to delete their own items', async () => {
+        const memberId = 'member1';
+        const familyId = 'family1';
+        await createTestUser(memberId, 'free');
+        await createTestFamily(familyId);
+        await createTestMember(familyId, memberId, { role: 'member', userId: memberId });
+        await createTestItem(familyId, 'item1', { ownerId: memberId });
+
+        const context = getAuthenticatedContext(memberId);
+        const itemDoc = context.firestore()
+            .collection('families').doc(familyId)
+            .collection('items').doc('item1');
+
+        await assertSucceeds(itemDoc.delete());
+    });
+
+    it('should deny member from deleting other members\' items', async () => {
+        const member1Id = 'member1';
+        const member2Id = 'member2';
+        const familyId = 'family1';
+        await createTestUser(member1Id, 'free');
+        await createTestUser(member2Id, 'free');
+        await createTestFamily(familyId);
+        await createTestMember(familyId, member1Id, { role: 'member', userId: member1Id });
+        await createTestMember(familyId, member2Id, { role: 'member', userId: member2Id });
+        await createTestItem(familyId, 'item1', { ownerId: member2Id });
+
+        const context = getAuthenticatedContext(member1Id);
+        const itemDoc = context.firestore()
+            .collection('families').doc(familyId)
+            .collection('items').doc('item1');
+
+        await assertFails(itemDoc.delete());
+    });
+});
+});

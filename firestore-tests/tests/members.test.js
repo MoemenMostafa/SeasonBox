@@ -26,7 +26,58 @@ describe('Members Subcollection Security Rules', () => {
     });
 
     describe('Read Operations', () => {
-        it('should allow authenticated user to read members', async () => {
+        it('should allow user with matching invite email to read their member doc', async () => {
+            const userId = 'user1';
+            const userEmail = 'user1@test.com';
+            const familyId = 'family1';
+            await createTestUser(userId, 'free');
+            await createTestFamily(familyId);
+            await createTestMember(familyId, 'pending1', {
+                inviteEmail: userEmail,
+                role: 'member'
+            });
+
+            const context = getAuthenticatedContext(userId, { email: userEmail });
+            const memberDoc = context.firestore()
+                .collection('families').doc(familyId)
+                .collection('members').doc('pending1');
+
+            await assertSucceeds(memberDoc.get());
+        });
+
+        it('should allow family member to read other members', async () => {
+            const userId = 'user1';
+            const familyId = 'family1';
+            await createTestUser(userId, 'free');
+            await createTestFamily(familyId);
+            await createTestMember(familyId, userId, { role: 'member', userId: userId });
+            await createTestMember(familyId, 'other1', { role: 'member' });
+
+            const context = getAuthenticatedContext(userId);
+            const otherMemberDoc = context.firestore()
+                .collection('families').doc(familyId)
+                .collection('members').doc('other1');
+
+            await assertSucceeds(otherMemberDoc.get());
+        });
+
+        it('should allow family member to list members', async () => {
+            const userId = 'user1';
+            const familyId = 'family1';
+            await createTestUser(userId, 'free');
+            await createTestFamily(familyId);
+            await createTestMember(familyId, userId, { role: 'member', userId: userId });
+            await createTestMember(familyId, 'member1', { role: 'member' });
+
+            const context = getAuthenticatedContext(userId);
+            const membersQuery = context.firestore()
+                .collection('families').doc(familyId)
+                .collection('members');
+
+            await assertSucceeds(membersQuery.get());
+        });
+
+        it('should deny non-member from reading members without invite', async () => {
             const userId = 'user1';
             const familyId = 'family1';
             await createTestUser(userId, 'free');
@@ -38,22 +89,7 @@ describe('Members Subcollection Security Rules', () => {
                 .collection('families').doc(familyId)
                 .collection('members').doc('member1');
 
-            await assertSucceeds(memberDoc.get());
-        });
-
-        it('should allow authenticated user to list members', async () => {
-            const userId = 'user1';
-            const familyId = 'family1';
-            await createTestUser(userId, 'free');
-            await createTestFamily(familyId);
-            await createTestMember(familyId, 'member1', { role: 'member' });
-
-            const context = getAuthenticatedContext(userId);
-            const membersQuery = context.firestore()
-                .collection('families').doc(familyId)
-                .collection('members');
-
-            await assertSucceeds(membersQuery.get());
+            await assertFails(memberDoc.get());
         });
 
         it('should deny unauthenticated user from reading members', async () => {

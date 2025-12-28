@@ -89,21 +89,12 @@ describe('Collection Group Queries', () => {
             });
 
             const context = getAuthenticatedContext(userId, { email: userEmail });
+            const memberDoc = context.firestore()
+                .collection('families').doc(familyId)
+                .collection('members').doc('pending1');
 
-            // Try to query invites for a different email
-            const invitesQuery = context.firestore()
-                .collectionGroup('members')
-                .where('inviteEmail', '==', otherEmail);
-
-            // The query itself won't fail, but reading the results will
-            const result = await invitesQuery.get();
-
-            // Should return empty results due to security rules
-            // Note: Collection group queries with security rules filter results
-            // rather than throwing permission errors
-            if (result.docs.length > 0) {
-                throw new Error('Should not return invites for other emails');
-            }
+            // Should fail to read a specific invite with different email
+            await assertFails(memberDoc.get());
         });
 
         it('should allow user to query their own invites across multiple families', async () => {

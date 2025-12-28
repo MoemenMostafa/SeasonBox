@@ -221,36 +221,46 @@ describe('Security Edge Cases and Vulnerabilities', () => {
     });
 
     describe('Unauthenticated Access Prevention', () => {
-        it('should deny unauthenticated access to all collections', async () => {
+        it('should deny unauthenticated access to families', async () => {
             await createTestFamily('family1');
-            await createTestMember('family1', 'member1', { role: 'member' });
-            await createTestItem('family1', 'item1', { ownerId: 'member1' });
-            await createTestLocation('family1', 'loc1', { name: 'Attic' });
 
             const context = getUnauthenticatedContext();
-
-            // Try to access families
             await assertFails(
                 context.firestore().collection('families').doc('family1').get()
             );
+        });
 
-            // Try to access members
+        it('should deny unauthenticated access to members', async () => {
+            await createTestFamily('family1');
+            await createTestMember('family1', 'member1', { role: 'member' });
+
+            const context = getUnauthenticatedContext();
             await assertFails(
                 context.firestore()
                     .collection('families').doc('family1')
                     .collection('members').doc('member1')
                     .get()
             );
+        });
 
-            // Try to access items
+        it('should deny unauthenticated access to items', async () => {
+            await createTestFamily('family1');
+            await createTestItem('family1', 'item1', { ownerId: 'member1' });
+
+            const context = getUnauthenticatedContext();
             await assertFails(
                 context.firestore()
                     .collection('families').doc('family1')
                     .collection('items').doc('item1')
                     .get()
             );
+        });
 
-            // Try to access locations
+        it('should deny unauthenticated access to locations', async () => {
+            await createTestFamily('family1');
+            await createTestLocation('family1', 'loc1', { name: 'Attic' });
+
+            const context = getUnauthenticatedContext();
             await assertFails(
                 context.firestore()
                     .collection('families').doc('family1')
