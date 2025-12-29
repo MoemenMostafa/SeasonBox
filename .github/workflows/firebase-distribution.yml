@@ -2,13 +2,27 @@ name: Build and Deploy to Firebase App Distribution
 run-name: App Distribution - ${{ github.ref_name }} (${{ github.sha }})
 
 on:
-  # push:
-  #   branches:
-  #     - master
-  #     - develop
-  # pull_request:
-  #   branches:
-  #     - master
+  push:
+    branches:
+      - master
+      - develop
+    paths:
+      - 'lib/**'
+      - 'android/**'
+      - 'assets/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - '.github/workflows/firebase-distribution.yml'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'lib/**'
+      - 'android/**'
+      - 'assets/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - '.github/workflows/firebase-distribution.yml'
   workflow_dispatch: # Allows manual trigger
 
 jobs:
