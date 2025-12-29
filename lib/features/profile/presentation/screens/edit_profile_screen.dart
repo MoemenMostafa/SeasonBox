@@ -211,7 +211,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (_imageBytes != null) {
       imageProvider = MemoryImage(_imageBytes!);
     } else if (currentPhotoUrl != null) {
-      imageProvider = NetworkImage(currentPhotoUrl);
+      imageProvider = currentPhotoUrl.startsWith('assets/')
+          ? AssetImage(currentPhotoUrl) as ImageProvider
+          : NetworkImage(currentPhotoUrl);
     } else {
       imageProvider = null;
     }

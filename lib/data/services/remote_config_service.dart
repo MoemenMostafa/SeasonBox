@@ -15,9 +15,10 @@ class RemoteConfigService {
     // Set defaults
     await _remoteConfig.setDefaults({
       'subscription_pricing': jsonEncode({
-        'monthly': '4.99',
-        'yearly': '49.99',
+        'monthly': '2.99',
+        'yearly': '19.99',
       }),
+      'enable_demo_mode': true,
     });
 
     await _remoteConfig.fetchAndActivate();
@@ -28,14 +29,18 @@ class RemoteConfigService {
     try {
       final Map<String, dynamic> data = jsonDecode(jsonString);
       return {
-        'monthly': data['monthly']?.toString() ?? '4.99',
-        'yearly': data['yearly']?.toString() ?? '49.99',
+        'monthly': data['monthly']?.toString() ?? '2.99',
+        'yearly': data['yearly']?.toString() ?? '19.99',
       };
     } catch (e) {
       return {
-        'monthly': '4.99',
-        'yearly': '49.99',
+        'monthly': '2.99',
+        'yearly': '19.99',
       };
     }
+  }
+
+  bool isDemoModeEnabled() {
+    return _remoteConfig.getBool('enable_demo_mode');
   }
 }

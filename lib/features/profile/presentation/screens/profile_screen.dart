@@ -12,9 +12,10 @@ import 'package:seasonbox/features/profile/presentation/screens/edit_profile_scr
 import 'package:seasonbox/data/services/user_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:seasonbox/core/enums/user_role.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:seasonbox/data/services/posthog_service.dart';
 import 'package:seasonbox/app/providers/user_profile_provider.dart';
+
+import 'package:seasonbox/core/utils/url_helper.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -133,31 +134,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Stream<DocumentSnapshot>? _userStream;
-
   @override
   void initState() {
     super.initState();
-    // Initialize stream once to prevent reloading on setState
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final authService = Provider.of<AuthService>(context, listen: false);
-      final userService = Provider.of<UserService>(context, listen: false);
-      final user = authService.currentUser;
-      if (user != null) {
-        setState(() {
-          _userStream = userService.getUserStream(user.uid);
-        });
-      }
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    // We still need generic access to authService/userService for consistency checks
-    final authService = Provider.of<AuthService>(context, listen: false);
-    final user = authService.currentUser;
+    // Access authService to check login status (works for both Firebase and Demo)
+    final authService = Provider.of<AuthService>(context);
+    final currentUid = authService.currentUid;
 
-    if (user == null) {
+    if (currentUid == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
@@ -174,142 +162,127 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          final userService = Provider.of<UserService>(context, listen: false);
-          final authService = Provider.of<AuthService>(context, listen: false);
-          final user = authService.currentUser;
-          if (user != null) {
-            setState(() {
-              _userStream = userService.getUserStream(user.uid);
-            });
+      body: Consumer<UserProfileProvider>(
+        builder: (context, userProvider, child) {
+          final userData = userProvider.userData;
+
+          // If no user data yet (and not in demo mode which sets it instantly), show loader
+          if (userData == null) {
+            return const Center(child: CircularProgressIndicator());
           }
-          // Small delay to let the UI update or just for visual feedback since stream is instant
-          await Future.delayed(const Duration(milliseconds: 500));
-        },
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (_userStream != null)
-                  StreamBuilder<DocumentSnapshot>(
-                    stream: _userStream,
-                    builder: (context, snapshot) {
-                      if (snapshot.hasError) {
-                        return Text('Error: ${snapshot.error}');
-                      }
 
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        // Return a placeholder or the card with basic info if available
-                        // For now, indicator is fine, but since we cache stream it should only happen once.
-                        return const Center(child: CircularProgressIndicator());
-                      }
+          // In standard mode, userProvider.userData comes from the stream in the provider
+          // In demo mode, it comes from the local map in the provider
 
-                      final userData =
-                          snapshot.data?.data() as Map<String, dynamic>?;
+          // We also need the 'user' object for some fallbacks like email if not in profile
+          // But for demo mode 'user' (FirebaseUser) is null, so we handle that.
+          final firebaseUser = authService.currentUser;
 
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildProfileCard(context, userData, user),
-                          const SizedBox(height: 24),
-                          _buildSubscriptionSection(context),
-                          const SizedBox(height: 24),
-                          _buildFamilyManagement(context, userData),
-                        ],
-                      );
-                    },
-                  )
-                else
-                  const Center(child: CircularProgressIndicator()),
-                const SizedBox(height: 24),
-                _buildAppSettings(context),
-                const SizedBox(height: 24),
-                _buildDataPrivacy(context),
-                const SizedBox(height: 24),
-                _buildSupport(context),
-                const SizedBox(height: 32),
-                AppFooter(
-                  onSignOut: () async {
-                    // Show confirmation dialog
-                    final shouldLogout = await showDialog<bool>(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: Text(AppLocalizations.of(context)!
-                            .profile_dialog_logout_title),
-                        content: Text(AppLocalizations.of(context)!
-                            .profile_dialog_logout_message),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, false),
-                            child: Text(AppLocalizations.of(context)!
-                                .profile_dialog_logout_cancel),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, true),
-                            style: TextButton.styleFrom(
-                              foregroundColor: Colors.red,
-                            ),
-                            child: Text(AppLocalizations.of(context)!
-                                .profile_dialog_logout_confirm),
-                          ),
-                        ],
-                      ),
-                    );
-
-                    if (shouldLogout == true && context.mounted) {
-                      try {
-                        // Get services before async operations
-                        final authService =
-                            Provider.of<AuthService>(context, listen: false);
-                        final biometricService = BiometricService();
-
-                        // Disable biometric login if enabled
-                        // Disable biometric login if enabled (best effort)
-                        try {
-                          final isBiometricEnabled =
-                              await biometricService.isBiometricLoginEnabled();
-                          if (isBiometricEnabled) {
-                            await biometricService.disableBiometricLogin();
-                          }
-                        } catch (e) {
-                          PostHogService.log(
-                              'Error disabling biometric login: $e',
-                              level: LogLevel.error);
-                        }
-
-                        // Sign out from Firebase
-                        await authService.signOut();
-
-                        // Navigate to login screen
-                        if (context.mounted) {
-                          context.go('/login');
-                        }
-                      } catch (e) {
-                        // Show error message if logout fails
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(AppLocalizations.of(context)!
-                                  .profile_error_logoutFailed(e.toString())),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        }
-                      }
-                    }
-                  },
+          return RefreshIndicator(
+            onRefresh: () async {
+              // Just a simulated delay or re-fetch trigger if needed
+              // Provider stream handles updates automatically
+              await Future.delayed(const Duration(milliseconds: 500));
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildProfileCard(context, userData, firebaseUser),
+                    const SizedBox(height: 24),
+                    _buildSubscriptionSection(context),
+                    const SizedBox(height: 24),
+                    _buildFamilyManagement(context, userData),
+                    const SizedBox(height: 24),
+                    _buildAppSettings(context),
+                    const SizedBox(height: 24),
+                    _buildDataPrivacy(context),
+                    const SizedBox(height: 24),
+                    _buildSupport(context),
+                    const SizedBox(height: 32),
+                    AppFooter(
+                      onSignOut: () async {
+                        _showSignOutDialog(context);
+                      },
+                    ),
+                    const SizedBox(height: 32),
+                  ],
                 ),
-                const SizedBox(height: 32),
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
+  }
+
+  Future<void> _showSignOutDialog(BuildContext context) async {
+    // Show confirmation dialog
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppLocalizations.of(context)!.profile_dialog_logout_title),
+        content:
+            Text(AppLocalizations.of(context)!.profile_dialog_logout_message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(
+                AppLocalizations.of(context)!.profile_dialog_logout_cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: Text(
+                AppLocalizations.of(context)!.profile_dialog_logout_confirm),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldLogout == true && context.mounted) {
+      try {
+        // Get services before async operations
+        final authService = Provider.of<AuthService>(context, listen: false);
+        final biometricService = BiometricService();
+
+        // Disable biometric login if enabled (best effort)
+        try {
+          final isBiometricEnabled =
+              await biometricService.isBiometricLoginEnabled();
+          if (isBiometricEnabled) {
+            await biometricService.disableBiometricLogin();
+          }
+        } catch (e) {
+          PostHogService.log('Error disabling biometric login: $e',
+              level: LogLevel.error);
+        }
+
+        // Sign out (handles both Firebase and Demo mode)
+        await authService.signOut();
+
+        // Navigate to login screen
+        if (context.mounted) {
+          context.go('/login');
+        }
+      } catch (e) {
+        // Show error message if logout fails
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!
+                  .profile_error_logoutFailed(e.toString())),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
   }
 
   Widget _buildProfileCard(
@@ -337,8 +310,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               CircleAvatar(
                 radius: 35,
-                backgroundImage:
-                    photoURL != null ? NetworkImage(photoURL) : null,
+                backgroundImage: photoURL != null
+                    ? (photoURL.startsWith('assets/')
+                        ? AssetImage(photoURL) as ImageProvider
+                        : NetworkImage(photoURL))
+                    : null,
                 child: photoURL == null
                     ? Icon(
                         Icons.person,
@@ -386,6 +362,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
+                if (Provider.of<AuthService>(context, listen: false)
+                    .isDemoMode) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Not available in Demo Mode')),
+                  );
+                  return;
+                }
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -430,8 +413,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final familyId = userData?['familyId'];
     // Need auth service to get current user ID
     final authService = Provider.of<AuthService>(context, listen: false);
-    final user = authService.currentUser;
-    final isSoloFamily = familyId == user?.uid;
+    final currentUid = authService.currentUid;
+    final isSoloFamily = familyId == currentUid;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -592,10 +575,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           backgroundColor: Colors.green,
                         ),
                       );
-                      // Force refresh stream
-                      setState(() {
-                        _userStream = userService.getUserStream(user.uid);
-                      });
+                      // Provider stream updates automatically
+                      // Just force UI rebuild if needed or rely on Consumer
+                      if (context.mounted) {
+                        setState(() {});
+                      }
                     }
                   }
                 } catch (e) {
@@ -652,10 +636,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         backgroundColor: Colors.green,
                       ),
                     );
-                    // Force refresh stream (optional as stream updates auto but good for safety)
-                    setState(() {
-                      _userStream = userService.getUserStream(user.uid);
-                    });
+                    // Provider stream updates automatically
+                    if (context.mounted) {
+                      setState(() {});
+                    }
                   }
                 }
               } catch (e) {
@@ -742,60 +726,101 @@ class _ProfileScreenState extends State<ProfileScreen> {
           },
         ),
         const SizedBox(height: 12),
-        _buildToggleTile(
-          context,
-          icon: Icons.notifications,
-          iconColor: Colors.purple,
-          iconBgColor: Colors.purple.shade50,
-          title: AppLocalizations.of(context)!.profile_setting_notifications,
-          subtitle: AppLocalizations.of(context)!
-              .profile_setting_notificationsSubtitle,
-          value: _notificationsEnabled,
-          onChanged: (val) {
-            setState(() {
-              _notificationsEnabled = val;
-            });
-            // TODO: Implement notifications functionality
-            _showComingSoon(context);
-          },
-        ),
         const SizedBox(height: 12),
-        _buildToggleTile(
-          context,
-          icon: Icons.calendar_today,
-          iconColor: Colors.orange,
-          iconBgColor: Colors.orange.shade50,
-          title:
-              AppLocalizations.of(context)!.profile_setting_seasonalReminders,
-          subtitle: AppLocalizations.of(context)!
-              .profile_setting_seasonalRemindersSubtitle,
-          value: _seasonalRemindersEnabled,
-          onChanged: (val) {
-            setState(() {
-              _seasonalRemindersEnabled = val;
-            });
-            // TODO: Implement seasonal reminders functionality
-            _showComingSoon(context);
-          },
-        ),
-        const SizedBox(height: 12),
-        _buildToggleTile(
-          context,
-          icon: Icons.sync,
-          iconColor: Colors.red,
-          iconBgColor: Colors.red.shade50,
-          title: AppLocalizations.of(context)!.profile_setting_autoSync,
-          subtitle:
-              AppLocalizations.of(context)!.profile_setting_autoSyncSubtitle,
-          value: _autoSyncEnabled,
-          onChanged: (val) {
-            setState(() {
-              _autoSyncEnabled = val;
-            });
-            // TODO: Implement auto sync functionality
-            _showComingSoon(context);
-          },
-        ),
+        Consumer<AuthService>(builder: (context, authService, _) {
+          final isDemo = authService.isDemoMode;
+
+          return Column(
+            children: [
+              _buildToggleTile(
+                context,
+                icon: Icons.notifications,
+                iconColor: Colors.purple,
+                iconBgColor: Colors.purple.shade50,
+                title:
+                    AppLocalizations.of(context)!.profile_setting_notifications,
+                subtitle: AppLocalizations.of(context)!
+                    .profile_setting_notificationsSubtitle,
+                value:
+                    _notificationsEnabled, // Always show current state (likely on/off default)
+                isDemo: isDemo,
+                onChanged: (val) {
+                  if (isDemo) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Not available in Demo Mode"),
+                        duration: const Duration(seconds: 1),
+                      ),
+                    );
+                    return;
+                  }
+                  setState(() {
+                    _notificationsEnabled = val;
+                  });
+                  // TODO: Implement notifications functionality
+                  _showComingSoon(context);
+                },
+              ),
+              const SizedBox(height: 12),
+              _buildToggleTile(
+                context,
+                icon: Icons.calendar_today,
+                iconColor: Colors.orange,
+                iconBgColor: Colors.orange.shade50,
+                title: AppLocalizations.of(context)!
+                    .profile_setting_seasonalReminders,
+                subtitle: AppLocalizations.of(context)!
+                    .profile_setting_seasonalRemindersSubtitle,
+                value: _seasonalRemindersEnabled,
+                isDemo: isDemo,
+                onChanged: (val) {
+                  if (isDemo) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Not available in Demo Mode"),
+                        duration: const Duration(seconds: 1),
+                      ),
+                    );
+                    return;
+                  }
+                  setState(() {
+                    _seasonalRemindersEnabled = val;
+                  });
+                  // TODO: Implement seasonal reminders functionality
+                  _showComingSoon(context);
+                },
+              ),
+              const SizedBox(height: 12),
+              _buildToggleTile(
+                context,
+                icon: Icons.sync,
+                iconColor: Colors.red,
+                iconBgColor: Colors.red.shade50,
+                title: AppLocalizations.of(context)!.profile_setting_autoSync,
+                subtitle: AppLocalizations.of(context)!
+                    .profile_setting_autoSyncSubtitle,
+                value: _autoSyncEnabled,
+                isDemo: isDemo,
+                onChanged: (val) {
+                  if (isDemo) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Not available in Demo Mode"),
+                        duration: const Duration(seconds: 1),
+                      ),
+                    );
+                    return;
+                  }
+                  setState(() {
+                    _autoSyncEnabled = val;
+                  });
+                  // TODO: Implement auto sync functionality
+                  _showComingSoon(context);
+                },
+              ),
+            ],
+          );
+        }),
         const SizedBox(height: 12),
         Consumer<UserProfileProvider>(
           builder: (context, userProfile, child) {
@@ -892,27 +917,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ],
     );
-  }
-
-  Future<void> _launchUrl(String path, {bool isExternal = false}) async {
-    final Uri url;
-    if (path.startsWith('http')) {
-      url = Uri.parse(path);
-    } else {
-      final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-      final langCode = themeProvider.locale.languageCode;
-      url = Uri.parse('https://seasonbox.app/$langCode$path');
-    }
-
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not launch $url')),
-        );
-      }
-    }
   }
 
   void _showPasswordDialog(
@@ -1028,7 +1032,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           subtitle:
               AppLocalizations.of(context)!.profile_data_privacyPolicySubtitle,
           onTap: () {
-            _launchUrl('/privacy');
+            UrlHelper.launchWebsiteUrl(context, '/privacy');
           },
         ),
       ],
@@ -1050,7 +1054,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           subtitle:
               AppLocalizations.of(context)!.profile_support_helpCenterSubtitle,
           onTap: () {
-            _launchUrl('/help');
+            UrlHelper.launchWebsiteUrl(context, '/help');
           },
         ),
         const SizedBox(height: 12),
@@ -1063,7 +1067,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           subtitle: AppLocalizations.of(context)!
               .profile_support_contactSupportSubtitle,
           onTap: () {
-            _launchUrl('/help#contact');
+            UrlHelper.launchWebsiteUrl(context, '/help#contact');
           },
         ),
         const SizedBox(height: 12),
@@ -1076,7 +1080,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           subtitle:
               AppLocalizations.of(context)!.profile_support_rateAppSubtitle,
           onTap: () {
-            _launchUrl(
+            UrlHelper.launchWebsiteUrl(context,
                 'https://play.google.com/store/apps/details?id=io.mos.seasonbox',
                 isExternal: true);
           },
@@ -1161,6 +1165,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required String subtitle,
     required bool value,
     required ValueChanged<bool> onChanged,
+    bool isDemo = false,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
@@ -1211,8 +1216,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Switch(
               value: value,
               onChanged: onChanged,
-              activeThumbColor: Colors.white,
-              activeTrackColor: Colors.deepPurple,
+              activeThumbColor: isDemo ? Colors.grey.shade400 : Colors.white,
+              activeTrackColor:
+                  isDemo ? Colors.grey.shade300 : Colors.deepPurple,
             ),
           ],
         ),

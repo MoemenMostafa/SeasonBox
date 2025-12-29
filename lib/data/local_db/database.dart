@@ -1,10 +1,7 @@
-import 'dart:io';
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
+import 'package:seasonbox/data/local_db/connection/connection.dart';
 
 part 'database.g.dart';
 
@@ -108,16 +105,8 @@ class ListMapStringDynamicConverter
 
 @DriftDatabase(tables: [Families, Children, StorageLocations, Items])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase([QueryExecutor? e]) : super(e ?? _openConnection());
+  AppDatabase([QueryExecutor? e]) : super(e ?? connect());
 
   @override
   int get schemaVersion => 1;
-}
-
-LazyDatabase _openConnection() {
-  return LazyDatabase(() async {
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'db.sqlite'));
-    return NativeDatabase(file);
-  });
 }

@@ -13,6 +13,8 @@
   "login_button_email": "Accedi con la tua email",
   "login_button_google": "Continua con Google",
   "login_button_biometric": "Accedi con biometria",
+  "login_button_demo": "Prova la modalità demo",
+  "login_demo_tagline": "Esplora l'app con dati generici",
   "login_footer_terms": "Continuando, accetti i nostri ",
   "login_footer_termsOfService": "Termini di Servizio",
   "login_footer_and": " e la ",

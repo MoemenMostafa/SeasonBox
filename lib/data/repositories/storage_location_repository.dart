@@ -1,13 +1,22 @@
 import 'package:flutter/foundation.dart';
+import '../services/demo_data_service.dart';
+import '../../features/auth/data/auth_service.dart';
 import '../models/storage_location.dart';
 import '../services/firestore_service.dart';
 
 class StorageLocationRepository {
   final FirestoreService _firestoreService;
+  final AuthService _authService;
+  final DemoDataService _demoDataService;
 
-  StorageLocationRepository(this._firestoreService);
+  StorageLocationRepository(
+      this._firestoreService, this._authService, this._demoDataService);
 
   Future<void> addLocation(StorageLocation location) async {
+    if (_authService.isDemoMode) {
+      _demoDataService.addStorageLocation(location);
+      return;
+    }
     await _firestoreService.setDocument(
       docRef: _firestoreService.locations(location.familyId).doc(location.id),
       data: location.toMap(),
@@ -15,6 +24,9 @@ class StorageLocationRepository {
   }
 
   Future<List<StorageLocation>> getLocations(String familyId) async {
+    if (_authService.isDemoMode) {
+      return _demoDataService.getStorageLocations();
+    }
     final snapshot = await _firestoreService.getCollection(
         query: _firestoreService.locations(familyId));
 
@@ -37,6 +49,10 @@ class StorageLocationRepository {
   }
 
   Future<void> updateLocation(StorageLocation location) async {
+    if (_authService.isDemoMode) {
+      _demoDataService.updateStorageLocation(location);
+      return;
+    }
     await _firestoreService.updateDocument(
       docRef: _firestoreService.locations(location.familyId).doc(location.id),
       data: location.toMap(),
@@ -44,6 +60,10 @@ class StorageLocationRepository {
   }
 
   Future<void> deleteLocation(String familyId, String locationId) async {
+    if (_authService.isDemoMode) {
+      _demoDataService.deleteStorageLocation(locationId);
+      return;
+    }
     await _firestoreService.deleteDocument(
       docRef: _firestoreService.locations(familyId).doc(locationId),
     );

@@ -259,10 +259,10 @@ class _AddItemScreenState extends State<AddItemScreen> {
       final locationRepository = context.read<StorageLocationRepository>();
       final itemRepository = context.read<ItemRepository>();
 
+      final currentUid = authService.currentUid;
       final familyId = await authService.getCurrentUserFamilyId();
-      final userId = authService.currentUser?.uid;
 
-      if (familyId == null || userId == null) {
+      if (familyId == null || currentUid == null) {
         throw Exception('User not authenticated');
       }
 
@@ -295,8 +295,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
           // Auto-assign to current user if they're a member (not admin) and creating a new item
           if (widget.item == null &&
-              !PermissionService.isAdmin(userId, familyId, members)) {
-            _assignedChildId = userId;
+              !PermissionService.isAdmin(currentUid, familyId, members)) {
+            _assignedChildId = currentUid;
           }
         });
 
@@ -720,8 +720,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
       final familyId = await authService.getCurrentUserFamilyId();
       if (familyId == null) throw Exception('User not authenticated');
 
-      final userId = authService.currentUser?.uid;
-      if (userId == null) throw Exception('No user logged in');
+      final currentUid = authService.currentUid;
+      if (currentUid == null) throw Exception('No user logged in');
 
       // Generate item ID first (needed for storage path)
       final itemId = widget.item?.id ?? const Uuid().v4();
@@ -729,23 +729,32 @@ class _AddItemScreenState extends State<AddItemScreen> {
       // Upload newly selected images using pre-processed ones if available
       final List<Map<String, String>> newPhotoMaps = [];
       for (final XFile imageFile in _selectedImages) {
-        final processed = _processedImages[imageFile.path];
         Map<String, String> photoUrls;
 
-        if (processed != null) {
-          photoUrls = await storageService.uploadPreProcessedData(
-            fullData: processed['full']!,
-            thumbData: processed['thumb']!,
-            userId: userId,
-            itemId: itemId,
-          );
+        if (authService.isDemoMode) {
+          // Mock upload for demo mode
+          // Use a random existing demo image or a placeholder
+          photoUrls = {
+            'full': 'assets/images/demo/winter_jacket.png', // Placeholder
+            'thumb': 'assets/images/demo/winter_jacket.png',
+          };
         } else {
-          // Fallback if not processed yet
-          photoUrls = await storageService.uploadImageWithThumbnail(
-            file: imageFile,
-            userId: userId,
-            itemId: itemId,
-          );
+          final processed = _processedImages[imageFile.path];
+          if (processed != null) {
+            photoUrls = await storageService.uploadPreProcessedData(
+              fullData: processed['full']!,
+              thumbData: processed['thumb']!,
+              userId: currentUid,
+              itemId: itemId,
+            );
+          } else {
+            // Fallback if not processed yet
+            photoUrls = await storageService.uploadImageWithThumbnail(
+              file: imageFile,
+              userId: currentUid,
+              itemId: itemId,
+            );
+          }
         }
         newPhotoMaps.add(photoUrls);
       }

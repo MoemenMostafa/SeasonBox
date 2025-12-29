@@ -38,9 +38,9 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
     try {
       final authService = context.read<AuthService>();
       final familyId = await authService.getCurrentUserFamilyId();
-      final userId = authService.currentUser?.uid;
+      final currentUid = authService.currentUid;
 
-      if (familyId == null || userId == null) {
+      if (familyId == null || currentUid == null) {
         throw Exception('User not authenticated');
       }
 
@@ -60,7 +60,7 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
 
       if (mounted) {
         setState(() {
-          _currentUserId = userId;
+          _currentUserId = currentUid;
           _familyId = familyId;
           _members = members;
           _items = items;
@@ -110,13 +110,20 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
               CircleAvatar(
                 radius: 30,
                 backgroundColor: Colors.purple.shade100,
-                child: Text(
-                  member.name[0].toUpperCase(),
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                backgroundImage: member.photoUrl != null
+                    ? (member.photoUrl!.startsWith('assets/')
+                        ? AssetImage(member.photoUrl!) as ImageProvider
+                        : NetworkImage(member.photoUrl!))
+                    : null,
+                child: member.photoUrl == null
+                    ? Text(
+                        member.name[0].toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    : null,
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -308,6 +315,13 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                     _members,
                   )
                       ? () {
+                          if (context.read<AuthService>().isDemoMode) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Not available in Demo Mode')),
+                            );
+                            return;
+                          }
                           context
                               .push('/add-member', extra: member)
                               .then((_) => _loadMembers());
@@ -361,6 +375,9 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                   .push('/add-member', extra: member)
                   .then((_) => _loadMembers());
             },
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
             child: Text(l10n.members_dialog_sizeRequired_button),
           ),
         ],
@@ -499,21 +516,26 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                       ],
                     ),
             ),
-      floatingActionButton:
-          PermissionService.isAdmin(_currentUserId, _familyId, _members)
-              ? SeasonBoxAddButton(
-                  heroTag: 'add_member_fab',
-                  onPressed: () {
-                    final isPremium =
-                        context.read<UserProfileProvider>().isPremium;
-                    if (!isPremium && _members.length >= 4) {
-                      _showUpgradeDialog();
-                    } else {
-                      context.push('/add-member').then((_) => _loadMembers());
-                    }
-                  },
-                )
-              : null,
+      floatingActionButton: PermissionService.isAdmin(
+              _currentUserId, _familyId, _members)
+          ? SeasonBoxAddButton(
+              heroTag: 'add_member_fab',
+              onPressed: () {
+                if (context.read<AuthService>().isDemoMode) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Not available in Demo Mode')),
+                  );
+                  return;
+                }
+                final isPremium = context.read<UserProfileProvider>().isPremium;
+                if (!isPremium && _members.length >= 4) {
+                  _showUpgradeDialog();
+                } else {
+                  context.push('/add-member').then((_) => _loadMembers());
+                }
+              },
+            )
+          : null,
     );
   }
 

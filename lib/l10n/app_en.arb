@@ -19,6 +19,8 @@
   "login_button_email": "Login with your Email",
   "login_button_google": "Continue with Google",
   "login_button_biometric": "Login with Biometrics",
+  "login_button_demo": "Try Demo Mode",
+  "login_demo_tagline": "Explore the app with generic data",
   "login_footer_terms": "By continuing, you agree to our ",
   "login_footer_termsOfService": "Terms of Service",
   "login_footer_and": " and ",

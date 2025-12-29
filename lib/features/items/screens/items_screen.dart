@@ -64,9 +64,9 @@ class _ItemsScreenState extends State<ItemsScreen> {
       final memberRepository = context.read<FamilyMemberRepository>();
 
       String? familyId = await authService.getCurrentUserFamilyId();
-      final userId = authService.currentUser?.uid;
+      final currentUid = authService.currentUid;
 
-      if (familyId == null || userId == null) {
+      if (familyId == null || currentUid == null) {
         throw Exception('User not authenticated');
       }
 
@@ -80,7 +80,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
         // Fallback: If permission denied (likely data inconsistent), switch to personal family
         PostHogService.log('Error fetching members for $familyId: $e',
             level: LogLevel.error);
-        if (familyId != userId) {
+        if (familyId != currentUid) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -90,7 +90,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
               ),
             );
           }
-          familyId = userId; // Fallback to personal
+          familyId = currentUid; // Fallback to personal
           members = await memberRepository.getFamilyMembers(familyId);
         } else {
           rethrow;
@@ -100,12 +100,12 @@ class _ItemsScreenState extends State<ItemsScreen> {
       // 2. Identify current user's role
       // Default to 'member' if not found (safe fallback)
       final currentUserMember = members.firstWhere(
-        (m) => m.id == userId,
+        (m) => m.id == currentUid,
         orElse: () => FamilyMember(
-          id: userId,
+          id: currentUid,
           familyId: familyId!,
           name: 'Me',
-          role: familyId == userId ? 'admin' : 'member', // Owner is admin
+          role: familyId == currentUid ? 'admin' : 'member', // Owner is admin
           birthdate: DateTime.now(),
           gender: Gender.unisex,
         ),
@@ -117,7 +117,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
       final results = await Future.wait([
         itemRepository.getItems(
           familyId,
-          ownerId: isRestrictedMember ? userId : null,
+          ownerId: isRestrictedMember ? currentUid : null,
         ),
         locationRepository.getLocations(familyId),
       ]).timeout(const Duration(seconds: 5));
@@ -613,9 +613,9 @@ class _ItemsScreenState extends State<ItemsScreen> {
                       itemBuilder: (context, index) {
                         final item = _filteredItems[index];
                         final canDelete = PermissionService.canDeleteItem(
-                          context.read<AuthService>().currentUser?.uid,
+                          context.read<AuthService>().currentUid,
                           item,
-                          context.read<AuthService>().currentUser?.uid,
+                          context.read<AuthService>().currentUid,
                           _members,
                         );
 
@@ -710,6 +710,12 @@ class _ItemsScreenState extends State<ItemsScreen> {
       floatingActionButton: SeasonBoxAddButton(
         heroTag: 'add_item_fab',
         onPressed: () {
+          if (context.read<AuthService>().isDemoMode) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Not available in Demo Mode')),
+            );
+            return;
+          }
           context.push(
             '/add-item',
             extra: {
@@ -750,6 +756,12 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
     return AppCard(
       onTap: () {
+        if (context.read<AuthService>().isDemoMode) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Not available in Demo Mode')),
+          );
+          return;
+        }
         // Navigate to edit item screen
         context.push('/add-item', extra: item).then((_) => _loadItems());
       },
@@ -792,11 +804,14 @@ class _ItemsScreenState extends State<ItemsScreen> {
                     borderRadius: BorderRadius.circular(12),
                     image: item.photos.isNotEmpty
                         ? DecorationImage(
-                            image: NetworkImage(
-                              item.photos.first['thumb'] ??
+                            image: (() {
+                              final url = item.photos.first['thumb'] ??
                                   item.photos.first['full'] ??
-                                  '',
-                            ),
+                                  '';
+                              return url.startsWith('assets/')
+                                  ? AssetImage(url) as ImageProvider
+                                  : NetworkImage(url);
+                            })(),
                             fit: BoxFit.cover,
                           )
                         : null,

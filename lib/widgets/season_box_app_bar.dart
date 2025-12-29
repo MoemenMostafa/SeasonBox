@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:seasonbox/features/auth/data/auth_service.dart';
-import 'package:seasonbox/data/services/user_service.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:seasonbox/app/providers/user_profile_provider.dart';
 
 class SeasonBoxAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -77,13 +76,18 @@ class SeasonBoxAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   Widget _buildProfileIcon(BuildContext context) {
-    // Access services via Provider without listening in build (stateless widget)
-    // Actually, we must resolve them. Since this is a StatelessWidget, we can use context.read/watch.
-    // However, to keep it clean, we can do it inside this helper method.
+    // Access services via Provider
+    // We can use context.watch since we are inside a widget build context (indirectly)
+    // but better to use Consumer or Provider.of
 
     // Check for authenticated user safely
-    final authService = Provider.of<AuthService>(context, listen: false);
-    final currentUser = authService.currentUser;
+    final authService =
+        Provider.of<AuthService>(context); // Listen to auth changes
+    final currentUid = authService.currentUid;
+
+    // Listen to profile changes
+    final userProfile = Provider.of<UserProfileProvider>(context);
+    final userData = userProfile.userData;
 
     Widget profileImage = Container(
       decoration: BoxDecoration(
@@ -93,41 +97,25 @@ class SeasonBoxAppBar extends StatelessWidget implements PreferredSizeWidget {
       child: const Icon(Icons.person, color: Colors.white, size: 20),
     );
 
-    if (currentUser != null) {
-      // Use StreamBuilder for real-time updates
-      final userService = Provider.of<UserService>(context, listen: false);
-      return StreamBuilder<DocumentSnapshot>(
-        stream: userService.getUserStream(currentUser.uid),
-        builder: (context, snapshot) {
-          if (snapshot.hasData && snapshot.data!.exists) {
-            final data = snapshot.data!.data() as Map<String, dynamic>?;
-            if (data != null &&
-                data['photoURL'] != null &&
-                (data['photoURL'] as String).isNotEmpty) {
-              profileImage = CircleAvatar(
-                backgroundImage: NetworkImage(data['photoURL']),
-                backgroundColor: Colors.white.withValues(alpha: 0.2),
-              );
-            }
-          }
-
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: GestureDetector(
-              onTap: () {
-                context.push('/profile');
-              },
-              child: profileImage,
-            ),
-          );
-        },
-      );
+    if (currentUid != null && userData != null) {
+      if (userData['photoURL'] != null &&
+          (userData['photoURL'] as String).isNotEmpty) {
+        profileImage = CircleAvatar(
+          backgroundImage:
+              (userData['photoURL'] as String).startsWith('assets/')
+                  ? AssetImage(userData['photoURL']) as ImageProvider
+                  : NetworkImage(userData['photoURL']),
+          backgroundColor: Colors.white.withValues(alpha: 0.2),
+        );
+      }
     }
 
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: GestureDetector(
-        onTap: () => context.push('/profile'),
+        onTap: () {
+          context.push('/profile');
+        },
         child: profileImage,
       ),
     );

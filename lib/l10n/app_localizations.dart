@@ -170,6 +170,18 @@ abstract class AppLocalizations {
   /// **'Login with Biometrics'**
   String get login_button_biometric;
 
+  /// No description provided for @login_button_demo.
+  ///
+  /// In en, this message translates to:
+  /// **'Try Demo Mode'**
+  String get login_button_demo;
+
+  /// No description provided for @login_demo_tagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore the app with generic data'**
+  String get login_demo_tagline;
+
   /// No description provided for @login_footer_terms.
   ///
   /// In en, this message translates to:

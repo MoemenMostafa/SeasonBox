@@ -46,6 +46,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get login_button_biometric => 'Se connecter avec la biométrie';
 
   @override
+  String get login_button_demo => 'Essayer le mode démo';
+
+  @override
+  String get login_demo_tagline =>
+      'Explorez l\'application avec des données génériques';
+
+  @override
   String get login_footer_terms => 'En continuant, vous acceptez nos ';
 
   @override

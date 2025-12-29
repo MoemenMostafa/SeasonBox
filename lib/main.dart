@@ -27,12 +27,14 @@ import 'package:seasonbox/app/providers/user_profile_provider.dart';
 import 'package:seasonbox/data/services/remote_config_service.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:seasonbox/data/services/app_check_service.dart';
+import 'package:seasonbox/data/services/demo_data_service.dart';
 
 void main() async {
+  // Ensure bindings are initialized in the root zone
+  WidgetsFlutterBinding.ensureInitialized();
+
   // Run app in error-catching zone
   runZonedGuarded(() async {
-    WidgetsFlutterBinding.ensureInitialized();
-
     // Initialize Firebase
     await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform);
@@ -176,7 +178,10 @@ class SeasonBox extends StatelessWidget {
         ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
         ChangeNotifierProvider<NavigationProvider>(
             create: (_) => NavigationProvider()),
-        Provider<AuthService>(create: (_) => AuthService()),
+        ChangeNotifierProvider<AuthService>(create: (_) => AuthService()),
+        ProxyProvider<AuthService, AppRouter>(
+          update: (_, authService, __) => AppRouter(authService),
+        ),
         Provider<FirestoreService>(create: (_) => FirestoreService()),
         Provider<BiometricService>(create: (_) => BiometricService()),
         Provider<StorageService>(create: (_) => StorageService()),
@@ -187,20 +192,29 @@ class SeasonBox extends StatelessWidget {
           update: (_, remoteConfigService, __) =>
               SubscriptionService(remoteConfigService),
         ),
+        Provider<DemoDataService>(
+          create: (_) => DemoDataService(),
+        ),
         ProxyProvider<FirestoreService, FamilyRepository>(
           update: (_, firestoreService, __) =>
               FamilyRepository(firestoreService),
         ),
-        ProxyProvider<FirestoreService, FamilyMemberRepository>(
-          update: (_, firestoreService, __) =>
-              FamilyMemberRepository(firestoreService),
+        ProxyProvider3<FirestoreService, AuthService, DemoDataService,
+            FamilyMemberRepository>(
+          update: (_, firestoreService, authService, demoDataService, __) =>
+              FamilyMemberRepository(
+                  firestoreService, authService, demoDataService),
         ),
-        ProxyProvider<FirestoreService, ItemRepository>(
-          update: (_, firestoreService, __) => ItemRepository(firestoreService),
+        ProxyProvider3<FirestoreService, AuthService, DemoDataService,
+            ItemRepository>(
+          update: (_, firestoreService, authService, demoDataService, __) =>
+              ItemRepository(firestoreService, authService, demoDataService),
         ),
-        ProxyProvider<FirestoreService, StorageLocationRepository>(
-          update: (_, firestoreService, __) =>
-              StorageLocationRepository(firestoreService),
+        ProxyProvider3<FirestoreService, AuthService, DemoDataService,
+            StorageLocationRepository>(
+          update: (_, firestoreService, authService, demoDataService, __) =>
+              StorageLocationRepository(
+                  firestoreService, authService, demoDataService),
         ),
         ProxyProvider<FirestoreService, UserService>(
           update: (_, firestoreService, __) => UserService(
@@ -223,13 +237,14 @@ class SeasonBox extends StatelessWidget {
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
+          final appRouter = Provider.of<AppRouter>(context, listen: false);
           return PostHogWidget(
             child: MaterialApp.router(
               title: 'SeasonBox',
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
               themeMode: themeProvider.themeMode,
-              routerConfig: AppRouter.router,
+              routerConfig: appRouter.router,
               locale: themeProvider.locale,
               localizationsDelegates: const [
                 AppLocalizations.delegate,

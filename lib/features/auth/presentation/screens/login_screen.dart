@@ -10,6 +10,10 @@ import 'package:seasonbox/features/auth/presentation/widgets/animated_background
 import 'package:seasonbox/data/services/biometric_service.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
 
+import 'package:seasonbox/core/utils/url_helper.dart';
+import 'package:seasonbox/data/services/remote_config_service.dart';
+import 'package:flutter/gestures.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -21,6 +25,7 @@ class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   bool _isGoogleSignInLoading = false;
+  bool _isDemoLoading = false;
 
   @override
   void initState() {
@@ -407,6 +412,90 @@ class _LoginScreenState extends State<LoginScreen>
                         );
                       },
                     ),
+                    if (context
+                        .watch<RemoteConfigService>()
+                        .isDemoModeEnabled()) ...[
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: TextButton(
+                          onPressed: _isDemoLoading || _isGoogleSignInLoading
+                              ? null
+                              : () async {
+                                  setState(() {
+                                    _isDemoLoading = true;
+                                  });
+
+                                  try {
+                                    final authService =
+                                        Provider.of<AuthService>(context,
+                                            listen: false);
+
+                                    authService.enterDemoMode();
+
+                                    // Router should handle redirect, but we can also explicit go
+                                    if (context.mounted) {
+                                      // context.go('/home'); // Router listener handles this
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              'Error entering demo mode: $e'),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
+                                  } finally {
+                                    if (mounted) {
+                                      setState(() {
+                                        _isDemoLoading = false;
+                                      });
+                                    }
+                                  }
+                                },
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          child: _isDemoLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
+                                  ),
+                                )
+                              : Column(
+                                  children: [
+                                    Text(
+                                      AppLocalizations.of(context)!
+                                          .login_button_demo,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      AppLocalizations.of(context)!
+                                          .login_demo_tagline,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        color:
+                                            Colors.white.withValues(alpha: 0.7),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 24),
                     // Footer
                     Padding(
@@ -427,6 +516,9 @@ class _LoginScreenState extends State<LoginScreen>
                                   .login_footer_termsOfService,
                               style: const TextStyle(
                                   decoration: TextDecoration.underline),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () => UrlHelper.launchWebsiteUrl(
+                                    context, '/terms'),
                             ),
                             TextSpan(
                                 text: AppLocalizations.of(context)!
@@ -436,6 +528,9 @@ class _LoginScreenState extends State<LoginScreen>
                                   .login_footer_privacyPolicy,
                               style: const TextStyle(
                                   decoration: TextDecoration.underline),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () => UrlHelper.launchWebsiteUrl(
+                                    context, '/privacy'),
                             ),
                           ],
                         ),

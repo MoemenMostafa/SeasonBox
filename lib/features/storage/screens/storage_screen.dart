@@ -49,9 +49,9 @@ class _StorageScreenState extends State<StorageScreen> {
     try {
       final authService = context.read<AuthService>();
       final familyId = await authService.getCurrentUserFamilyId();
-      final userId = authService.currentUser?.uid;
+      final currentUid = authService.currentUid;
 
-      if (familyId == null || userId == null) {
+      if (familyId == null || currentUid == null) {
         throw Exception('User not authenticated');
       }
 
@@ -64,7 +64,7 @@ class _StorageScreenState extends State<StorageScreen> {
         ]).timeout(const Duration(seconds: 5));
 
         setState(() {
-          _currentUserId = userId;
+          _currentUserId = currentUid;
           _familyId = familyId;
           _locations = results[0] as List<StorageLocation>;
           _items = results[1] as List<Item>;
@@ -169,9 +169,17 @@ class _StorageScreenState extends State<StorageScreen> {
       )
           ? SeasonBoxAddButton(
               heroTag: 'add_storage_fab',
-              onPressed: () => context
-                  .push('/add-storage-location')
-                  .then((_) => _loadLocations()),
+              onPressed: () {
+                if (context.read<AuthService>().isDemoMode) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Not available in Demo Mode')),
+                  );
+                  return;
+                }
+                context
+                    .push('/add-storage-location')
+                    .then((_) => _loadLocations());
+              },
             )
           : null,
     );
@@ -548,6 +556,12 @@ class _StorageScreenState extends State<StorageScreen> {
           _members,
         )
             ? () {
+                if (context.read<AuthService>().isDemoMode) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Not available in Demo Mode')),
+                  );
+                  return;
+                }
                 context
                     .push('/add-storage-location', extra: location)
                     .then((_) => _loadLocations());
@@ -598,6 +612,13 @@ class _StorageScreenState extends State<StorageScreen> {
                     icon: Icon(Icons.add_circle_outline,
                         size: 20, color: theme.colorScheme.primary),
                     onPressed: () {
+                      if (context.read<AuthService>().isDemoMode) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Not available in Demo Mode')),
+                        );
+                        return;
+                      }
                       context
                           .push('/add-storage-location', extra: location.id)
                           .then((_) => _loadLocations());
@@ -696,6 +717,13 @@ class _StorageScreenState extends State<StorageScreen> {
         InkWell(
           onTap: canManage
               ? () {
+                  if (context.read<AuthService>().isDemoMode) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('Not available in Demo Mode')),
+                    );
+                    return;
+                  }
                   context
                       .push('/add-storage-location', extra: child)
                       .then((_) => _loadLocations());
@@ -754,6 +782,13 @@ class _StorageScreenState extends State<StorageScreen> {
                         color:
                             theme.colorScheme.primary.withValues(alpha: 0.8)),
                     onPressed: () {
+                      if (context.read<AuthService>().isDemoMode) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Not available in Demo Mode')),
+                        );
+                        return;
+                      }
                       context
                           .push('/add-storage-location', extra: child.id)
                           .then((_) => _loadLocations());

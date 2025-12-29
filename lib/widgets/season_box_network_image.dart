@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:seasonbox/data/services/image_cache_manager.dart';
 
 class SeasonBoxNetworkImage extends StatelessWidget {
   final String imageUrl;
@@ -24,30 +26,37 @@ class SeasonBoxNetworkImage extends StatelessWidget {
       return _buildErrorWidget();
     }
 
-    return Image.network(
-      imageUrl,
+    if (imageUrl.startsWith('assets/')) {
+      return Image.asset(
+        imageUrl,
+        height: height,
+        width: width,
+        fit: fit,
+        errorBuilder: (context, error, stackTrace) {
+          return errorWidget ?? _buildErrorWidget();
+        },
+      );
+    }
+
+    return CachedNetworkImage(
+      imageUrl: imageUrl,
       height: height,
       width: width,
       fit: fit,
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return placeholder ??
-            Container(
-              height: height,
-              width: width,
-              color: Colors.grey.shade100,
-              child: Center(
-                child: CircularProgressIndicator(
-                  value: loadingProgress.expectedTotalBytes != null
-                      ? loadingProgress.cumulativeBytesLoaded /
-                          loadingProgress.expectedTotalBytes!
-                      : null,
-                  strokeWidth: 2,
-                ),
+      cacheManager: ImageCacheManager.instance,
+      placeholder: (context, url) =>
+          placeholder ??
+          Container(
+            height: height,
+            width: width,
+            color: Colors.grey.shade100,
+            child: const Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
               ),
-            );
-      },
-      errorBuilder: (context, error, stackTrace) {
+            ),
+          ),
+      errorWidget: (context, url, error) {
         // Log error here if needed
         return errorWidget ?? _buildErrorWidget();
       },

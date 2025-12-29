@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:posthog_flutter/posthog_flutter.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
+import 'package:seasonbox/features/auth/data/auth_service.dart';
 import 'package:seasonbox/features/auth/presentation/screens/login_screen.dart';
 import 'package:seasonbox/features/auth/presentation/screens/email_login_screen.dart';
 import 'package:seasonbox/features/auth/presentation/screens/register_screen.dart';
@@ -22,10 +23,36 @@ import 'package:seasonbox/features/easter_egg/presentation/screens/easter_egg_sc
 import 'package:seasonbox/features/subscription/screens/subscription_screen.dart';
 
 class AppRouter {
-  static final GoRouter router = GoRouter(
-    initialLocation:
-        FirebaseAuth.instance.currentUser != null ? '/home' : '/login',
+  final AuthService authService;
+
+  AppRouter(this.authService);
+
+  late final GoRouter router = GoRouter(
+    initialLocation: '/login', // Default, redirect will handle the rest
+    refreshListenable: authService,
     observers: [PosthogObserver()],
+    redirect: (context, state) {
+      final isLoggedIn = authService.currentUser != null;
+      final isDemo = authService.isDemoMode;
+      final isAuthenticated = isLoggedIn || isDemo;
+
+      final isLoginRoute = state.uri.path == '/login' ||
+          state.uri.path == '/email-login' ||
+          state.uri.path == '/register';
+
+      if (!isAuthenticated) {
+        // If not authenticated, always redirect to login (unless already there)
+        return isLoginRoute ? null : '/login';
+      }
+
+      if (isAuthenticated && isLoginRoute) {
+        // If authenticated (or demo) and on a login route, redirect to home
+        return '/home';
+      }
+
+      // Allow access to other routes
+      return null;
+    },
     routes: [
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(

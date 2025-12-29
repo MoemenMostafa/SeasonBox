@@ -13,6 +13,8 @@
   "login_button_email": "Iniciar sesión con tu correo",
   "login_button_google": "Continuar con Google",
   "login_button_biometric": "Iniciar sesión con biometría",
+  "login_button_demo": "Probar modo demo",
+  "login_demo_tagline": "Explora la app con datos genéricos",
   "login_footer_terms": "Al continuar, aceptas nuestros ",
   "login_footer_termsOfService": "Términos de Servicio",
   "login_footer_and": " y ",

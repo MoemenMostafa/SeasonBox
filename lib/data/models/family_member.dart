@@ -20,6 +20,8 @@ class FamilyMember {
   final DateTime? lastInviteSent;
   final String role; // 'admin', 'member', 'child'
   final String? inviterName;
+  final String? photoUrl;
+  final DateTime? joinedAt;
 
   FamilyMember({
     required this.id,
@@ -38,6 +40,8 @@ class FamilyMember {
     this.lastInviteSent,
     this.role = 'member',
     this.inviterName,
+    this.photoUrl,
+    this.joinedAt,
   });
 
   Map<String, dynamic> toMap() {
@@ -58,6 +62,8 @@ class FamilyMember {
           lastInviteSent != null ? Timestamp.fromDate(lastInviteSent!) : null,
       'role': role,
       'inviterName': inviterName,
+      'photoUrl': photoUrl,
+      'joinedAt': joinedAt != null ? Timestamp.fromDate(joinedAt!) : null,
     };
   }
 
@@ -84,6 +90,10 @@ class FamilyMember {
           : null,
       role: map['role'] ?? 'member',
       inviterName: map['inviterName'],
+      photoUrl: map['photoUrl'],
+      joinedAt: map['joinedAt'] != null
+          ? (map['joinedAt'] as Timestamp).toDate()
+          : null,
     );
   }
 }

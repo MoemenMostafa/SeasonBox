@@ -15,7 +15,6 @@ class UserService {
   Future<void> createUserAndLinkFamily(User firebaseUser,
       {String? familyId, String? inviteCode}) async {
     // Optimization: Check if user already exists and is linked
-    // If inviteCode is null, we can skip the Cloud Function if the user is already linked.
     if (inviteCode == null) {
       try {
         final userDoc = await _firestoreService.getDocument(
@@ -30,14 +29,11 @@ class UserService {
           }
         }
       } catch (e) {
-        // Log error but continue to ensure user is created if there's an issue with the check
         PostHogService.log('Error checking user existence: $e',
             level: LogLevel.error);
       }
     }
 
-    // Call Cloud Function instead of client-side Firestore operations
-    // This bypasses permission issues by using admin SDK
     final functions = FirebaseFunctions.instance;
 
     try {
@@ -61,12 +57,19 @@ class UserService {
 
   /// Returns a stream of the user document for the given [uid].
   Stream<DocumentSnapshot> getUserStream(String uid) {
+    if (uid == 'demo_user') {
+      // Return an empty stream or handling this should happen in Provider
+      return const Stream.empty();
+    }
     return _firestoreService.users.doc(uid).snapshots();
   }
 
   /// Helper to join a family for an existing user
-  /// Now calls a Cloud Function to handle updates securely.
   Future<void> joinFamily(String uid, String email, String familyCode) async {
+    if (uid == 'demo_user') {
+      PostHogService.log('Demo Mode: Join family ignored');
+      return;
+    }
     final functions = FirebaseFunctions.instance;
     try {
       await PostHogService().trackLatency('joinFamily_function', () async {
@@ -85,8 +88,11 @@ class UserService {
   }
 
   /// Helper to leave current family and revert to personal family
-  /// Now calls a Cloud Function to handle updates securely.
   Future<void> leaveFamily(String uid, String currentFamilyId) async {
+    if (uid == 'demo_user') {
+      PostHogService.log('Demo Mode: Leave family ignored');
+      return;
+    }
     final functions = FirebaseFunctions.instance;
     try {
       await PostHogService().trackLatency('leaveFamily_function', () async {
@@ -104,7 +110,6 @@ class UserService {
   }
 
   /// Updates the user's profile information in Firestore.
-  /// Now calls a Cloud Function to handle updates securely.
   Future<void> updateUserProfile({
     required String uid,
     String? displayName,
@@ -114,6 +119,10 @@ class UserService {
     String? role,
     Map<String, dynamic>? preferences,
   }) async {
+    if (uid == 'demo_user') {
+      PostHogService.log('Demo Mode: Update profile ignored');
+      return;
+    }
     final functions = FirebaseFunctions.instance;
     try {
       await PostHogService().trackLatency('updateUserProfile_function',

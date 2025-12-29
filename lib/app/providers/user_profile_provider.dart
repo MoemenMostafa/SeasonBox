@@ -21,36 +21,67 @@ class UserProfileProvider with ChangeNotifier {
   }
 
   void _init() {
-    // Handle already logged in state
-    final currentUser = _authService.currentUser;
-    if (currentUser != null) {
-      _startListening(currentUser.uid);
-      // Identify user in PostHog to ensure session continuity
-      PostHogService().identify(
-        userId: currentUser.uid,
-        userProperties: {
-          if (currentUser.email != null) 'email': currentUser.email!,
-          'sign_in_method': 'auto_login',
-        },
-      );
-    }
+    // Listen to AuthService changes (includes Demo Mode toggle)
+    _authService.addListener(_handleAuthChange);
 
-    // Listen to auth state changes for future transitions
-    _authService.authStateChanges.listen((user) {
+    // Initial check
+    _handleAuthChange();
+  }
+
+  void _handleAuthChange() {
+    final currentUid = _authService.currentUid;
+
+    if (currentUid == 'demo_user') {
+      _userSubscription?.cancel();
+      _userData = {
+        'uid': 'demo_user',
+        'displayName': 'David Miller',
+        'email': 'david.miller@example.com',
+        'photoURL': 'assets/images/demo/dad.png',
+        'familyId': 'demo_family',
+        'familyName': 'The Millers',
+        'role': 'Parent',
+        'preferences': {
+          'measurementSystem': 'metric',
+          'statusTrackingEnabled': true,
+          'quickAddItemEnabled': true,
+        }
+      };
+      notifyListeners();
+    } else if (currentUid != null) {
+      // Only start listening if uid changed or we weren't listening
+      // But currentUid might be same if user didn't change.
+      // Ideally we check if we are already listening to this uid.
+      // For simplicity, we can just restart listener or checking if it changed.
+      // However, since we don't store current listened uid, let's just restart for now.
+      // Optimization: store _currentListenedUid.
+      _startListening(currentUid);
+
+      final user = _authService.currentUser;
       if (user != null) {
-        _startListening(user.uid);
-      } else {
-        _userSubscription?.cancel();
-        _userData = null;
-        notifyListeners();
+        PostHogService().identify(
+          userId: user.uid,
+          userProperties: {
+            if (user.email != null) 'email': user.email!,
+            'sign_in_method': 'auto_login',
+          },
+        );
       }
-    });
+    } else {
+      _userSubscription?.cancel();
+      _userData = null;
+      notifyListeners();
+    }
   }
 
   void _startListening(String uid) {
     _userSubscription?.cancel();
     _userSubscription = _userService.getUserStream(uid).listen((snapshot) {
-      _userData = snapshot.data() as Map<String, dynamic>?;
+      if (snapshot.exists) {
+        _userData = snapshot.data() as Map<String, dynamic>?;
+      } else {
+        _userData = null;
+      }
       notifyListeners();
     });
   }
@@ -59,7 +90,7 @@ class UserProfileProvider with ChangeNotifier {
 
   AppUser? get appUser {
     if (_userData == null) return null;
-    return AppUser.fromMap(_userData!, _authService.currentUser?.uid ?? '');
+    return AppUser.fromMap(_userData!, _authService.currentUid ?? '');
   }
 
   bool get isPremium {

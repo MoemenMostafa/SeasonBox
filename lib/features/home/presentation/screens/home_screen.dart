@@ -42,12 +42,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadData() async {
     try {
       final authService = context.read<AuthService>();
-      final currentUser = authService.currentUser;
+      final currentUid = authService.currentUid;
       final familyId = await authService.getCurrentUserFamilyId();
 
       if (!mounted) return;
 
-      if (familyId == null || currentUser == null) {
+      if (familyId == null || currentUid == null) {
         throw Exception('User not authenticated');
       }
 
@@ -56,8 +56,16 @@ class _HomeScreenState extends State<HomeScreen> {
       final memberRepo = context.read<FamilyMemberRepository>();
       final itemRepo = context.read<ItemRepository>();
 
-      final userDoc = await userService.getUserStream(currentUser.uid).first;
-      final userData = userDoc.data() as Map<String, dynamic>?;
+      Map<String, dynamic>? userData;
+      if (authService.isDemoMode) {
+        userData = {
+          'familyName': 'Demo',
+          'photoURL': null,
+        };
+      } else {
+        final userDoc = await userService.getUserStream(currentUid).first;
+        userData = userDoc.data() as Map<String, dynamic>?;
+      }
 
       final members = await memberRepo
           .getFamilyMembers(familyId)
@@ -118,7 +126,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     context.push('/profile');
                   },
                   child: CircleAvatar(
-                    backgroundImage: NetworkImage(_userPhotoURL!),
+                    backgroundImage: _userPhotoURL!.startsWith('assets/')
+                        ? AssetImage(_userPhotoURL!) as ImageProvider
+                        : NetworkImage(_userPhotoURL!),
                   ),
                 ),
               )
@@ -461,7 +471,15 @@ class _HomeScreenState extends State<HomeScreen> {
             label: AppLocalizations.of(context)!.home_action_addItem,
             color: Colors.purple.shade50,
             iconColor: Colors.purple,
-            onTap: () => context.push('/add-item').then((_) => _loadData()),
+            onTap: () {
+              if (context.read<AuthService>().isDemoMode) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Not available in Demo Mode')),
+                );
+                return;
+              }
+              context.push('/add-item').then((_) => _loadData());
+            },
           ),
         ),
         const SizedBox(width: 16),
@@ -472,7 +490,15 @@ class _HomeScreenState extends State<HomeScreen> {
             label: AppLocalizations.of(context)!.home_action_scanQR,
             color: Colors.teal.shade50,
             iconColor: Colors.teal,
-            onTap: () => context.push('/qr-scanner'),
+            onTap: () {
+              if (context.read<AuthService>().isDemoMode) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Not available in Demo Mode')),
+                );
+                return;
+              }
+              context.push('/qr-scanner');
+            },
           ),
         ),
       ],
@@ -543,13 +569,25 @@ class _HomeScreenState extends State<HomeScreen> {
           CircleAvatar(
             radius: 24,
             backgroundColor: Colors.purple.shade100,
-            child: Text(
-              name[0].toUpperCase(),
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
-            ),
+            backgroundImage: _members
+                    .any((m) => m.name == name && m.photoUrl != null)
+                ? (() {
+                    final url =
+                        _members.firstWhere((m) => m.name == name).photoUrl!;
+                    return url.startsWith('assets/')
+                        ? AssetImage(url) as ImageProvider
+                        : NetworkImage(url);
+                  })()
+                : null,
+            child: !_members.any((m) => m.name == name && m.photoUrl != null)
+                ? Text(
+                    name[0].toUpperCase(),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                  )
+                : null,
           ),
           const SizedBox(width: 12),
           Expanded(

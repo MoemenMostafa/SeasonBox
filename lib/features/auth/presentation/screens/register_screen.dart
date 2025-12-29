@@ -7,6 +7,8 @@ import 'package:seasonbox/features/auth/data/auth_service.dart';
 import 'package:seasonbox/data/services/user_service.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
 import 'package:seasonbox/features/auth/presentation/widgets/animated_background_icon.dart';
+import 'package:seasonbox/core/utils/url_helper.dart';
+import 'package:flutter/gestures.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -359,6 +361,50 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             child: Text(
                               AppLocalizations.of(context)!.register_link_login,
                               style: const TextStyle(color: Colors.white70),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        // Footer
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 24.0),
+                          child: Center(
+                            child: RichText(
+                              textAlign: TextAlign.center,
+                              text: TextSpan(
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  color: Colors.white70,
+                                ),
+                                children: [
+                                  TextSpan(
+                                      text: AppLocalizations.of(context)!
+                                          .login_footer_terms),
+                                  TextSpan(
+                                    text: AppLocalizations.of(context)!
+                                        .login_footer_termsOfService,
+                                    style: const TextStyle(
+                                        decoration: TextDecoration.underline),
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = () =>
+                                          UrlHelper.launchWebsiteUrl(
+                                              context, '/terms'),
+                                  ),
+                                  TextSpan(
+                                      text: AppLocalizations.of(context)!
+                                          .login_footer_and),
+                                  TextSpan(
+                                    text: AppLocalizations.of(context)!
+                                        .login_footer_privacyPolicy,
+                                    style: const TextStyle(
+                                        decoration: TextDecoration.underline),
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = () =>
+                                          UrlHelper.launchWebsiteUrl(
+                                              context, '/privacy'),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),

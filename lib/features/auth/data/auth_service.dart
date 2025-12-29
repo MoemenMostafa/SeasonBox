@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:seasonbox/data/services/posthog_service.dart';
 
-class AuthService {
+class AuthService extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     clientId: kIsWeb
@@ -14,15 +14,47 @@ class AuthService {
   );
 
   String? _cachedFamilyId;
+  bool _isDemoMode = false;
+  bool get isDemoMode => _isDemoMode;
+
+  AuthService() {
+    _auth.authStateChanges().listen((user) {
+      notifyListeners();
+    });
+  }
 
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
   User? get currentUser => _auth.currentUser;
 
+  /// Returns 'demo_user' in demo mode, otherwise the Firebase User ID.
+  String? get currentUid {
+    if (_isDemoMode) return 'demo_user';
+    return currentUser?.uid;
+  }
+
+  /// Enters Demo Mode locally without Firebase Auth.
+  void enterDemoMode() {
+    _isDemoMode = true;
+    _cachedFamilyId = 'demo_family';
+    notifyListeners();
+    PostHogService.log('Entered Demo Mode', level: LogLevel.info);
+  }
+
+  /// Exits Demo Mode locally.
+  void exitDemoMode() {
+    _isDemoMode = false;
+    _cachedFamilyId = null;
+    notifyListeners();
+    PostHogService.log('Exited Demo Mode', level: LogLevel.info);
+  }
+
   /// Gets the family ID for the current user from Firestore.
   /// Returns null if user is not authenticated.
   /// Caches the result to avoid repeated Firestore calls.
   Future<String?> getCurrentUserFamilyId() async {
+    if (_isDemoMode) return 'demo_family';
+
     final user = currentUser;
     if (user == null) return null;
 
@@ -187,6 +219,10 @@ class AuthService {
   Future<void> signOut() async {
     await PostHogService().trackLatency('sign_out', () async {
       try {
+        if (_isDemoMode) {
+          exitDemoMode();
+          return;
+        }
         _cachedFamilyId = null; // Clear cache on sign out
         await PostHogService.log('Signing out', level: LogLevel.info);
         try {
@@ -203,5 +239,18 @@ class AuthService {
         PostHogService().logError('sign_out_failed', e);
       }
     });
+  }
+
+  // NOTE: signInAnonymously is effectively replaced by enterDemoMode for the "Demo" use case,
+  // but we can keep it if it's used for true anonymous auth elsewhere.
+  // For this task, we will remove the isDemo param support from it or just ignore it.
+  Future<User?> signInAnonymously() async {
+    try {
+      final userCredential = await _auth.signInAnonymously();
+      return userCredential.user;
+    } catch (e) {
+      PostHogService().logError('anonymous_sign_in_failed', e);
+      rethrow;
+    }
   }
 }

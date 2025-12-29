@@ -71,7 +71,9 @@ class _ImageGalleryViewerState extends State<ImageGalleryViewer> {
             scrollPhysics: const BouncingScrollPhysics(),
             builder: (BuildContext context, int index) {
               return PhotoViewGalleryPageOptions(
-                imageProvider: NetworkImage(widget.imageUrls[index]),
+                imageProvider: widget.imageUrls[index].startsWith('assets/')
+                    ? AssetImage(widget.imageUrls[index]) as ImageProvider
+                    : NetworkImage(widget.imageUrls[index]),
                 initialScale: PhotoViewComputedScale.contained,
                 minScale: PhotoViewComputedScale.contained,
                 maxScale: PhotoViewComputedScale.covered * 3,
