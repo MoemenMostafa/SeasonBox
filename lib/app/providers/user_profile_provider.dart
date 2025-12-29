@@ -5,6 +5,7 @@ import 'package:seasonbox/data/services/user_service.dart';
 import 'package:seasonbox/features/auth/data/auth_service.dart';
 import 'package:seasonbox/data/services/subscription_service.dart';
 import 'package:seasonbox/data/models/app_user.dart';
+import 'package:seasonbox/data/services/posthog_service.dart';
 
 class UserProfileProvider with ChangeNotifier {
   final UserService _userService;
@@ -24,6 +25,14 @@ class UserProfileProvider with ChangeNotifier {
     final currentUser = _authService.currentUser;
     if (currentUser != null) {
       _startListening(currentUser.uid);
+      // Identify user in PostHog to ensure session continuity
+      PostHogService().identify(
+        userId: currentUser.uid,
+        userProperties: {
+          if (currentUser.email != null) 'email': currentUser.email!,
+          'sign_in_method': 'auto_login',
+        },
+      );
     }
 
     // Listen to auth state changes for future transitions

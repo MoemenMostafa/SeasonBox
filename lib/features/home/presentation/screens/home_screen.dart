@@ -265,7 +265,10 @@ class _HomeScreenState extends State<HomeScreen> {
             backgroundColor: Theme.of(context)
                 .colorScheme
                 .primaryContainer
-                .withValues(alpha: 0.3),
+                .withValues(
+                    alpha: Theme.of(context).brightness == Brightness.light
+                        ? 1.0
+                        : 0.3),
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
@@ -361,7 +364,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Text(
                             limitLabel,
                             style: TextStyle(
-                              fontSize: 22,
+                              fontSize: 18,
                               color: Theme.of(context).brightness ==
                                       Brightness.dark
                                   ? Colors.grey.shade400

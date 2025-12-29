@@ -60,6 +60,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
   List<Map<String, String>> _existingPhotos = []; // For edit mode
   final List<String> _tags = [];
   final TextEditingController _tagController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
   List<String> _allExistingTags = [];
 
   List<FamilyMember> _members = [];
@@ -71,6 +72,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
   bool _quickAddTriggered = false;
   final Map<String, Map<String, Uint8List>> _processedImages = {};
   final Map<String, bool> _processingStatus = {};
+  Map<String, int> _locationDepths = {};
 
   final List<String> _categories = [
     'Clothes',
@@ -172,8 +174,10 @@ class _AddItemScreenState extends State<AddItemScreen> {
     _titleController.addListener(() => _isDirty = true);
     _descriptionController.addListener(() => _isDirty = true);
     _brandController.addListener(() => _isDirty = true);
+    _brandController.addListener(() => _isDirty = true);
     _tagController.addListener(() => _isDirty = true);
     _customSizeController.addListener(() => _isDirty = true);
+    // Location controller doesn't need dirty listener as it's read-only
   }
 
   // ... (Lifecycle methods remain unchanged)
@@ -278,7 +282,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
       if (mounted) {
         setState(() {
           _members = members;
-          _locations = locations;
+          _organizeLocations(locations);
           final tagCounts = <String, int>{};
           for (final item in items) {
             for (final tag in item.tags) {
@@ -295,6 +299,15 @@ class _AddItemScreenState extends State<AddItemScreen> {
             _assignedChildId = userId;
           }
         });
+
+        if (_storageLocationId != null && _locations.isNotEmpty) {
+          final loc = _locations.firstWhere((l) => l.id == _storageLocationId,
+              orElse: () => StorageLocation(
+                  id: '', familyId: '', name: '', type: '', description: ''));
+          if (loc.id.isNotEmpty) {
+            _locationController.text = loc.name;
+          }
+        }
 
         if (widget.item != null) {
           final isMetric = context.read<UserProfileProvider>().isMetric;
@@ -319,6 +332,169 @@ class _AddItemScreenState extends State<AddItemScreen> {
             .showSnackBar(SnackBar(content: Text(message)));
       }
     }
+  }
+
+  void _organizeLocations(List<StorageLocation> allLocations) {
+    if (allLocations.isEmpty) {
+      _locations = [];
+      _locationDepths.clear();
+      return;
+    }
+
+    final organized = <StorageLocation>[];
+    _locationDepths.clear();
+
+    // Group by parentId
+    final childrenMap = <String?, List<StorageLocation>>{};
+    for (var loc in allLocations) {
+      final pid =
+          loc.parentId == null || loc.parentId!.isEmpty ? null : loc.parentId;
+      childrenMap.putIfAbsent(pid, () => []).add(loc);
+    }
+
+    // Sort each group alphabetically
+    for (var key in childrenMap.keys) {
+      childrenMap[key]!.sort((a, b) => a.name.compareTo(b.name));
+    }
+
+    // Recursive traversal
+    void traverse(String? parentId, int depth) {
+      final children = childrenMap[parentId];
+      if (children != null) {
+        for (var child in children) {
+          organized.add(child);
+          _locationDepths[child.id] = depth;
+          traverse(child.id, depth + 1);
+        }
+      }
+    }
+
+    traverse(null, 0);
+    _locations = organized;
+  }
+
+  void _showLocationPicker() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (BuildContext context) {
+        String searchQuery = '';
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            final filteredLocations = searchQuery.isEmpty
+                ? _locations
+                : _locations
+                    .where((l) => l.name
+                        .toLowerCase()
+                        .contains(searchQuery.toLowerCase()))
+                    .toList();
+
+            return DraggableScrollableSheet(
+              initialChildSize: 0.7,
+              minChildSize: 0.5,
+              maxChildSize: 0.95,
+              expand: false,
+              builder: (context, scrollController) {
+                return Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: AppLocalizations.of(context)!
+                              .common_search, // Assuming this key exists, or use 'Search'
+                          prefixIcon: const Icon(Icons.search),
+                          border: const OutlineInputBorder(),
+                          contentPadding:
+                              const EdgeInsets.symmetric(horizontal: 16),
+                        ),
+                        onChanged: (value) {
+                          setModalState(() {
+                            searchQuery = value;
+                          });
+                        },
+                      ),
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                        controller: scrollController,
+                        itemCount: filteredLocations.length,
+                        itemBuilder: (context, index) {
+                          final location = filteredLocations[index];
+                          // Only use indentation if NOT searching
+                          final depth = searchQuery.isEmpty
+                              ? (_locationDepths[location.id] ?? 0)
+                              : 0;
+                          final indent = depth * 16.0;
+
+                          return InkWell(
+                            onTap: () {
+                              setState(() {
+                                _storageLocationId = location.id;
+                                _locationController.text = location.name;
+                                _isDirty = true;
+                              });
+                              Navigator.pop(context);
+                            },
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                left: 16.0 + indent,
+                                right: 16.0,
+                                top: 12.0,
+                                bottom: 12.0,
+                              ),
+                              child: Row(
+                                children: [
+                                  if (depth > 0)
+                                    Padding(
+                                      padding:
+                                          const EdgeInsets.only(right: 8.0),
+                                      child: Icon(
+                                        Icons.subdirectory_arrow_right,
+                                        size: 16,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant,
+                                      ),
+                                    ),
+                                  Expanded(
+                                    child: Text(
+                                      location.name,
+                                      style: TextStyle(
+                                        fontWeight:
+                                            _storageLocationId == location.id
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                        color: _storageLocationId == location.id
+                                            ? Theme.of(context)
+                                                .colorScheme
+                                                .primary
+                                            : null,
+                                      ),
+                                    ),
+                                  ),
+                                  if (_storageLocationId == location.id)
+                                    Icon(
+                                      Icons.check,
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                    ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        );
+      },
+    );
   }
 
   void _addTag(String tag) {
@@ -357,6 +533,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
     _titleController.dispose();
     _descriptionController.dispose();
     _brandController.dispose();
+    _locationController.dispose();
     _customSizeController.dispose();
     super.dispose();
   }
@@ -476,6 +653,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
       if (location.id.isNotEmpty) {
         setState(() {
           _storageLocationId = location.id;
+          _locationController.text = location.name;
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -1281,7 +1459,13 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                             Radius.circular(4)))
                                     : DropdownButtonFormField<String>(
                                         key: ValueKey(_assignedChildId),
-                                        initialValue: _assignedChildId,
+                                        // Ensure the initial value exists in the items list to prevent crashes
+                                        initialValue: (_assignedChildId ==
+                                                    null ||
+                                                _members.any((m) =>
+                                                    m.id == _assignedChildId))
+                                            ? _assignedChildId
+                                            : null,
                                         decoration: const InputDecoration(
                                           hintText: 'Select member',
                                           border: OutlineInputBorder(),
@@ -1328,28 +1512,22 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                         height: 48,
                                         borderRadius: BorderRadius.all(
                                             Radius.circular(4)))
-                                    : DropdownButtonFormField<String>(
-                                        initialValue: _locations.isEmpty
-                                            ? null
-                                            : _storageLocationId,
+                                    : TextFormField(
+                                        controller: _locationController,
+                                        readOnly: true,
                                         decoration: const InputDecoration(
                                           hintText: 'Select location',
                                           border: OutlineInputBorder(),
                                           contentPadding: EdgeInsets.symmetric(
                                               horizontal: 12, vertical: 12),
+                                          suffixIcon:
+                                              Icon(Icons.arrow_drop_down),
                                         ),
-                                        items: _locations.isEmpty
-                                            ? null
-                                            : _locations
-                                                .map((l) => DropdownMenuItem(
-                                                    value: l.id,
-                                                    child: Text(l.name)))
-                                                .toList(),
-                                        onChanged: (v) => setState(
-                                            () => _storageLocationId = v),
-                                        validator: (v) => v == null
-                                            ? 'Please select a location'
-                                            : null,
+                                        onTap: _showLocationPicker,
+                                        validator: (v) =>
+                                            _storageLocationId == null
+                                                ? 'Please select a location'
+                                                : null,
                                       ),
                                 const SizedBox(height: 16),
                                 SizedBox(
