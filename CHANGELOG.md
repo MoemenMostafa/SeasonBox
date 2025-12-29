@@ -1,5 +1,12 @@
 # Changelog
  
+## 1.6.4+35
+- **UX & Search**: Implemented a searchable location picker for easier item assignment.
+- **Demo Mode**: Restricted data modifications in Demo Mode and added user feedback for a stable preview experience.
+- **UI Cleanup**: Removed search bar and non-functional buttons from production UI to streamline the interface.
+- **Privacy**: Removed phone number field from user profiles across the app and backend.
+- **Performance**: Compressed application icon and optimized web initialization to resolve "Zone mismatch" issues.
+
 ## 1.6.3+34
 - **UI & UX Refinement**:
     - **Feature Reordering**: Optimized the display order of free and premium benefits on the website and app, placing the most important features (Items and Photos) first.

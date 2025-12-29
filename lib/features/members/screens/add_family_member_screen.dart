@@ -399,14 +399,7 @@ class _AddFamilyMemberScreenState extends State<AddFamilyMemberScreen> {
           title: widget.member != null
               ? AppLocalizations.of(context)!.addMember_title_edit
               : AppLocalizations.of(context)!.addMember_title_add,
-          actions: widget.member != null
-              ? [
-                  IconButton(
-                    icon: const Icon(Icons.help_outline),
-                    onPressed: () {},
-                  ),
-                ]
-              : null,
+          actions: null,
         ),
         body: _isLoading
             ? const Center(

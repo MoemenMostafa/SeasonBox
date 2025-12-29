@@ -1189,9 +1189,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editProfile_hint_emailCannotChanged => 'Email cannot be changed';
 
   @override
-  String get editProfile_field_phone => 'Phone Number';
-
-  @override
   String get editProfile_field_role => 'Role';
 
   @override

@@ -13,10 +13,10 @@ class DemoDataService {
   }
 
   void _initializeData() {
-    final familyId = 'demo_family';
+    const familyId = 'demo_family';
 
     // 1. Create Storage Locations
-    final mainStorageId = 'main_storage';
+    const mainStorageId = 'main_storage';
     _locations.add(StorageLocation(
       id: mainStorageId,
       familyId: familyId,
@@ -25,7 +25,7 @@ class DemoDataService {
       description: 'Primary storage area for the family',
     ));
 
-    final closetId = 'closet_room';
+    const closetId = 'closet_room';
     _locations.add(StorageLocation(
       id: closetId,
       familyId: familyId,

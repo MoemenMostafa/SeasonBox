@@ -113,7 +113,6 @@ class UserService {
   Future<void> updateUserProfile({
     required String uid,
     String? displayName,
-    String? phoneNumber,
     String? photoURL,
     String? familyName,
     String? role,
@@ -130,7 +129,6 @@ class UserService {
         return await functions.httpsCallable('updateUserProfile').call({
           'uid': uid,
           if (displayName != null) 'displayName': displayName,
-          if (phoneNumber != null) 'phoneNumber': phoneNumber,
           if (photoURL != null) 'photoURL': photoURL,
           if (familyName != null) 'familyName': familyName,
           if (role != null) 'role': role,

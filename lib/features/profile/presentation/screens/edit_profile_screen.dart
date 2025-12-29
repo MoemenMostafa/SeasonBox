@@ -23,7 +23,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   // Form Controllers
   late TextEditingController _nameController;
   late TextEditingController _emailController;
-  late TextEditingController _phoneController;
   Uint8List? _imageBytes;
   XFile? _pickedXFile;
   bool _isLoading = false;
@@ -44,8 +43,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         TextEditingController(text: widget.userData?['displayName'] ?? '');
     _emailController =
         TextEditingController(text: widget.userData?['email'] ?? '');
-    _phoneController =
-        TextEditingController(text: widget.userData?['phoneNumber'] ?? '');
 
     // Initialize preferences if they exist in userData
     if (widget.userData?['preferences'] != null) {
@@ -58,7 +55,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
-    _phoneController.dispose();
     super.dispose();
   }
 
@@ -128,7 +124,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         uid: user.uid,
         displayName: displayName,
         familyName: familyName,
-        phoneNumber: _phoneController.text.trim(),
         photoURL: photoURL,
         // Role is not editable here
         preferences: newPreferences,
@@ -312,12 +307,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             readOnly: true,
             helperText: AppLocalizations.of(context)!
                 .editProfile_hint_emailCannotChanged,
-          ),
-          const SizedBox(height: 16),
-          _buildTextField(
-            label: AppLocalizations.of(context)!.editProfile_field_phone,
-            controller: _phoneController,
-            keyboardType: TextInputType.phone,
           ),
         ],
       ),

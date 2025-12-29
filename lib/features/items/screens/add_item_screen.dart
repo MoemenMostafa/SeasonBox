@@ -72,7 +72,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
   bool _quickAddTriggered = false;
   final Map<String, Map<String, Uint8List>> _processedImages = {};
   final Map<String, bool> _processingStatus = {};
-  Map<String, int> _locationDepths = {};
+  final Map<String, int> _locationDepths = {};
 
   final List<String> _categories = [
     'Clothes',
@@ -1174,8 +1174,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
                                           child: InkWell(
                                             onTap: () async {
                                               final path = image.path;
-                                              final processed =
-                                                  _processedImages[path];
                                               setState(() {
                                                 _selectedImages
                                                     .removeAt(imageIndex);

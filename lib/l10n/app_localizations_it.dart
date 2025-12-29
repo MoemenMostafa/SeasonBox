@@ -1200,10 +1200,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get editProfile_hint_emailCannotChanged =>
-      'L\'email non può essere modificata';
-
-  @override
-  String get editProfile_field_phone => 'Numero di Telefono';
+      'L\'email non può essere modificata.';
 
   @override
   String get editProfile_field_role => 'Ruolo';

@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:seasonbox/widgets/season_box_app_bar.dart';
 import 'package:seasonbox/widgets/app_card.dart';
-import 'package:seasonbox/widgets/season_box_search_field.dart';
 import 'package:seasonbox/data/models/family_member.dart';
 import 'package:seasonbox/data/models/item.dart';
 import 'package:seasonbox/data/models/storage_location.dart';
@@ -151,8 +150,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 24),
 
                         // Search
-                        _buildSearchBar(context),
-                        const SizedBox(height: 24),
+                        // _buildSearchBar(context),
+                        // const SizedBox(height: 24),
 
                         // Quick Actions
                         Text(
@@ -414,12 +413,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ],
       ),
-    );
-  }
-
-  Widget _buildSearchBar(BuildContext context) {
-    return SeasonBoxSearchField(
-      hintText: AppLocalizations.of(context)!.home_search_hint,
     );
   }
 
@@ -733,7 +726,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return AppCard(
       padding: const EdgeInsets.all(16),
-      onTap: () {}, // Make it clickable if needed, or null
+      onTap: null, // Removed non-functional callback
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

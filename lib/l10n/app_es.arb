@@ -399,7 +399,6 @@
   "editProfile_field_fullName": "Nombre Completo",
   "editProfile_field_email": "Correo Electrónico",
   "editProfile_hint_emailCannotChanged": "El correo no se puede cambiar",
-  "editProfile_field_phone": "Número de Teléfono",
   "editProfile_field_role": "Rol",
   "editProfile_section_preferences": "Preferencias",
   "editProfile_pref_emailNotifications": "Notificaciones por Correo",

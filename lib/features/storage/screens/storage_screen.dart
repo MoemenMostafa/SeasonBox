@@ -131,12 +131,7 @@ class _StorageScreenState extends State<StorageScreen> {
         title: AppLocalizations.of(context)!.storage_title,
         subtitle: AppLocalizations.of(context)!
             .storage_subtitle(_locations.length, _items.length),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.grid_view, color: Colors.white),
-          ),
-        ],
+        actions: null,
       ),
       body: _isLoading
           ? _buildLoadingSkeleton()

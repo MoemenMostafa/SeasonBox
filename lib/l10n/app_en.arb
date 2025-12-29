@@ -604,7 +604,6 @@
   "editProfile_field_fullName": "Full Name",
   "editProfile_field_email": "Email Address",
   "editProfile_hint_emailCannotChanged": "Email cannot be changed",
-  "editProfile_field_phone": "Phone Number",
   "editProfile_field_role": "Role",
   "editProfile_section_preferences": "Preferences",
   "editProfile_pref_emailNotifications": "Email Notifications",

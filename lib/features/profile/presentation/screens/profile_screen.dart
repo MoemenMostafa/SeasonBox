@@ -747,9 +747,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onChanged: (val) {
                   if (isDemo) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                         content: Text("Not available in Demo Mode"),
-                        duration: const Duration(seconds: 1),
+                        duration: Duration(seconds: 1),
                       ),
                     );
                     return;
@@ -776,9 +776,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onChanged: (val) {
                   if (isDemo) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                         content: Text("Not available in Demo Mode"),
-                        duration: const Duration(seconds: 1),
+                        duration: Duration(seconds: 1),
                       ),
                     );
                     return;
@@ -804,9 +804,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onChanged: (val) {
                   if (isDemo) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                         content: Text("Not available in Demo Mode"),
-                        duration: const Duration(seconds: 1),
+                        duration: Duration(seconds: 1),
                       ),
                     );
                     return;

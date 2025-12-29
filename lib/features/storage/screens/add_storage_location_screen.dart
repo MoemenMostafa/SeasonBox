@@ -225,14 +225,7 @@ class _AddStorageLocationScreenState extends State<AddStorageLocationScreen> {
         title: widget.location != null
             ? AppLocalizations.of(context)!.addStorage_title_edit
             : AppLocalizations.of(context)!.addStorage_title_add,
-        actions: widget.location != null
-            ? [
-                IconButton(
-                  icon: const Icon(Icons.help_outline),
-                  onPressed: () {},
-                ),
-              ]
-            : null,
+        actions: null,
       ),
       body: _isLoading
           ? const Center(

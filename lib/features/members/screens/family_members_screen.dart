@@ -422,12 +422,7 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
       appBar: SeasonBoxAppBar(
         title: AppLocalizations.of(context)!.members_title,
         subtitle: AppLocalizations.of(context)!.members_subtitle,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.more_vert, color: Colors.white),
-            onPressed: () {},
-          ),
-        ],
+        actions: const [],
       ),
       body: _isLoading
           ? _buildLoadingSkeleton(theme)
@@ -493,17 +488,6 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
                               AppLocalizations.of(context)!.members_title,
                               style: theme.textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            TextButton.icon(
-                              onPressed: () {},
-                              icon: Icon(Icons.filter_list,
-                                  size: 18, color: theme.colorScheme.primary),
-                              label: Text(
-                                AppLocalizations.of(context)!
-                                    .members_button_filter,
-                                style:
-                                    TextStyle(color: theme.colorScheme.primary),
                               ),
                             ),
                           ],

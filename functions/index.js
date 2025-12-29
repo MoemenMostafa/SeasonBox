@@ -352,7 +352,7 @@ exports.countMembers = onDocumentWritten(
  * Callable function to update user profile securely.
  */
 exports.updateUserProfile = onCall(async (request) => {
-  const { uid, displayName, phoneNumber, photoURL, familyName, role, preferences } = request.data;
+  const { uid, displayName, photoURL, familyName, role, preferences } = request.data;
 
   // Verify the caller is authenticated and matches the UID
   if (!request.auth || request.auth.uid !== uid) {
@@ -367,7 +367,6 @@ exports.updateUserProfile = onCall(async (request) => {
 
   const updateData = {};
   if (displayName !== undefined) updateData.displayName = displayName;
-  if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber;
   if (photoURL !== undefined) updateData.photoURL = photoURL;
   if (familyName !== undefined) updateData.familyName = familyName;
   if (role !== undefined) updateData.role = role;

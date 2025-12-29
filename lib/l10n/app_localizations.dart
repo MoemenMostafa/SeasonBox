@@ -2252,12 +2252,6 @@ abstract class AppLocalizations {
   /// **'Email cannot be changed'**
   String get editProfile_hint_emailCannotChanged;
 
-  /// No description provided for @editProfile_field_phone.
-  ///
-  /// In en, this message translates to:
-  /// **'Phone Number'**
-  String get editProfile_field_phone;
-
   /// No description provided for @editProfile_field_role.
   ///
   /// In en, this message translates to:

@@ -1211,9 +1211,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'El correo no se puede cambiar';
 
   @override
-  String get editProfile_field_phone => 'Número de Teléfono';
-
-  @override
   String get editProfile_field_role => 'Rol';
 
   @override

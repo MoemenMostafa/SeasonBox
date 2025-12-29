@@ -17,7 +17,9 @@ class StorageService {
         // flutter_image_compress supports web but returns Uint8List
         final result = await FlutterImageCompress.compressWithList(
           await file.readAsBytes(),
-          quality: 80,
+          quality: 70,
+          minWidth: 1024,
+          minHeight: 1024,
         );
         return Uint8List.fromList(result);
       } else {
@@ -27,7 +29,9 @@ class StorageService {
         final result = await FlutterImageCompress.compressAndGetFile(
           file.path,
           targetPath,
-          quality: 80,
+          quality: 70,
+          minWidth: 1024,
+          minHeight: 1024,
         );
 
         if (result != null) {
@@ -48,7 +52,7 @@ class StorageService {
       if (kIsWeb) {
         final result = await FlutterImageCompress.compressWithList(
           await file.readAsBytes(),
-          quality: 80,
+          quality: 70,
           minWidth: 300,
           minHeight: 300,
         );
@@ -60,7 +64,7 @@ class StorageService {
         final result = await FlutterImageCompress.compressAndGetFile(
           file.path,
           targetPath,
-          quality: 80,
+          quality: 70,
           minWidth: 300,
           minHeight: 300,
         );

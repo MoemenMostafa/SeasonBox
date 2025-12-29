@@ -62,13 +62,7 @@ class SeasonBoxAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
         ],
       ),
-      actions: actions ??
-          [
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.notifications, color: Colors.white),
-            ),
-          ],
+      actions: actions,
       centerTitle: false,
       elevation: 0,
       backgroundColor: Colors.transparent,
