@@ -1,5 +1,15 @@
 # Changelog
  
+## 1.6.5+36
+- **Storage & Maintenance**:
+    - **Automated Cleanup**: implemented daily scheduled maintenance to clean up orphaned images and conserve storage space.
+    - **Immediate Removal**: Enhanced item deletion logic to immediately remove associated images from storage.
+- **Stability & Bug Fixes**:
+    - **Navigation**: Resolved a critical `GoRouter` exception that occurred when popping the last page from the stack.
+    - **Visual Polish**: Removed the debug banner for a cleaner production look.
+- **UX Improvements**:
+    - **Limit Messages**: Standardized "Limit Reached" dialogs across the app for a consistent user experience.
+
 ## 1.6.4+35
 - **UX & Search**: Implemented a searchable location picker for easier item assignment.
 - **Demo Mode**: Restricted data modifications in Demo Mode and added user feedback for a stable preview experience.

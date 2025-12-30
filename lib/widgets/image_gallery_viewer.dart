@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
@@ -148,7 +149,7 @@ class _ImageGalleryViewerState extends State<ImageGalleryViewer> {
                     IconButton(
                       icon: const Icon(Icons.close,
                           color: Colors.white, size: 28),
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: () => context.pop(),
                       tooltip: 'Close',
                     ),
                     // Image counter

@@ -2540,6 +2540,24 @@ abstract class AppLocalizations {
   /// **'BEST VALUE'**
   String get subscription_bestValue;
 
+  /// No description provided for @subscription_cancelAnytime.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel anytime. Grandfathered items stay visible even after cancellation.'**
+  String get subscription_cancelAnytime;
+
+  /// No description provided for @addItem_items_limitReached_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Item Limit Reached'**
+  String get addItem_items_limitReached_title;
+
+  /// No description provided for @addItem_items_limitReached_message.
+  ///
+  /// In en, this message translates to:
+  /// **'You have reached the limit of {limit} items for the Free tier. Upgrade to Premium for unlimited items!'**
+  String addItem_items_limitReached_message(int limit);
+
   /// No description provided for @addItem_images_limitReached_title.
   ///
   /// In en, this message translates to:
@@ -2551,12 +2569,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The free tier is limited to {limit} image per item. Upgrade to Premium for 3 images!'**
   String addItem_images_limitReached_message(int limit);
-
-  /// No description provided for @subscription_cancelAnytime.
-  ///
-  /// In en, this message translates to:
-  /// **'Cancel anytime. Grandfathered items stay visible even after cancellation.'**
-  String get subscription_cancelAnytime;
 
   /// No description provided for @members_tooltip_editPermission.
   ///

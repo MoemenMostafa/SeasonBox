@@ -107,7 +107,7 @@ class _GrowthChartScreenState extends State<GrowthChartScreen> {
                 backgroundColor: Colors.purple,
                 foregroundColor: Colors.white,
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
               child: Text(l10n.growthChart_premium_viewPricing),
             ),

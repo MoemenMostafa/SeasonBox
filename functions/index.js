@@ -41,16 +41,19 @@ exports.sendFamilyInvitation = onDocumentWritten(
 
     if (isPending && inviteEmail && (!wasPending || emailChanged || lastInviteSentChanged)) {
       const familyId = event.params.familyId;
-      const inviterName = newData.inviterName || 'A family member';
+      const inviterName = newData.inviterName || "A family member";
       return sendInvitationEmail(inviteEmail, familyId, inviterName);
     }
 
     return null;
-  }
+  },
 );
 
 /**
  * Sends an invitation email.
+ * @param {string} email The destination email address.
+ * @param {string} familyId The ID of the family.
+ * @param {string} inviterName The name of the inviter.
  */
 async function sendInvitationEmail(email, familyId, inviterName) {
   const gmailEmail = gmailConfig.value().gmail.email;
@@ -82,13 +85,12 @@ async function sendInvitationEmail(email, familyId, inviterName) {
     await mailTransport.sendMail(mailOptions);
     console.log("Invitation email sent to:", email);
     // Optional: write back to Firestore that email was sent?
-    // return admin.firestore().collection(...).doc(...).update({ inviteStatus: 'sent' }); 
+    // return admin.firestore().collection(...).doc(...).update({ inviteStatus: 'sent' });
     // keeping it 'pending' until they actually accept is fine.
   } catch (error) {
     console.error("There was an error while sending the email:", error);
 
     return null;
-
   }
 }
 
@@ -121,7 +123,7 @@ exports.onMemberRemoved = onDocumentWritten(
     console.log(`Member ${memberId} removed from family ${familyId}. Reverting to personal family.`);
 
     const firestore = admin.firestore();
-    const userRef = firestore.collection('users').doc(memberId);
+    const userRef = firestore.collection("users").doc(memberId);
 
     // 1. Check if user currently points to this family
     const userSnap = await userRef.get();
@@ -132,24 +134,24 @@ exports.onMemberRemoved = onDocumentWritten(
       // 2. Reset familyId to their own UID
       await userRef.update({
         familyId: memberId,
-        role: 'admin' // Reset role to admin of their own family
+        role: "admin", // Reset role to admin of their own family
       });
 
       // 3. Ensure personal family exists (or just the member record in it)
       const personalFamilyMemberRef = firestore
-        .collection('families')
+        .collection("families")
         .doc(memberId)
-        .collection('members')
+        .collection("members")
         .doc(memberId);
 
       await personalFamilyMemberRef.set({
         id: memberId,
         familyId: memberId,
-        name: userData.displayName || 'Me',
-        role: 'admin',
+        name: userData.displayName || "Me",
+        role: "admin",
         birthdate: admin.firestore.Timestamp.fromDate(new Date()), // Default if missing
-        gender: 'Unisex',
-        // existing fields that might be useful? 
+        gender: "Unisex",
+        // existing fields that might be useful?
         // Probably cleaner to just create a new fresh admin record.
       }, { merge: true });
 
@@ -157,7 +159,7 @@ exports.onMemberRemoved = onDocumentWritten(
     }
 
     return null;
-  }
+  },
 );
 
 /**
@@ -171,72 +173,72 @@ exports.createUserAndJoinFamily = onCall(async (request) => {
   // Verify the caller is authenticated and matches the UID
   if (!request.auth || request.auth.uid !== uid) {
     throw new HttpsError(
-      'unauthenticated',
-      'User must be authenticated and match the provided UID'
+      "unauthenticated",
+      "User must be authenticated and match the provided UID",
     );
   }
 
   const firestore = admin.firestore();
-  let targetFamilyId = familyCode || uid;
+  const targetFamilyId = familyCode || uid;
 
   try {
     // If family code provided, verify it exists
     if (familyCode) {
-      const familyDoc = await firestore.collection('families').doc(familyCode).get();
+      const familyDoc = await firestore.collection("families").doc(familyCode).get();
       if (!familyDoc.exists) {
-        throw new HttpsError('not-found', 'Invalid Family Code');
+        throw new HttpsError("not-found", "Invalid Family Code");
       }
     }
 
     // Create user document
-    await firestore.collection('users').doc(uid).set({
+    await firestore.collection("users").doc(uid).set({
       uid,
       email,
       displayName,
       familyId: targetFamilyId,
-      role: 'member',
+      role: "member",
     }, { merge: true });
 
     if (targetFamilyId === uid) {
       // Creating personal family
-      await firestore.collection('families').doc(uid).set({
+      await firestore.collection("families").doc(uid).set({
         id: uid,
         settings: {},
       });
 
       // Add user as admin of their own family
       await firestore
-        .collection('families')
+        .collection("families")
         .doc(uid)
-        .collection('members')
+        .collection("members")
         .doc(uid)
         .set({
           id: uid,
           userId: uid,
           familyId: uid,
-          name: displayName || 'Admin',
-          role: 'admin',
+          name: displayName || "Admin",
+          role: "admin",
           birthdate: admin.firestore.Timestamp.fromDate(new Date()),
-          gender: 'Unisex',
+          gender: "Unisex",
         });
 
-      return { success: true, familyId: uid, role: 'admin' };
+      return { success: true, familyId: uid, role: "admin" };
     } else {
       // Joining existing family
       // Check for pending invite
       const inviteQuery = await firestore
-        .collection('families')
+        .collection("families")
         .doc(targetFamilyId)
-        .collection('members')
-        .where('inviteEmail', '==', email)
-        .where('inviteStatus', '==', 'pending')
+        .collection("members")
+        .where("inviteEmail", "==", email)
+        .where("inviteStatus", "==", "pending")
         .limit(1)
         .get();
 
       if (inviteQuery.empty) {
         throw new HttpsError(
-          'permission-denied',
-          'No active invitation found for this family'
+          "permission-denied",
+          "No active invitation found for this family",
         );
       }
 
@@ -247,31 +249,31 @@ exports.createUserAndJoinFamily = onCall(async (request) => {
 
       // Create member document
       const memberRef = firestore
-        .collection('families')
+        .collection("families")
         .doc(targetFamilyId)
-        .collection('members')
+        .collection("members")
         .doc(uid);
 
       batch.set(memberRef, {
         id: uid,
         userId: uid,
         familyId: targetFamilyId,
-        name: displayName || 'Member',
-        role: 'member',
+        name: displayName || "Member",
+        role: "member",
         birthdate: admin.firestore.Timestamp.fromDate(new Date()),
-        gender: 'Unisex',
+        gender: "Unisex",
       });
 
       await batch.commit();
 
-      return { success: true, familyId: targetFamilyId, role: 'member' };
+      return { success: true, familyId: targetFamilyId, role: "member" };
     }
   } catch (error) {
-    console.error('Error in createUserAndJoinFamily:', error);
+    console.error("Error in createUserAndJoinFamily:", error);
     if (error.code) {
       throw error; // Re-throw HttpsError
     }
-    throw new HttpsError('internal', error.message);
+    throw new HttpsError("internal", error.message);
   }
 });
 
@@ -309,7 +311,7 @@ exports.countItems = onDocumentWritten(
     }
 
     return null;
-  }
+  },
 );
 
 /**
@@ -345,7 +347,7 @@ exports.countMembers = onDocumentWritten(
     }
 
     return null;
-  }
+  },
 );
 
 /**
@@ -357,13 +359,13 @@ exports.updateUserProfile = onCall(async (request) => {
   // Verify the caller is authenticated and matches the UID
   if (!request.auth || request.auth.uid !== uid) {
     throw new HttpsError(
-      'unauthenticated',
-      'User must be authenticated and match the provided UID'
+      "unauthenticated",
+      "User must be authenticated and match the provided UID",
     );
   }
 
   const firestore = admin.firestore();
-  const userRef = firestore.collection('users').doc(uid);
+  const userRef = firestore.collection("users").doc(uid);
 
   const updateData = {};
   if (displayName !== undefined) updateData.displayName = displayName;
@@ -381,8 +383,8 @@ exports.updateUserProfile = onCall(async (request) => {
     console.log(`User profile updated for UID: ${uid}`);
     return { success: true };
   } catch (error) {
-    console.error('Error in updateUserProfile:', error);
-    throw new HttpsError('internal', error.message);
+    console.error("Error in updateUserProfile:", error);
+    throw new HttpsError("internal", error.message);
   }
 });
 
@@ -393,33 +395,33 @@ exports.joinFamily = onCall(async (request) => {
   const { uid, email, familyCode } = request.data;
 
   if (!request.auth || request.auth.uid !== uid) {
-    throw new HttpsError('unauthenticated', 'Unauthorized access');
+    throw new HttpsError("unauthenticated", "Unauthorized access");
   }
 
   const firestore = admin.firestore();
 
   try {
-    const familyRef = firestore.collection('families').doc(familyCode);
+    const familyRef = firestore.collection("families").doc(familyCode);
     const familyDoc = await familyRef.get();
     if (!familyDoc.exists) {
-      throw new HttpsError('not-found', 'Invalid Family Code');
+      throw new HttpsError("not-found", "Invalid Family Code");
     }
 
     // Verify invitation
     const inviteQuery = await familyRef
-      .collection('members')
-      .where('inviteEmail', '==', email)
-      .where('inviteStatus', '==', 'pending')
+      .collection("members")
+      .where("inviteEmail", "==", email)
+      .where("inviteStatus", "==", "pending")
       .limit(1)
       .get();
 
     if (inviteQuery.empty) {
-      throw new HttpsError('permission-denied', 'No active invitation found');
+      throw new HttpsError("permission-denied", "No active invitation found");
     }
 
-    const userRef = firestore.collection('users').doc(uid);
+    const userRef = firestore.collection("users").doc(uid);
     const userDoc = await userRef.get();
-    const displayName = userDoc.data()?.displayName || 'Member';
+    const displayName = userDoc.data()?.displayName || "Member";
 
     const batch = firestore.batch();
 
@@ -427,14 +429,14 @@ exports.joinFamily = onCall(async (request) => {
     batch.delete(inviteQuery.docs[0].ref);
 
     // 2. Add to Family Members
-    batch.set(familyRef.collection('members').doc(uid), {
+    batch.set(familyRef.collection("members").doc(uid), {
       id: uid,
       userId: uid,
       familyId: familyCode,
       name: displayName,
-      role: 'member',
+      role: "member",
       birthdate: admin.firestore.Timestamp.fromDate(new Date()),
-      gender: 'Unisex',
+      gender: "Unisex",
     });
 
     // 3. Update User's familyId
@@ -443,9 +445,9 @@ exports.joinFamily = onCall(async (request) => {
     await batch.commit();
     return { success: true };
   } catch (error) {
-    console.error('Error in joinFamily:', error);
+    console.error("Error in joinFamily:", error);
     if (error.code) throw error;
-    throw new HttpsError('internal', error.message);
+    throw new HttpsError("internal", error.message);
   }
 });
 
@@ -456,37 +458,37 @@ exports.leaveFamily = onCall(async (request) => {
   const { uid, currentFamilyId } = request.data;
 
   if (!request.auth || request.auth.uid !== uid) {
-    throw new HttpsError('unauthenticated', 'Unauthorized access');
+    throw new HttpsError("unauthenticated", "Unauthorized access");
   }
 
   const firestore = admin.firestore();
 
   try {
     const batch = firestore.batch();
-    const userRef = firestore.collection('users').doc(uid);
+    const userRef = firestore.collection("users").doc(uid);
 
     if (uid === currentFamilyId) {
       // Disband own family
-      const membersQuery = await firestore.collection('families').doc(uid).collection('members').get();
-      membersQuery.forEach(doc => batch.delete(doc.ref));
+      const membersQuery = await firestore.collection("families").doc(uid).collection("members").get();
+      membersQuery.forEach((doc) => batch.delete(doc.ref));
     } else {
       // Regular leave
-      batch.delete(firestore.collection('families').doc(currentFamilyId).collection('members').doc(uid));
+      batch.delete(firestore.collection("families").doc(currentFamilyId).collection("members").doc(uid));
     }
 
     // Ensure they are admin of personal family
     const userDoc = await userRef.get();
-    const displayName = userDoc.data()?.displayName || 'Admin';
+    const displayName = userDoc.data()?.displayName || "Admin";
 
-    batch.set(firestore.collection('families').doc(uid), { id: uid, settings: {} }, { merge: true });
-    batch.set(firestore.collection('families').doc(uid).collection('members').doc(uid), {
+    batch.set(firestore.collection("families").doc(uid), { id: uid, settings: {} }, { merge: true });
+    batch.set(firestore.collection("families").doc(uid).collection("members").doc(uid), {
       id: uid,
       userId: uid,
       familyId: uid,
       name: displayName,
-      role: 'admin',
+      role: "admin",
       birthdate: admin.firestore.Timestamp.fromDate(new Date()),
-      gender: 'Unisex',
+      gender: "Unisex",
     });
 
     // Reset user document
@@ -495,7 +497,133 @@ exports.leaveFamily = onCall(async (request) => {
     await batch.commit();
     return { success: true };
   } catch (error) {
-    console.error('Error in leaveFamily:', error);
-    throw new HttpsError('internal', error.message);
+    console.error("Error in leaveFamily:", error);
+    throw new HttpsError("internal", error.message);
   }
+});
+
+/**
+ * Helper to collect all valid image storage paths from Firestore.
+ */
+async function getValidStoragePaths() {
+  const firestore = admin.firestore();
+  const validPaths = new Set();
+
+  // 1. Collect from users (photoURL)
+  const usersSnap = await firestore.collection("users").get();
+  usersSnap.forEach((doc) => {
+    const data = doc.data();
+    if (data.photoURL) {
+      const path = extractPathFromUrl(data.photoURL);
+      if (path) validPaths.add(path);
+    }
+  });
+
+  // 2. Collect from family members (photoUrl)
+  const membersSnap = await firestore.collectionGroup("members").get();
+  membersSnap.forEach((doc) => {
+    const data = doc.data();
+    if (data.photoUrl) {
+      const path = extractPathFromUrl(data.photoUrl);
+      if (path) validPaths.add(path);
+    }
+  });
+
+  // 3. Collect from items (photos: list of {full, thumb})
+  const itemsSnap = await firestore.collectionGroup("items").get();
+  itemsSnap.forEach((doc) => {
+    const data = doc.data();
+    if (Array.isArray(data.photos)) {
+      data.photos.forEach((photo) => {
+        if (photo.full) {
+          const path = extractPathFromUrl(photo.full);
+          if (path) validPaths.add(path);
+        }
+        if (photo.thumb) {
+          const path = extractPathFromUrl(photo.thumb);
+          if (path) validPaths.add(path);
+        }
+      });
+    }
+  });
+
+  return validPaths;
+}
+
+/**
+ * Extracts the storage path from a Firebase Storage download URL.
+ * @param {string} url The download URL.
+ * @return {string|null} The storage path or null if invalid.
+ */
+function extractPathFromUrl(url) {
+  try {
+    if (!url || !url.includes("/o/")) return null;
+    const parts = url.split("/o/")[1].split("?")[0];
+    return decodeURIComponent(parts);
+  } catch (e) {
+    console.error("Error extracting path from URL:", url, e);
+    return null;
+  }
+}
+
+/**
+ * Core logic to identify and optionally delete orphaned images.
+ * @param {boolean} dryRun Whether to actually delete or just report.
+ * @return {Promise<Object>} The cleanup result.
+ */
+async function performStorageCleanup(dryRun = true) {
+  const bucket = admin.storage().bucket();
+  const validPaths = await getValidStoragePaths();
+  const orphanedFiles = [];
+  const now = Date.now();
+  const oneDayAgo = now - 24 * 60 * 60 * 1000;
+
+  // List all files in the 'users/' prefix
+  const [files] = await bucket.getFiles({ prefix: "users/" });
+
+  for (const file of files) {
+    // Skip if file is recently created (less than 24 hours) to avoid race conditions
+    const [metadata] = await file.getMetadata();
+    const createdAt = new Date(metadata.timeCreated).getTime();
+    if (createdAt > oneDayAgo) continue;
+
+    if (!validPaths.has(file.name)) {
+      orphanedFiles.push(file.name);
+      if (!dryRun) {
+        try {
+          await file.delete();
+          console.log(`Deleted orphaned storage image: ${file.name}`);
+        } catch (e) {
+          console.error(`Failed to delete orphaned image: ${file.name}`, e);
+        }
+      }
+    }
+  }
+
+  return {
+    orphanedCount: orphanedFiles.length,
+    orphanedFiles: orphanedFiles,
+    dryRun,
+  };
+}
+
+/**
+ * Scheduled function to clean up orphaned images daily.
+ */
+const { onSchedule } = require("firebase-functions/v2/scheduler");
+exports.cleanupStorage = onSchedule("0 3 * * *", async (event) => {
+  console.log("Starting daily storage cleanup...");
+  const result = await performStorageCleanup(false);
+  console.log(`Cleanup finished. Deleted ${result.orphanedCount} orphaned images.`);
+  return result;
+});
+
+/**
+ * Callable function for dry-run testing (manual or CI).
+ */
+exports.cleanupStorageDryRun = onCall(async (request) => {
+  // Optional: check for admin role if needed
+  console.log("Starting storage cleanup dry-run...");
+  const result = await performStorageCleanup(true);
+  return result;
 });

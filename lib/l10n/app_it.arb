@@ -460,6 +460,13 @@
     }
   },
   "subscription_bestValue": "MIGLIOR VALORE",
+  "addItem_items_limitReached_title": "Limite articoli raggiunto",
+  "addItem_items_limitReached_message": "Hai raggiunto il limite di {limit} articoli per il livello gratuito. Passa a Premium per articoli illimitati!",
+  "@addItem_items_limitReached_message": {
+    "placeholders": {
+      "limit": {"type": "int"}
+    }
+  },
   "addItem_images_limitReached_title": "Limite immagini raggiunto",
   "addItem_images_limitReached_message": "La versione gratuita è limitata a {limit} immagine per articolo. Passa a Premium per 3 immagini!",
   "@addItem_images_limitReached_message": {

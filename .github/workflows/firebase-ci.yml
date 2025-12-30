@@ -1,5 +1,5 @@
-name: Firestore CI
-run-name: Firestore CI - ${{ github.ref_name }} (${{ github.sha }})
+name: Firebase CI
+run-name: Firebase CI - ${{ github.ref_name }} (${{ github.sha }})
 
 on:
   push:
@@ -10,7 +10,8 @@ on:
       - 'firestore.rules'
       - 'firestore.indexes.json'
       - 'firestore-tests/**'
-      - '.github/workflows/firestore-ci.yml'
+      - 'functions/**'
+      - '.github/workflows/**'
   pull_request:
     branches:
       - master
@@ -19,7 +20,8 @@ on:
       - 'firestore.rules'
       - 'firestore.indexes.json'
       - 'firestore-tests/**'
-      - '.github/workflows/firestore-ci.yml'
+      - 'functions/**'
+      - '.github/workflows/**'
   workflow_dispatch:
 
 jobs:
@@ -62,9 +64,32 @@ jobs:
       - name: Run Firestore tests in Emulator
         run: firebase emulators:exec --only firestore "cd ${{ github.workspace }}/firestore-tests && npm test"
 
-  deploy-firestore:
-    name: Deploy Firestore Rules and Indexes
-    needs: test-firestore
+  test-functions:
+    name: Run Functions Lint
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install dependencies
+        working-directory: functions
+        run: npm ci
+
+      - name: Run Lint
+        working-directory: functions
+        run: npm run lint
+
+  deploy:
+    name: Deploy to Firebase
+    needs: [test-firestore, test-functions]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop')
     runs-on: ubuntu-latest
     
@@ -75,9 +100,10 @@ jobs:
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
-      - name: Deploy Firestore
+      - name: Deploy Firebase
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
+          FUNCTIONS_CONFIG_EXPORT: ${{ secrets.FUNCTIONS_CONFIG_EXPORT }}
         run: |
           if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
             echo "❌ FIREBASE_SERVICE_ACCOUNT_KEY secret not set"
@@ -88,8 +114,9 @@ jobs:
           echo "$FIREBASE_SERVICE_ACCOUNT" | base64 --decode > ${{ github.workspace }}/service-account.json
           export GOOGLE_APPLICATION_CREDENTIALS=${{ github.workspace }}/service-account.json
           
-          # Deploy rules and indexes
-          firebase deploy --only firestore --project seasonbox-f4b24
+          # Deploy firestore and functions
+          # Note: secrets must be set in the environment for functions that require them
+          firebase deploy --only firestore,functions --project seasonbox-f4b24
           
           # Clean up
           rm ${{ github.workspace }}/service-account.json

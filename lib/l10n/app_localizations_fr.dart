@@ -1378,16 +1378,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String get subscription_bestValue => 'MEILLEURE OFFRE';
 
   @override
+  String get subscription_cancelAnytime =>
+      'Annulez à tout moment. Les articles existants restent visibles même après l\'annulation.';
+
+  @override
+  String get addItem_items_limitReached_title => 'Limite d\'articles atteinte';
+
+  @override
+  String addItem_items_limitReached_message(int limit) {
+    return 'Vous avez atteint la limite de $limit articles pour le niveau gratuit. Passez à Premium pour des articles illimités !';
+  }
+
+  @override
   String get addItem_images_limitReached_title => 'Limite d\'images atteinte';
 
   @override
   String addItem_images_limitReached_message(int limit) {
     return 'Le niveau gratuit est limité à $limit image par article. Passez au Premium pour 3 images !';
   }
-
-  @override
-  String get subscription_cancelAnytime =>
-      'Annulez à tout moment. Les articles existants restent visibles même après l\'annulation.';
 
   @override
   String get members_tooltip_editPermission =>

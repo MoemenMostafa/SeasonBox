@@ -201,9 +201,6 @@ class StorageService {
     try {
       final uuid = _uuid.v4();
 
-      // Compress full image
-      final compressedData = await compressImage(file);
-
       // Generate thumbnail (we'll specifically use the thumbnail for profile display)
       final thumbnailData = await generateThumbnail(file);
 

@@ -684,6 +684,14 @@
     }
   },
   "subscription_bestValue": "BEST VALUE",
+  "subscription_cancelAnytime": "Cancel anytime. Grandfathered items stay visible even after cancellation.",
+  "addItem_items_limitReached_title": "Item Limit Reached",
+  "addItem_items_limitReached_message": "You have reached the limit of {limit} items for the Free tier. Upgrade to Premium for unlimited items!",
+  "@addItem_items_limitReached_message": {
+    "placeholders": {
+      "limit": {"type": "int"}
+    }
+  },
   "addItem_images_limitReached_title": "Image Limit Reached",
   "addItem_images_limitReached_message": "The free tier is limited to {limit} image per item. Upgrade to Premium for 3 images!",
   "@addItem_images_limitReached_message": {

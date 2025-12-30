@@ -458,6 +458,13 @@
     }
   },
   "subscription_bestValue": "BESTES ANGEBOT",
+  "addItem_items_limitReached_title": "Artikellimit erreicht",
+  "addItem_items_limitReached_message": "Sie haben das Limit von {limit} Artikeln für die kostenlose Stufe erreicht. Upgrade auf Premium für unbegrenzte Artikel!",
+  "@addItem_items_limitReached_message": {
+    "placeholders": {
+      "limit": {"type": "int"}
+    }
+  },
   "addItem_images_limitReached_title": "Bilderlimit erreicht",
   "addItem_images_limitReached_message": "Die kostenlose Version ist auf {limit} Bild pro Artikel beschränkt. Upgrade auf Premium für 3 Bilder!",
   "@addItem_images_limitReached_message": {

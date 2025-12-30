@@ -77,6 +77,7 @@ void main() async {
     // Display error in the console but also try to show it on screen
     // This helps "un-stick" the app from the splash screen
     runApp(MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: InitializationErrorScreen(error: error),
     ));
 
@@ -205,10 +206,12 @@ class SeasonBox extends StatelessWidget {
               FamilyMemberRepository(
                   firestoreService, authService, demoDataService),
         ),
-        ProxyProvider3<FirestoreService, AuthService, DemoDataService,
-            ItemRepository>(
-          update: (_, firestoreService, authService, demoDataService, __) =>
-              ItemRepository(firestoreService, authService, demoDataService),
+        ProxyProvider4<FirestoreService, AuthService, DemoDataService,
+            StorageService, ItemRepository>(
+          update: (_, firestoreService, authService, demoDataService,
+                  storageService, __) =>
+              ItemRepository(firestoreService, authService, demoDataService,
+                  storageService),
         ),
         ProxyProvider3<FirestoreService, AuthService, DemoDataService,
             StorageLocationRepository>(
@@ -240,6 +243,7 @@ class SeasonBox extends StatelessWidget {
           final appRouter = Provider.of<AppRouter>(context, listen: false);
           return PostHogWidget(
             child: MaterialApp.router(
+              debugShowCheckedModeBanner: false,
               title: 'SeasonBox',
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,

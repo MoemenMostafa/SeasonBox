@@ -188,7 +188,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   )
@@ -218,7 +218,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     VoidCallback? onUpgrade,
   }) {
     return AppCard(
-      backgroundColor: isCurrent ? color.withOpacity(0.05) : null,
+      backgroundColor: isCurrent ? color.withValues(alpha: 0.05) : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

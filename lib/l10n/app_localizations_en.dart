@@ -1350,16 +1350,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get subscription_bestValue => 'BEST VALUE';
 
   @override
+  String get subscription_cancelAnytime =>
+      'Cancel anytime. Grandfathered items stay visible even after cancellation.';
+
+  @override
+  String get addItem_items_limitReached_title => 'Item Limit Reached';
+
+  @override
+  String addItem_items_limitReached_message(int limit) {
+    return 'You have reached the limit of $limit items for the Free tier. Upgrade to Premium for unlimited items!';
+  }
+
+  @override
   String get addItem_images_limitReached_title => 'Image Limit Reached';
 
   @override
   String addItem_images_limitReached_message(int limit) {
     return 'The free tier is limited to $limit image per item. Upgrade to Premium for 3 images!';
   }
-
-  @override
-  String get subscription_cancelAnytime =>
-      'Cancel anytime. Grandfathered items stay visible even after cancellation.';
 
   @override
   String get members_tooltip_editPermission =>

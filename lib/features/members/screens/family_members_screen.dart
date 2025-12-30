@@ -11,6 +11,7 @@ import '../../../widgets/season_box_add_button.dart';
 import '../../../widgets/app_card.dart';
 import '../../../widgets/skeleton_container.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
+import 'package:seasonbox/widgets/limit_reached_dialog.dart';
 import '../../../core/services/permission_service.dart';
 import '../../../app/providers/user_profile_provider.dart';
 
@@ -524,38 +525,14 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
   }
 
   void _showUpgradeDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            const Icon(Icons.stars, color: Colors.blue),
-            const SizedBox(width: 8),
-            Text(AppLocalizations.of(context)!
-                .members_dialog_limitReached_title),
-          ],
-        ),
-        content: Text(
-            AppLocalizations.of(context)!.members_dialog_limitReached_message),
-        actions: [
-          TextButton(
-            onPressed: () => context.pop(),
-            child: Text(AppLocalizations.of(context)!
-                .members_dialog_limitReached_maybeLater),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              context.pop();
-              context.push('/subscription?source=member_limit');
-            },
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            ),
-            child: Text(AppLocalizations.of(context)!
-                .members_dialog_limitReached_viewPricing),
-          ),
-        ],
-      ),
+    LimitReachedDialog.show(
+      context,
+      title: AppLocalizations.of(context)!.members_dialog_limitReached_title,
+      message:
+          AppLocalizations.of(context)!.members_dialog_limitReached_message,
+      buttonLabel:
+          AppLocalizations.of(context)!.members_dialog_limitReached_viewPricing,
+      source: 'member_limit',
     );
   }
 

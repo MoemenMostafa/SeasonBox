@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -20,6 +21,7 @@ import 'package:seasonbox/widgets/app_card.dart';
 import 'package:seasonbox/widgets/season_box_app_bar.dart';
 import 'package:seasonbox/widgets/skeleton_container.dart';
 import 'package:seasonbox/widgets/image_gallery_viewer.dart';
+import 'package:seasonbox/widgets/limit_reached_dialog.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
 import 'package:seasonbox/core/services/permission_service.dart';
 import 'package:seasonbox/core/constants/size_constants.dart';
@@ -844,52 +846,22 @@ class _AddItemScreenState extends State<AddItemScreen> {
   }
 
   void _showImageLimitDialog(int limit) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-            AppLocalizations.of(context)!.addItem_images_limitReached_title),
-        content: Text(AppLocalizations.of(context)!
-            .addItem_images_limitReached_message(limit)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(AppLocalizations.of(context)!.common_cancel),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              context.push('/subscription?source=image_limit');
-            },
-            child:
-                Text(AppLocalizations.of(context)!.home_premium_banner_button),
-          ),
-        ],
-      ),
+    LimitReachedDialog.show(
+      context,
+      title: AppLocalizations.of(context)!.addItem_images_limitReached_title,
+      message: AppLocalizations.of(context)!
+          .addItem_images_limitReached_message(limit),
+      source: 'image_limit',
     );
   }
 
   void _showUpgradeDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Item Limit Reached'),
-        content: const Text(
-            'You have reached the limit of 50 items for the free tier. Upgrade to Paid for unlimited items!'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              context.push('/subscription?source=item_limit');
-            },
-            child: const Text('View Plans'),
-          ),
-        ],
-      ),
+    LimitReachedDialog.show(
+      context,
+      title: AppLocalizations.of(context)!.addItem_items_limitReached_title,
+      message:
+          AppLocalizations.of(context)!.addItem_items_limitReached_message(50),
+      source: 'item_limit',
     );
   }
 
