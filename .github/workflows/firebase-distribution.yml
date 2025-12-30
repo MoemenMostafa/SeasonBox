@@ -104,7 +104,7 @@ jobs:
           storeFile=release-keystore.jks
           EOF
 
-      - name: Build App Bundle
+      - name: Build Android Release
         run: |
           # Enable Gradle daemon and parallel builds for faster compilation
           mkdir -p ~/.gradle
@@ -113,16 +113,17 @@ jobs:
           echo "org.gradle.caching=true" >> ~/.gradle/gradle.properties
           echo "org.gradle.configureondemand=true" >> ~/.gradle/gradle.properties
           
-          # Build App Bundle with optimizations
+          # Build APK for Firebase and App Bundle for Google Play
+          flutter build apk --release --no-tree-shake-icons
           flutter build appbundle --release --no-tree-shake-icons
 
-      - name: Upload App Bundle to Firebase App Distribution
+      - name: Upload APK to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFile: ${{ github.workspace }}/firebase-service-account.json
           groups: testers
-          file: ${{ github.workspace }}/build/app/outputs/bundle/release/app-release.aab
+          file: build/app/outputs/flutter-apk/app-release.apk
           releaseNotes: |
             ${{ steps.extract_changelog.outputs.changelog }}
 
@@ -130,6 +131,21 @@ jobs:
             Build: ${{ github.run_number }}
             Commit: ${{ github.sha }}
             Branch: ${{ github.ref_name }}
+
+      - name: Decode Google Play service account key
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" | base64 --decode > ${{ github.workspace }}/google-play-service-account.json
+
+      - name: Upload AAB to Google Play Store
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJson: ${{ github.workspace }}/google-play-service-account.json
+          packageName: io.mos.seasonbox
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          track: internal
+          status: completed
 
       # - name: Upload APK artifact
       #   uses: actions/upload-artifact@v4
@@ -149,5 +165,6 @@ jobs:
         if: always()
         run: |
           rm -f ${{ github.workspace }}/firebase-service-account.json
+          rm -f ${{ github.workspace }}/google-play-service-account.json
           rm -f ${{ github.workspace }}/android/app/release-keystore.jks
           rm -f ${{ github.workspace }}/android/key.properties
