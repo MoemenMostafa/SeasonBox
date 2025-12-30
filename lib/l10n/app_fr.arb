@@ -67,6 +67,12 @@
   "home_member_items": "{count} articles",
   "home_member_status_active": "Actif",
   "home_item_storage": "Stockage",
+  "home_reminder_winterTitle": "L'Hiver Approche",
+  "home_reminder_winterMessage": "Gardez votre famille au chaud. Passez en revue les manteaux d'hiver, les bottes et les vêtements thermiques.",
+  "home_reminder_springTitle": "Le Printemps Approche",
+  "home_reminder_springMessage": "Il est temps de porter des couches plus légères. Vérifiez si les vestes de printemps et les vêtements de pluie de l'année dernière conviennent toujours.",
+  "home_reminder_summerTitle": "L'Été Approche",
+  "home_reminder_summerMessage": "Préparez-vous pour le soleil. Passez en revue les maillots de bain, les shorts et les chaussures d'été.",
   "home_reminder_fallTitle": "L'Automne Approche",
   "home_reminder_fallMessage": "Il est temps de vérifier les vêtements d'automne de vos enfants. Pensez aux changements de taille depuis l'année dernière.",
   "home_reminder_reviewItems": "Examiner les Articles",
@@ -324,6 +330,18 @@
   "storage_quickActions": "Actions Rapides",
   "storage_scanQrCode": "Scanner Code QR",
   "storage_printLabels": "Imprimer Étiquettes",
+  "printLabels_title": "Imprimer les étiquettes",
+  "printLabels_selectAll": "Tout sélectionner",
+  "printLabels_deselectAll": "Tout déselectionner",
+  "printLabels_printButton": "Imprimer ({count})",
+  "@printLabels_printButton": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "printLabels_noStorageSelected": "Veuillez sélectionner au moins un lieu de stockage.",
+  "printLabels_searchHint": "Filtrer les lieux de stockage...",
+  "printLabels_labelSubtitle": "Étiquette de stockage",
   
   "members_subtitle": "Gérer les membres de la famille",
   "members_summaryMembers": "Membres",

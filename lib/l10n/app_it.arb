@@ -67,6 +67,12 @@
   "home_member_items": "{count} articoli",
   "home_member_status_active": "Attivo",
   "home_item_storage": "Archiviazione",
+  "home_reminder_winterTitle": "L'Inverno si Avvicina",
+  "home_reminder_winterMessage": "Mantieni la tua famiglia al caldo. Controlla cappotti invernali, stivali e abbigliamento termico.",
+  "home_reminder_springTitle": "La Primavera si Avvicina",
+  "home_reminder_springMessage": "È ora di strati più leggeri. Verifica se le giacche primaverili e l'abbigliamento da pioggia dell'anno scorso vanno ancora bene.",
+  "home_reminder_summerTitle": "L'Estate si Avvicina",
+  "home_reminder_summerMessage": "Preparati per il sole. Controlla costumi da bagno, pantaloncini e calzature estive.",
   "home_reminder_fallTitle": "L'Autunno si Avvicina",
   "home_reminder_fallMessage": "È ora di controllare i vestiti autunnali dei tuoi bambini. Considera i cambiamenti di taglia dall'anno scorso.",
   "home_reminder_reviewItems": "Rivedi Articoli",
@@ -325,6 +331,18 @@
   "storage_quickActions": "Azioni Rapide",
   "storage_scanQrCode": "Scansiona Codice QR",
   "storage_printLabels": "Stampa Etichette",
+  "printLabels_title": "Stampa Etichette",
+  "printLabels_selectAll": "Seleziona Tutto",
+  "printLabels_deselectAll": "Deseleziona Tutto",
+  "printLabels_printButton": "Stampa ({count})",
+  "@printLabels_printButton": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "printLabels_noStorageSelected": "Seleziona almeno un luogo di stoccaggio.",
+  "printLabels_searchHint": "Filtra luoghi di stoccaggio...",
+  "printLabels_labelSubtitle": "Etichetta di Stoccaggio",
   
   "members_subtitle": "Gestisci membri della famiglia",
   "members_summaryMembers": "Membri",

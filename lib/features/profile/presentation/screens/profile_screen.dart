@@ -154,10 +154,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: AppLocalizations.of(context)!.profile_title,
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings, color: Colors.white),
+            icon: const Icon(Icons.logout, color: Colors.white),
+            tooltip:
+                AppLocalizations.of(context)!.profile_dialog_logout_confirm,
             onPressed: () {
-              // TODO: Implement settings screen
-              _showComingSoon(context);
+              _showSignOutDialog(context);
             },
           ),
         ],

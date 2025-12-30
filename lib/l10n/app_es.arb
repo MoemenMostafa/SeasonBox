@@ -67,6 +67,12 @@
   "home_member_items": "{count} artículos",
   "home_member_status_active": "Activo",
   "home_item_storage": "Almacenamiento",
+  "home_reminder_winterTitle": "Se Acerca el Invierno",
+  "home_reminder_winterMessage": "Mantén a tu familia abrigada. Revisa abrigos de invierno, botas y ropa térmica.",
+  "home_reminder_springTitle": "Se Acerca la Primavera",
+  "home_reminder_springMessage": "Es hora de capas más ligeras. Comprueba si las chaquetas de primavera y la ropa de lluvia del año pasado todavía les quedan.",
+  "home_reminder_summerTitle": "Se Acerca el Verano",
+  "home_reminder_summerMessage": "Prepárate para el sol. Revisa trajes de baño, pantalones cortos y calzado de verano.",
   "home_reminder_fallTitle": "Se Acerca el Otoño",
   "home_reminder_fallMessage": "Es hora de revisar la ropa de otoño para tus hijos. Considera los cambios de talla del año pasado.",
   "home_reminder_reviewItems": "Revisar Artículos",
@@ -324,6 +330,18 @@
   "storage_quickActions": "Acciones Rápidas",
   "storage_scanQrCode": "Escanear Código QR",
   "storage_printLabels": "Imprimir Etiquetas",
+  "printLabels_title": "Imprimir Etiquetas",
+  "printLabels_selectAll": "Seleccionar Todo",
+  "printLabels_deselectAll": "Deseleccionar Todo",
+  "printLabels_printButton": "Imprimir ({count})",
+  "@printLabels_printButton": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "printLabels_noStorageSelected": "Por favor seleccione al menos una ubicación de almacenamiento.",
+  "printLabels_searchHint": "Filtrar ubicaciones de almacenamiento...",
+  "printLabels_labelSubtitle": "Etiqueta de Almacenamiento",
   
   "members_subtitle": "Gestionar miembros de la familia",
   "members_summaryMembers": "Miembros",

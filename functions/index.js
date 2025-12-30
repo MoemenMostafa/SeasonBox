@@ -1,5 +1,6 @@
 const { onDocumentWritten } = require("firebase-functions/v2/firestore");
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { onMessagePublished } = require("firebase-functions/v2/pubsub");
 const { defineJsonSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
 const nodemailer = require("nodemailer");
@@ -626,4 +627,132 @@ exports.cleanupStorageDryRun = onCall(async (request) => {
   console.log("Starting storage cleanup dry-run...");
   const result = await performStorageCleanup(true);
   return result;
+});
+
+/**
+ * Handle Google Play Real-Time Developer Notifications (RTDN).
+ * This function is triggered by a Pub/Sub message from Google Play.
+ */
+exports.googlePlayBillingWebhook = onMessagePublished({
+  topic: "google-play-subscriptions",
+  secrets: ["GOOGLE_PLAY_CREDENTIALS"],
+}, async (event) => {
+  const message = event.data.message;
+  const data = message.data ? Buffer.from(message.data, "base64").toString() : null;
+
+  if (!data) {
+    console.error("No data in RTDN message");
+    return;
+  }
+
+  const notification = JSON.parse(data);
+  console.log("Received Google Play Notification:", notification);
+
+  const subNotification = notification.subscriptionNotification;
+  if (!subNotification) {
+    console.log("Not a subscription notification, skipping.");
+    return;
+  }
+
+  const { subscriptionId, purchaseToken } = subNotification;
+  // Note: notificationType 2 = PURCHASED, 3 = RENEWED, 4 = CANCELED, etc.
+  // We should fetch the latest status from Google Play API to be sure.
+
+  try {
+    await updateSubscriptionStatus(subscriptionId, purchaseToken);
+  } catch (error) {
+    console.error("Error updating subscription from RTDN:", error);
+  }
+});
+
+/**
+ * Helper to update user subscription status in Firestore.
+ * Fetches latest info from Google Play Developer API.
+ */
+async function updateSubscriptionStatus(subscriptionId, purchaseToken) {
+  const { google } = require("googleapis");
+  const playConfig = defineJsonSecret("GOOGLE_PLAY_CREDENTIALS");
+
+  try {
+    // 1. Authenticate with Google Play API
+    // We use the JSON secret which contains the service account key
+    const auth = new google.auth.GoogleAuth({
+      credentials: playConfig.value(),
+      scopes: ["https://www.googleapis.com/auth/androidpublisher"],
+    });
+    const androidpublisher = google.androidpublisher({ version: "v3", auth });
+
+    // 2. Get Subscription status from Google Play
+    const res = await androidpublisher.purchases.subscriptions.get({
+      packageName: "io.mos.seasonbox",
+      subscriptionId: subscriptionId,
+      token: purchaseToken,
+    });
+
+    const purchase = res.data;
+    console.log("Play Store Purchase Data:", purchase);
+
+    // expiryTimeMillis is the source of truth for expiration
+    const expiryTimeMillis = parseInt(purchase.expiryTimeMillis);
+    const isOwner = purchase.acknowledgementState === 1; // 1 = Acknowledged
+    const isRevoked = purchase.cancelReason === 1; // 1 = Revoked by Google
+
+    // Check if subscription is still valid
+    const isValid = expiryTimeMillis > Date.now() && !isRevoked;
+
+    // 3. Find user by purchaseToken
+    const firestore = admin.firestore();
+    const userQuery = await firestore.collection("users")
+      .where("activePurchaseToken", "==", purchaseToken)
+      .limit(1)
+      .get();
+
+    if (userQuery.empty) {
+      console.warn("No user found with purchase token:", purchaseToken);
+      return;
+    }
+
+    const userDoc = userQuery.docs[0];
+    const uid = userDoc.id;
+
+    await userDoc.ref.update({
+      subscriptionTier: isValid ? "paid" : "free",
+      subscriptionId: subscriptionId,
+      subscriptionExpiry: admin.firestore.Timestamp.fromMillis(expiryTimeMillis),
+      lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    console.log(`Updated subscription for user ${uid} to ${isValid ? "paid" : "free"}`);
+  } catch (error) {
+    console.error("Error calling Google Play API:", error);
+    throw error;
+  }
+}
+
+/**
+ * Callable function to verify a purchase manually from the app.
+ * Used for reactive UI update after purchase.
+ */
+exports.verifyPurchase = onCall({
+  secrets: ["GOOGLE_PLAY_CREDENTIALS"],
+}, async (request) => {
+  const { uid, subscriptionId, purchaseToken } = request.data;
+
+  if (!request.auth || request.auth.uid !== uid) {
+    throw new HttpsError("unauthenticated", "Unauthorized");
+  }
+
+  // Store the active token so webhooks can find the user
+  const firestore = admin.firestore();
+  await firestore.collection("users").doc(uid).update({
+    activePurchaseToken: purchaseToken,
+  });
+
+  try {
+    await updateSubscriptionStatus(subscriptionId, purchaseToken);
+    return { success: true };
+  } catch (error) {
+    console.error("Error in verifyPurchase:", error);
+    throw new HttpsError("internal", error.message);
+  }
 });

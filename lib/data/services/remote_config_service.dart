@@ -18,6 +18,10 @@ class RemoteConfigService {
         'monthly': '2.99',
         'yearly': '19.99',
       }),
+      'subscription_product_ids': jsonEncode({
+        'monthly': 'premium_monthly',
+        'yearly': 'premium_yearly',
+      }),
       'enable_demo_mode': true,
     });
 
@@ -36,6 +40,22 @@ class RemoteConfigService {
       return {
         'monthly': '2.99',
         'yearly': '19.99',
+      };
+    }
+  }
+
+  Map<String, String> getSubscriptionProductIds() {
+    final jsonString = _remoteConfig.getString('subscription_product_ids');
+    try {
+      final Map<String, dynamic> data = jsonDecode(jsonString);
+      return {
+        'monthly': data['monthly']?.toString() ?? 'premium_monthly',
+        'yearly': data['yearly']?.toString() ?? 'premium_yearly',
+      };
+    } catch (e) {
+      return {
+        'monthly': 'premium_monthly',
+        'yearly': 'premium_yearly',
       };
     }
   }

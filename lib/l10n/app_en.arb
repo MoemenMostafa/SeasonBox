@@ -119,6 +119,12 @@
   },
   "home_member_status_active": "Active",
   "home_item_storage": "Storage",
+  "home_reminder_winterTitle": "Winter Season Approaching",
+  "home_reminder_winterMessage": "Keep your family warm. Review winter coats, boots, and thermal wear.",
+  "home_reminder_springTitle": "Spring Season Approaching",
+  "home_reminder_springMessage": "Time for lighter layers. Check if last year's spring jackets and rain gear still fit.",
+  "home_reminder_summerTitle": "Summer Season Approaching",
+  "home_reminder_summerMessage": "Get ready for the sun. Review swimsuits, shorts, and summer footwear.",
   "home_reminder_fallTitle": "Fall Season Approaching",
   "home_reminder_fallMessage": "Time to check fall clothes for your children. Consider size changes from last year.",
   "home_reminder_reviewItems": "Review Items",
@@ -487,6 +493,18 @@
   "storage_quickActions": "Quick Actions",
   "storage_scanQrCode": "Scan QR Code",
   "storage_printLabels": "Print Labels",
+  "printLabels_title": "Print Labels",
+  "printLabels_selectAll": "Select All",
+  "printLabels_deselectAll": "Deselect All",
+  "printLabels_printButton": "Print ({count})",
+  "@printLabels_printButton": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "printLabels_noStorageSelected": "Please select at least one storage location.",
+  "printLabels_searchHint": "Filter storage locations...",
+  "printLabels_labelSubtitle": "Storage Label",
   
   "members_subtitle": "Manage family members",
   "members_summaryMembers": "Members",

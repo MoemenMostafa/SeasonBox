@@ -1,4 +1,15 @@
 # Changelog
+
+## 1.7.0+38
+- **Premium Subscriptions**:
+    - **Google Play Integration**: Comprehensive support for in-app subscriptions on Android.
+    - **Real-Time Verification**: Secure server-side validation of purchases via Firebase Cloud Functions.
+    - **Flexible Management**: Automated handling of renewals, cancellations, and billing issues through Google Play RTDN.
+    - **Interactive UI**: Real-time pricing display and seamless purchase flow within the app.
+- **Organization & Printing**:
+    - **QR Code Labels**: Implemented QR code label generation for all storage locations.
+    - **PDF Export**: Added ability to export and print professional-grade labels for organizers.
+    - **Label Service**: Integrated `LabelService` for high-quality PDF layout and printing support.
  
 ## 1.6.5+36
 - **Storage & Maintenance**:

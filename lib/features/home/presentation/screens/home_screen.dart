@@ -11,6 +11,7 @@ import 'package:seasonbox/data/repositories/item_repository.dart';
 import 'package:seasonbox/data/repositories/storage_location_repository.dart';
 import 'package:seasonbox/app/providers/user_profile_provider.dart';
 import 'package:seasonbox/features/auth/data/auth_service.dart';
+import 'package:seasonbox/core/utils/season_helper.dart';
 import 'package:seasonbox/widgets/image_gallery_viewer.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
 import 'package:seasonbox/data/services/user_service.dart';
@@ -723,7 +724,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final userProvider = context.read<UserProfileProvider>();
     if (!userProvider.isPremium) return const SizedBox.shrink();
 
+    final upcomingSeason = SeasonHelper.getUpcomingSeasonReminder();
+    if (upcomingSeason == null) return const SizedBox.shrink();
+
+    final seasonStrings =
+        SeasonHelper.getSeasonStrings(context, upcomingSeason);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return AppCard(
       padding: const EdgeInsets.all(16),
       onTap: null, // Removed non-functional callback
@@ -746,7 +753,7 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  AppLocalizations.of(context)!.home_reminder_fallTitle,
+                  seasonStrings.title,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -755,7 +762,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  AppLocalizations.of(context)!.home_reminder_fallMessage,
+                  seasonStrings.message,
                   style: TextStyle(
                       color: isDark ? Colors.orange.shade100 : Colors.brown),
                 ),

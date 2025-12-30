@@ -52,6 +52,10 @@ void main() async {
     final appCheckService = AppCheckService();
     await appCheckService.initialize();
 
+    // Initialize Subscription Service
+    final subscriptionService = SubscriptionService(remoteConfigService);
+    await subscriptionService.initialize();
+
     // Set up global error handlers
     FlutterError.onError = (FlutterErrorDetails details) {
       // Log Flutter framework errors to PostHog
@@ -65,6 +69,7 @@ void main() async {
       postHogService: postHogService,
       remoteConfigService: remoteConfigService,
       appCheckService: appCheckService,
+      subscriptionService: subscriptionService,
     ));
   }, (error, stackTrace) {
     // Catch errors that occur outside of Flutter framework
@@ -164,12 +169,14 @@ class SeasonBox extends StatelessWidget {
   final PostHogService postHogService;
   final RemoteConfigService remoteConfigService;
   final AppCheckService appCheckService;
+  final SubscriptionService subscriptionService;
 
   const SeasonBox({
     super.key,
     required this.postHogService,
     required this.remoteConfigService,
     required this.appCheckService,
+    required this.subscriptionService,
   });
 
   @override
@@ -189,9 +196,8 @@ class SeasonBox extends StatelessWidget {
         Provider<PostHogService>.value(value: postHogService),
         Provider<RemoteConfigService>.value(value: remoteConfigService),
         Provider<AppCheckService>.value(value: appCheckService),
-        ProxyProvider<RemoteConfigService, SubscriptionService>(
-          update: (_, remoteConfigService, __) =>
-              SubscriptionService(remoteConfigService),
+        ChangeNotifierProvider<SubscriptionService>.value(
+          value: subscriptionService,
         ),
         Provider<DemoDataService>(
           create: (_) => DemoDataService(),

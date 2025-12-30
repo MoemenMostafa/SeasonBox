@@ -440,6 +440,42 @@ abstract class AppLocalizations {
   /// **'Storage'**
   String get home_item_storage;
 
+  /// No description provided for @home_reminder_winterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Winter Season Approaching'**
+  String get home_reminder_winterTitle;
+
+  /// No description provided for @home_reminder_winterMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep your family warm. Review winter coats, boots, and thermal wear.'**
+  String get home_reminder_winterMessage;
+
+  /// No description provided for @home_reminder_springTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Spring Season Approaching'**
+  String get home_reminder_springTitle;
+
+  /// No description provided for @home_reminder_springMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Time for lighter layers. Check if last year\'s spring jackets and rain gear still fit.'**
+  String get home_reminder_springMessage;
+
+  /// No description provided for @home_reminder_summerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Summer Season Approaching'**
+  String get home_reminder_summerTitle;
+
+  /// No description provided for @home_reminder_summerMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Get ready for the sun. Review swimsuits, shorts, and summer footwear.'**
+  String get home_reminder_summerMessage;
+
   /// No description provided for @home_reminder_fallTitle.
   ///
   /// In en, this message translates to:
@@ -1921,6 +1957,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Print Labels'**
   String get storage_printLabels;
+
+  /// No description provided for @printLabels_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Print Labels'**
+  String get printLabels_title;
+
+  /// No description provided for @printLabels_selectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select All'**
+  String get printLabels_selectAll;
+
+  /// No description provided for @printLabels_deselectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Deselect All'**
+  String get printLabels_deselectAll;
+
+  /// No description provided for @printLabels_printButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Print ({count})'**
+  String printLabels_printButton(int count);
+
+  /// No description provided for @printLabels_noStorageSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select at least one storage location.'**
+  String get printLabels_noStorageSelected;
+
+  /// No description provided for @printLabels_searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter storage locations...'**
+  String get printLabels_searchHint;
+
+  /// No description provided for @printLabels_labelSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage Label'**
+  String get printLabels_labelSubtitle;
 
   /// No description provided for @members_subtitle.
   ///

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:provider/provider.dart';
 import 'package:seasonbox/app/providers/user_profile_provider.dart';
 import 'package:seasonbox/data/services/subscription_service.dart';
@@ -7,6 +8,7 @@ import 'package:seasonbox/widgets/season_box_app_bar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
 import 'package:seasonbox/data/services/posthog_service.dart';
+import 'package:seasonbox/data/services/remote_config_service.dart';
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
@@ -70,8 +72,20 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     final isPaid = userProvider.isPremium;
 
     final l10n = AppLocalizations.of(context)!;
-    final monthlyPrice = _pricing?['monthly'] ?? '4.99';
-    final yearlyPrice = _pricing?['yearly'] ?? '49.99';
+    final subscriptionService = context.watch<SubscriptionService>();
+    final productIds =
+        context.read<RemoteConfigService>().getSubscriptionProductIds();
+
+    final monthlyProduct = subscriptionService.products
+        .cast<ProductDetails?>()
+        .firstWhere((p) => p?.id == productIds['monthly'], orElse: () => null);
+    final yearlyProduct = subscriptionService.products
+        .cast<ProductDetails?>()
+        .firstWhere((p) => p?.id == productIds['yearly'], orElse: () => null);
+
+    final monthlyPrice =
+        monthlyProduct?.price ?? _pricing?['monthly'] ?? '4.99';
+    final yearlyPrice = yearlyProduct?.price ?? _pricing?['yearly'] ?? '49.99';
     final currentPrice = _isYearly ? yearlyPrice : monthlyPrice;
     final periodSuffix = _isYearly ? '/yr' : '/mo';
 
@@ -150,15 +164,31 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                     isBestValue: _isYearly,
                     savingsLabel:
                         _isYearly ? l10n.subscription_savingsLabel('16') : null,
-                    onUpgrade: () {
+                    onUpgrade: () async {
                       _trackPlanSelected('premium', currentPrice);
-                      // Mock upgrade flow
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                              'Starting payment for ${_isYearly ? 'Yearly' : 'Monthly'} plan...'),
-                        ),
+
+                      final subscriptionService =
+                          context.read<SubscriptionService>();
+                      final productIds = context
+                          .read<RemoteConfigService>()
+                          .getSubscriptionProductIds();
+                      final targetId = _isYearly
+                          ? productIds['yearly']
+                          : productIds['monthly'];
+
+                      final product = subscriptionService.products.firstWhere(
+                        (p) => p.id == targetId,
+                        orElse: () => throw Exception('Product not found'),
                       );
+
+                      try {
+                        await subscriptionService.buySubscription(product);
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Payment failed: $e')),
+                        );
+                      }
                     },
                   ),
                   const SizedBox(height: 24),

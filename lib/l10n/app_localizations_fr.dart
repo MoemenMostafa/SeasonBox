@@ -205,6 +205,27 @@ class AppLocalizationsFr extends AppLocalizations {
   String get home_item_storage => 'Stockage';
 
   @override
+  String get home_reminder_winterTitle => 'L\'Hiver Approche';
+
+  @override
+  String get home_reminder_winterMessage =>
+      'Gardez votre famille au chaud. Passez en revue les manteaux d\'hiver, les bottes et les vêtements thermiques.';
+
+  @override
+  String get home_reminder_springTitle => 'Le Printemps Approche';
+
+  @override
+  String get home_reminder_springMessage =>
+      'Il est temps de porter des couches plus légères. Vérifiez si les vestes de printemps et les vêtements de pluie de l\'année dernière conviennent toujours.';
+
+  @override
+  String get home_reminder_summerTitle => 'L\'Été Approche';
+
+  @override
+  String get home_reminder_summerMessage =>
+      'Préparez-vous pour le soleil. Passez en revue les maillots de bain, les shorts et les chaussures d\'été.';
+
+  @override
   String get home_reminder_fallTitle => 'L\'Automne Approche';
 
   @override
@@ -1020,6 +1041,30 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get storage_printLabels => 'Imprimer Étiquettes';
+
+  @override
+  String get printLabels_title => 'Imprimer les étiquettes';
+
+  @override
+  String get printLabels_selectAll => 'Tout sélectionner';
+
+  @override
+  String get printLabels_deselectAll => 'Tout déselectionner';
+
+  @override
+  String printLabels_printButton(int count) {
+    return 'Imprimer ($count)';
+  }
+
+  @override
+  String get printLabels_noStorageSelected =>
+      'Veuillez sélectionner au moins un lieu de stockage.';
+
+  @override
+  String get printLabels_searchHint => 'Filtrer les lieux de stockage...';
+
+  @override
+  String get printLabels_labelSubtitle => 'Étiquette de stockage';
 
   @override
   String get members_subtitle => 'Gérer les membres de la famille';

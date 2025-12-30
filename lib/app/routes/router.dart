@@ -11,6 +11,7 @@ import 'package:seasonbox/features/storage/screens/add_storage_location_screen.d
 import 'package:seasonbox/features/items/screens/add_item_screen.dart';
 import 'package:seasonbox/features/members/screens/family_members_screen.dart';
 import 'package:seasonbox/features/storage/screens/storage_screen.dart';
+import 'package:seasonbox/features/storage/screens/print_labels_screen.dart';
 import 'package:seasonbox/features/items/screens/items_screen.dart';
 import 'package:seasonbox/data/models/item.dart';
 import 'package:seasonbox/data/models/family_member.dart';
@@ -138,6 +139,9 @@ class AppRouter {
       GoRoute(
           path: '/subscription',
           builder: (context, state) => const SubscriptionScreen()),
+      GoRoute(
+          path: '/print-labels',
+          builder: (context, state) => const PrintLabelsScreen()),
     ],
   );
 }

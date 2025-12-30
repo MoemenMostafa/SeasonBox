@@ -200,6 +200,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get home_item_storage => 'Storage';
 
   @override
+  String get home_reminder_winterTitle => 'Winter Season Approaching';
+
+  @override
+  String get home_reminder_winterMessage =>
+      'Keep your family warm. Review winter coats, boots, and thermal wear.';
+
+  @override
+  String get home_reminder_springTitle => 'Spring Season Approaching';
+
+  @override
+  String get home_reminder_springMessage =>
+      'Time for lighter layers. Check if last year\'s spring jackets and rain gear still fit.';
+
+  @override
+  String get home_reminder_summerTitle => 'Summer Season Approaching';
+
+  @override
+  String get home_reminder_summerMessage =>
+      'Get ready for the sun. Review swimsuits, shorts, and summer footwear.';
+
+  @override
   String get home_reminder_fallTitle => 'Fall Season Approaching';
 
   @override
@@ -999,6 +1020,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storage_printLabels => 'Print Labels';
+
+  @override
+  String get printLabels_title => 'Print Labels';
+
+  @override
+  String get printLabels_selectAll => 'Select All';
+
+  @override
+  String get printLabels_deselectAll => 'Deselect All';
+
+  @override
+  String printLabels_printButton(int count) {
+    return 'Print ($count)';
+  }
+
+  @override
+  String get printLabels_noStorageSelected =>
+      'Please select at least one storage location.';
+
+  @override
+  String get printLabels_searchHint => 'Filter storage locations...';
+
+  @override
+  String get printLabels_labelSubtitle => 'Storage Label';
 
   @override
   String get members_subtitle => 'Manage family members';

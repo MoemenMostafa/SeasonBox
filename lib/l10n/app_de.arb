@@ -67,6 +67,12 @@
   "home_member_items": "{count} Artikel",
   "home_member_status_active": "Aktiv",
   "home_item_storage": "Lagerung",
+  "home_reminder_winterTitle": "Winter naht",
+  "home_reminder_winterMessage": "Halten Sie Ihre Familie warm. Überprüfen Sie Wintermäntel, Stiefel und Thermokleidung.",
+  "home_reminder_springTitle": "Frühling naht",
+  "home_reminder_springMessage": "Zeit für leichtere Schichten. Prüfen Sie, ob die Frühlingsjacken und Regenbekleidung vom letzten Jahr noch passen.",
+  "home_reminder_summerTitle": "Sommer naht",
+  "home_reminder_summerMessage": "Machen Sie sich bereit für die Sonne. Überprüfen Sie Badeanzüge, Shorts und Sommerschuhe.",
   "home_reminder_fallTitle": "Herbst naht",
   "home_reminder_fallMessage": "Zeit, die Herbstkleidung Ihrer Kinder zu überprüfen. Berücksichtigen Sie Größenänderungen vom letzten Jahr.",
   "home_reminder_reviewItems": "Artikel überprüfen",
@@ -324,6 +330,18 @@
   "storage_quickActions": "Schnellaktionen",
   "storage_scanQrCode": "QR-Code Scannen",
   "storage_printLabels": "Etiketten Drucken",
+  "printLabels_title": "Etiketten drucken",
+  "printLabels_selectAll": "Alle auswählen",
+  "printLabels_deselectAll": "Alle abwählen",
+  "printLabels_printButton": "Drucken ({count})",
+  "@printLabels_printButton": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "printLabels_noStorageSelected": "Bitte wählen Sie mindestens einen Lagerort aus.",
+  "printLabels_searchHint": "Lagerorte filtern...",
+  "printLabels_labelSubtitle": "Lagerortetikett",
   
   "members_subtitle": "Familienmitglieder verwalten",
   "members_summaryMembers": "Mitglieder",

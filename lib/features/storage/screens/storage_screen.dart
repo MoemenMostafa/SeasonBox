@@ -131,7 +131,13 @@ class _StorageScreenState extends State<StorageScreen> {
         title: AppLocalizations.of(context)!.storage_title,
         subtitle: AppLocalizations.of(context)!
             .storage_subtitle(_locations.length, _items.length),
-        actions: null,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.print_outlined),
+            onPressed: () => context.push('/print-labels'),
+            tooltip: AppLocalizations.of(context)!.storage_printLabels,
+          ),
+        ],
       ),
       body: _isLoading
           ? _buildLoadingSkeleton()
