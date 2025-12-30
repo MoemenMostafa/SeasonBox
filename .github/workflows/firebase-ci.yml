@@ -107,7 +107,7 @@ jobs:
       - name: Deploy Firebase
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
-          FUNCTIONS_CONFIG_EXPORT: ${{ secrets.FUNCTIONS_CONFIG_EXPORT }}
+
         run: |
           if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
             echo "❌ FIREBASE_SERVICE_ACCOUNT_KEY secret not set"
