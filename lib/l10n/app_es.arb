@@ -501,5 +501,15 @@
 
   "growthChart_premium_title": "Las Predicciones de Crecimiento son Premium",
   "growthChart_premium_message": "Actualiza al plan Pago para ver cómo están creciendo tus hijos y obtener consejos sobre cuándo comprar las próximas tallas.",
-  "growthChart_premium_viewPricing": "Ver Precios"
+  "growthChart_premium_viewPricing": "Ver Precios",
+  "subscription_error_store_unavailable": "La tienda de suscripciones no está disponible actualmente. Por favor, compruebe su conexión a Internet y asegúrese de haber iniciado sesión en Google Play Store.",
+  "subscription_button_retry_connection": "Reintentar conexión",
+  "subscription_error_product_not_found": "Producto de suscripción no encontrado: {id}",
+  "@subscription_error_product_not_found": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -30,3 +30,4 @@ For more detailed information about the project's architecture and permissions, 
 
 * [Family Architecture](docs/family_architecture.md): Overview of the user-family relationship and invitation system.
 * [Permissions & Roles](docs/PERMISSIONS.md): Details on user roles (Admin vs. Member) and access control.
+* [Subscription Pricing](docs/subscription_pricing.md): Technical setup and rationale for the subscription system.

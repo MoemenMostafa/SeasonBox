@@ -728,5 +728,15 @@
 
   "growthChart_premium_title": "Growth Predictions are Premium",
   "growthChart_premium_message": "Upgrade to the Paid plan to see how your children are growing and get advice on when to buy next sizes.",
-  "growthChart_premium_viewPricing": "View Pricing"
+  "growthChart_premium_viewPricing": "View Pricing",
+  "subscription_error_store_unavailable": "The subscription store is currently unavailable. Please check your internet connection and ensure you are signed into the Play Store.",
+  "subscription_button_retry_connection": "Retry Connection",
+  "subscription_error_product_not_found": "Subscription product not found: {id}",
+  "@subscription_error_product_not_found": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  }
 }

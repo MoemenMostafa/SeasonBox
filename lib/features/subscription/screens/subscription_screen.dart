@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:provider/provider.dart';
 import 'package:seasonbox/app/providers/user_profile_provider.dart';
 import 'package:seasonbox/data/services/subscription_service.dart';
@@ -103,6 +105,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
+                  if (!subscriptionService.isAvailable)
+                    _buildStoreErrorBanner(subscriptionService, l10n, context),
+
                   // Billing Cycle Toggle
                   Center(
                     child: Container(
@@ -185,10 +190,63 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                           ? basePlanIds['yearly']
                           : basePlanIds['monthly'];
 
-                      final product = subscriptionService.products.firstWhere(
-                        (p) => p.id == targetProductId,
-                        orElse: () => throw Exception('Product not found'),
-                      );
+                      if (kIsWeb) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text(
+                                  'In-app purchases are not yet supported on the web version. Please use our mobile app.')),
+                        );
+                        return;
+                      }
+
+                      ProductDetails? product;
+                      try {
+                        product = subscriptionService.products.firstWhere(
+                          (p) => p.id == targetProductId,
+                        );
+                      } catch (e) {
+                        // Product not found in store
+                      }
+
+                      if (product == null) {
+                        if (!context.mounted) return;
+                        final isAvailable = subscriptionService.isAvailable;
+                        final productsCount =
+                            subscriptionService.products.length;
+                        final loadedIds = subscriptionService.products
+                            .map((p) => p.id)
+                            .toList();
+
+                        PostHogService().captureEvent(
+                            'subscription_screen_unavailable',
+                            properties: {
+                              'store_available': isAvailable,
+                              'products_count': productsCount,
+                              'target_id': targetProductId ?? 'unknown',
+                              'loaded_ids': loadedIds,
+                              'debug_mode': kDebugMode,
+                              'last_error':
+                                  subscriptionService.lastError ?? 'none',
+                            });
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(isAvailable
+                                ? l10n.subscription_error_product_not_found(
+                                    targetProductId ?? 'unknown')
+                                : '${l10n.subscription_error_store_unavailable}\nDiagnostics: Store: Error, Products: $productsCount, Target: $targetProductId, Loaded: $loadedIds, Debug: $kDebugMode, Last Error: ${subscriptionService.lastError ?? "none"}'),
+                            backgroundColor: Colors.red.shade800,
+                            duration: const Duration(seconds: 10),
+                            action: SnackBarAction(
+                              label: l10n.subscription_button_retry_connection,
+                              textColor: Colors.white,
+                              onPressed: () =>
+                                  subscriptionService.reInitialize(),
+                            ),
+                          ),
+                        );
+                        return;
+                      }
 
                       try {
                         await subscriptionService.buySubscription(
@@ -373,6 +431,65 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 ),
               ),
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStoreErrorBanner(SubscriptionService subscriptionService,
+      AppLocalizations l10n, BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.red.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.error_outline, color: Colors.red.shade700),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  l10n.subscription_error_store_unavailable,
+                  style: TextStyle(
+                    color: Colors.red.shade900,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (subscriptionService.lastError != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              subscriptionService.lastError!,
+              style: TextStyle(
+                color: Colors.red.shade800,
+                fontSize: 12,
+                fontFamily: 'monospace',
+              ),
+            ),
+          ],
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: () => subscriptionService.reInitialize(),
+            icon: const Icon(Icons.refresh, size: 18),
+            label: Text(l10n.subscription_button_retry_connection),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade700,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
         ],
       ),
     );

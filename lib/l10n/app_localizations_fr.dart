@@ -1472,4 +1472,16 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get growthChart_premium_viewPricing => 'Voir les Tarifs';
+
+  @override
+  String get subscription_error_store_unavailable =>
+      'La boutique d\'abonnement est actuellement indisponible. Veuillez vérifier votre connexion Internet et vous assurer d\'être connecté au Play Store.';
+
+  @override
+  String get subscription_button_retry_connection => 'Réessayer la connexion';
+
+  @override
+  String subscription_error_product_not_found(String id) {
+    return 'Produit d\'abonnement non trouvé : $id';
+  }
 }

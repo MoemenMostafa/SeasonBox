@@ -502,5 +502,15 @@
 
   "growthChart_premium_title": "Les Prédictions de Croissance sont Premium",
   "growthChart_premium_message": "Passez au plan payant pour voir comment vos enfants grandissent et obtenir des conseils sur quand acheter les prochaines tailles.",
-  "growthChart_premium_viewPricing": "Voir les Tarifs"
+  "growthChart_premium_viewPricing": "Voir les Tarifs",
+  "subscription_error_store_unavailable": "La boutique d'abonnement est actuellement indisponible. Veuillez vérifier votre connexion Internet et vous assurer d'être connecté au Play Store.",
+  "subscription_button_retry_connection": "Réessayer la connexion",
+  "subscription_error_product_not_found": "Produit d'abonnement non trouvé : {id}",
+  "@subscription_error_product_not_found": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  }
 }

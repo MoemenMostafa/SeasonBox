@@ -118,6 +118,10 @@ jobs:
           echo "$FIREBASE_SERVICE_ACCOUNT" | base64 --decode > ${{ github.workspace }}/service-account.json
           export GOOGLE_APPLICATION_CREDENTIALS=${{ github.workspace }}/service-account.json
           
+          # Verify Subscription Setup
+          echo "🔍 Verifying subscription setup..."
+          cd scripts && npm install && node verify_subscription_setup.js && cd ..
+
           # Deploy firestore and functions
           # Note: secrets must be set in the environment for functions that require them
           firebase deploy --only firestore,functions --project seasonbox-f4b24

@@ -19,7 +19,8 @@ async function verifySetup() {
         console.log(`✅ Topic '${topic.name}' exists.`);
     } catch (error) {
         console.error(`❌ Error finding Pub/Sub topic: ${error.message}`);
-        console.log("Tip: Create the topic named 'google-play-subscriptions' in your Google Cloud Console.");
+        console.log("Tip: Create the topic named 'play-billing-events' in your Google Cloud Console.");
+        throw error;
     }
 
     // 2. Check for Firebase Secret
@@ -30,6 +31,7 @@ async function verifySetup() {
         console.log("⚠️ Verification of secret presence must be done via CLI: 'firebase functions:secrets:get GOOGLE_PLAY_CREDENTIALS'");
     } catch (error) {
         console.error(`❌ Error checking secret: ${error.message}`);
+        throw error;
     }
 
     // 3. Verify Package Name consistency
@@ -41,4 +43,7 @@ async function verifySetup() {
     console.log("\n--- Verification Finished ---");
 }
 
-verifySetup().catch(console.error);
+verifySetup().catch((error) => {
+    console.error("\n❌ Verification failed!");
+    process.exit(1);
+});

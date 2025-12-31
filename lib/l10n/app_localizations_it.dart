@@ -1464,4 +1464,16 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get growthChart_premium_viewPricing => 'Visualizza Prezzi';
+
+  @override
+  String get subscription_error_store_unavailable =>
+      'Il negozio di abbonamenti non è attualmente disponibile. Controlla la tua connessione Internet e assicurati di aver effettuato l\'accesso al Play Store.';
+
+  @override
+  String get subscription_button_retry_connection => 'Riprova connessione';
+
+  @override
+  String subscription_error_product_not_found(String id) {
+    return 'Prodotto di abbonamento non trovato: $id';
+  }
 }

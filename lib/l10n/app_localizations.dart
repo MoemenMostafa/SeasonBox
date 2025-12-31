@@ -2701,6 +2701,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View Pricing'**
   String get growthChart_premium_viewPricing;
+
+  /// No description provided for @subscription_error_store_unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The subscription store is currently unavailable. Please check your internet connection and ensure you are signed into the Play Store.'**
+  String get subscription_error_store_unavailable;
+
+  /// No description provided for @subscription_button_retry_connection.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry Connection'**
+  String get subscription_button_retry_connection;
+
+  /// No description provided for @subscription_error_product_not_found.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription product not found: {id}'**
+  String subscription_error_product_not_found(String id);
 }
 
 class _AppLocalizationsDelegate

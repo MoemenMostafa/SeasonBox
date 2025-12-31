@@ -1,11 +1,25 @@
 # Changelog
 
-## 1.7.1+39
+## 1.7.3+41
+- **Subscription Store Improvements**:
+    - **PostHog Integration**: Implemented comprehensive tracking for the subscription lifecycle (initialization, product loading, purchase updates, and verification).
+    - **In-App Diagnostics**: Added specialized diagnostic messaging on the subscription screen to troubleshoot "product unavailable" errors (Store status, Products loaded, Target ID).
+    - **Android Compatibility**: Explicitly added billing permissions and package visibility queries to resolve store connectivity issues on Android 11+.
+    - **Web Support**: Fixed initialization crash on web platforms.
+    - **Legacy Support**: Simplified multi-product logic to use a single Unified Product ID (`premium`) with modern Google Play Base Plans.
+    - **Enhanced Debugging**: Added real-time logging of store events to PostHog for easier troubleshooting of device-specific billing issues.
+
+## 1.7.2+40
+- **Platform Compatibility**:
+    - **Web Fix**: Resolved a critical "Initialization Error" crash on web browsers by guarding in-app purchase services.
 - **Subscriptions & Billing**:
     - **Google Play Refactor**: Migrated to a single Product ID (`premium`) with multiple Base Plans (`monthly`, `yearly`) for simplified subscription management.
     - **Live Pricing**: Implemented direct pricing retrieval from Google Play base plans, ensuring users always see accurate local prices.
     - **Base Plan Selection**: Enhanced the purchase flow to support specific base plan selection for a more streamlined user experience.
     - **Documentation**: Added comprehensive subscription pricing and configuration documentation.
+
+## 1.7.1+39
+- **Internal Billing Refactor**: Initial implementation of Billing 5+ support and base plan IDs.
 
 ## 1.7.0+38
 - **Premium Subscriptions**:

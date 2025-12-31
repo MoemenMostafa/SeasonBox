@@ -501,5 +501,15 @@
 
   "growthChart_premium_title": "Wachstumsprognosen sind Premium",
   "growthChart_premium_message": "Upgraden Sie auf den Bezahlplan, um zu sehen, wie Ihre Kinder wachsen, und Ratschläge zu erhalten, wann Sie die nächsten Größen kaufen sollten.",
-  "growthChart_premium_viewPricing": "Preise Ansehen"
+  "growthChart_premium_viewPricing": "Preise Ansehen",
+  "subscription_error_store_unavailable": "Der Abonnement-Shop ist derzeit nicht verfügbar. Bitte überprüfen Sie Ihre Internetverbindung und stellen Sie sicher, dass Sie im Play Store angemeldet sind.",
+  "subscription_button_retry_connection": "Verbindung erneut versuchen",
+  "subscription_error_product_not_found": "Abonnementprodukt nicht gefunden: {id}",
+  "@subscription_error_product_not_found": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -1476,4 +1476,16 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get growthChart_premium_viewPricing => 'Ver Precios';
+
+  @override
+  String get subscription_error_store_unavailable =>
+      'La tienda de suscripciones no está disponible actualmente. Por favor, compruebe su conexión a Internet y asegúrese de haber iniciado sesión en Google Play Store.';
+
+  @override
+  String get subscription_button_retry_connection => 'Reintentar conexión';
+
+  @override
+  String subscription_error_product_not_found(String id) {
+    return 'Producto de suscripción no encontrado: $id';
+  }
 }

@@ -1443,4 +1443,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get growthChart_premium_viewPricing => 'View Pricing';
+
+  @override
+  String get subscription_error_store_unavailable =>
+      'The subscription store is currently unavailable. Please check your internet connection and ensure you are signed into the Play Store.';
+
+  @override
+  String get subscription_button_retry_connection => 'Retry Connection';
+
+  @override
+  String subscription_error_product_not_found(String id) {
+    return 'Subscription product not found: $id';
+  }
 }
