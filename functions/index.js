@@ -8,6 +8,7 @@ const nodemailer = require("nodemailer");
 admin.initializeApp();
 
 const gmailConfig = defineJsonSecret("FUNCTIONS_CONFIG_EXPORT");
+const playConfig = defineJsonSecret("GOOGLE_PLAY_CREDENTIALS");
 
 const APP_NAME = "SeasonBox";
 
@@ -635,7 +636,7 @@ exports.cleanupStorageDryRun = onCall(async (request) => {
  */
 exports.googlePlayBillingWebhook = onMessagePublished({
   topic: "google-play-subscriptions",
-  secrets: ["GOOGLE_PLAY_CREDENTIALS"],
+  secrets: [playConfig],
 }, async (event) => {
   const message = event.data.message;
   const data = message.data ? Buffer.from(message.data, "base64").toString() : null;
@@ -668,10 +669,11 @@ exports.googlePlayBillingWebhook = onMessagePublished({
 /**
  * Helper to update user subscription status in Firestore.
  * Fetches latest info from Google Play Developer API.
+ * @param {string} subscriptionId The ID of the subscription.
+ * @param {string} purchaseToken The token of the purchase.
  */
 async function updateSubscriptionStatus(subscriptionId, purchaseToken) {
   const { google } = require("googleapis");
-  const playConfig = defineJsonSecret("GOOGLE_PLAY_CREDENTIALS");
 
   try {
     // 1. Authenticate with Google Play API
@@ -694,7 +696,6 @@ async function updateSubscriptionStatus(subscriptionId, purchaseToken) {
 
     // expiryTimeMillis is the source of truth for expiration
     const expiryTimeMillis = parseInt(purchase.expiryTimeMillis);
-    const isOwner = purchase.acknowledgementState === 1; // 1 = Acknowledged
     const isRevoked = purchase.cancelReason === 1; // 1 = Revoked by Google
 
     // Check if subscription is still valid
@@ -734,7 +735,7 @@ async function updateSubscriptionStatus(subscriptionId, purchaseToken) {
  * Used for reactive UI update after purchase.
  */
 exports.verifyPurchase = onCall({
-  secrets: ["GOOGLE_PLAY_CREDENTIALS"],
+  secrets: [playConfig],
 }, async (request) => {
   const { uid, subscriptionId, purchaseToken } = request.data;
 
