@@ -14,7 +14,7 @@ async function verifySetup() {
     try {
         const { PubSub } = require("@google-cloud/pubsub");
         const pubsub = new PubSub();
-        const topicName = "google-play-subscriptions";
+        const topicName = "play-billing-events";
         const [topic] = await pubsub.topic(topicName).get();
         console.log(`✅ Topic '${topic.name}' exists.`);
     } catch (error) {

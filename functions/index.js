@@ -635,7 +635,7 @@ exports.cleanupStorageDryRun = onCall(async (request) => {
  * This function is triggered by a Pub/Sub message from Google Play.
  */
 exports.googlePlayBillingWebhook = onMessagePublished({
-  topic: "google-play-subscriptions",
+  topic: "play-billing-events",
   secrets: [playConfig],
 }, async (event) => {
   const message = event.data.message;
