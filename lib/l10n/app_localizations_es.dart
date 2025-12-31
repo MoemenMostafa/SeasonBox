@@ -1363,8 +1363,19 @@ class AppLocalizationsEs extends AppLocalizations {
   String get subscription_tier_freePrice => 'Gratis';
 
   @override
+  String get subscription_restore_btn => 'Restaurar compras';
+
+  @override
+  String get subscription_restore_success => 'Compras restauradas con éxito.';
+
+  @override
+  String subscription_restore_failed(String error) {
+    return 'Error al restaurar compras: $error';
+  }
+
+  @override
   String subscription_tier_premiumPrice(String price, String period) {
-    return '€$price$period';
+    return '$price$period';
   }
 
   @override

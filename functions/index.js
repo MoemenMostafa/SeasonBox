@@ -4,6 +4,7 @@ const { onMessagePublished } = require("firebase-functions/v2/pubsub");
 const { defineJsonSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
 const nodemailer = require("nodemailer");
+const { getPostHogClient, flushPostHog } = require("./utils/posthogClient");
 
 admin.initializeApp();
 
@@ -89,6 +90,17 @@ async function sendInvitationEmail(email, familyId, inviterName) {
     // Optional: write back to Firestore that email was sent?
     // return admin.firestore().collection(...).doc(...).update({ inviteStatus: 'sent' });
     // keeping it 'pending' until they actually accept is fine.
+
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: inviterName, // Using name as ID is not ideal, but we lack UID here. Maybe use familyId temporarily.
+      event: "invitation_email_sent",
+      properties: {
+        recipient_email: email,
+        family_id: familyId,
+      },
+    });
+    await flushPostHog();
   } catch (error) {
     console.error("There was an error while sending the email:", error);
 
@@ -268,10 +280,33 @@ exports.createUserAndJoinFamily = onCall(async (request) => {
 
       await batch.commit();
 
+      const posthog = getPostHogClient();
+      posthog.capture({
+        distinctId: uid,
+        event: "family_joined",
+        properties: {
+          family_id: targetFamilyId,
+          role: "member",
+          method: "create_user_flow",
+        },
+      });
+      await flushPostHog();
+
       return { success: true, familyId: targetFamilyId, role: "member" };
     }
   } catch (error) {
     console.error("Error in createUserAndJoinFamily:", error);
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: uid || "unknown_uid",
+      event: "user_creation_failed",
+      properties: {
+        error: error.message,
+        email: email,
+      },
+    });
+    await flushPostHog();
+
     if (error.code) {
       throw error; // Re-throw HttpsError
     }
@@ -383,6 +418,17 @@ exports.updateUserProfile = onCall(async (request) => {
   try {
     await userRef.update(updateData);
     console.log(`User profile updated for UID: ${uid}`);
+
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: uid,
+      event: "user_profile_updated",
+      properties: {
+        updated_fields: Object.keys(updateData),
+      },
+    });
+    await flushPostHog();
+
     return { success: true };
   } catch (error) {
     console.error("Error in updateUserProfile:", error);
@@ -445,6 +491,19 @@ exports.joinFamily = onCall(async (request) => {
     batch.update(userRef, { familyId: familyCode });
 
     await batch.commit();
+
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: uid,
+      event: "family_joined",
+      properties: {
+        family_id: familyCode,
+        role: "member",
+        method: "join_family_flow",
+      },
+    });
+    await flushPostHog();
+
     return { success: true };
   } catch (error) {
     console.error("Error in joinFamily:", error);
@@ -497,6 +556,18 @@ exports.leaveFamily = onCall(async (request) => {
     batch.update(userRef, { familyId: uid });
 
     await batch.commit();
+
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: uid,
+      event: "family_left",
+      properties: {
+        left_family_id: currentFamilyId,
+        new_family_id: uid, // Reverted to personal
+      },
+    });
+    await flushPostHog();
+
     return { success: true };
   } catch (error) {
     console.error("Error in leaveFamily:", error);
@@ -660,9 +731,31 @@ exports.googlePlayBillingWebhook = onMessagePublished({
   // We should fetch the latest status from Google Play API to be sure.
 
   try {
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: "server_webhook_handler",
+      event: "google_play_webhook_received",
+      properties: {
+        raw_notification: notification,
+        subscription_id: subscriptionId,
+        message_id: event.id,
+      },
+    });
+
     await updateSubscriptionStatus(subscriptionId, purchaseToken);
   } catch (error) {
     console.error("Error updating subscription from RTDN:", error);
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: "server_webhook_handler",
+      event: "google_play_webhook_error",
+      properties: {
+        error: error.message,
+        subscription_id: subscriptionId,
+      },
+    });
+  } finally {
+    await flushPostHog();
   }
 });
 
@@ -671,8 +764,9 @@ exports.googlePlayBillingWebhook = onMessagePublished({
  * Fetches latest info from Google Play Developer API.
  * @param {string} subscriptionId The ID of the subscription.
  * @param {string} purchaseToken The token of the purchase.
+ * @param {string} [targetUid] Optional UID to update directly, bypassing token lookup.
  */
-async function updateSubscriptionStatus(subscriptionId, purchaseToken) {
+async function updateSubscriptionStatus(subscriptionId, purchaseToken, targetUid) {
   const { google } = require("googleapis");
 
   try {
@@ -701,22 +795,29 @@ async function updateSubscriptionStatus(subscriptionId, purchaseToken) {
     // Check if subscription is still valid
     const isValid = expiryTimeMillis > Date.now() && !isRevoked;
 
-    // 3. Find user by purchaseToken
+    // 3. Find user
     const firestore = admin.firestore();
-    const userQuery = await firestore.collection("users")
-      .where("activePurchaseToken", "==", purchaseToken)
-      .limit(1)
-      .get();
+    let userRef;
 
-    if (userQuery.empty) {
-      console.warn("No user found with purchase token:", purchaseToken);
-      return;
+    if (targetUid) {
+      userRef = firestore.collection("users").doc(targetUid);
+    } else {
+      // Fallback to token lookup (for RTDN webhooks)
+      const userQuery = await firestore.collection("users")
+        .where("activePurchaseToken", "==", purchaseToken)
+        .limit(1)
+        .get();
+
+      if (userQuery.empty) {
+        console.warn("No user found with purchase token:", purchaseToken);
+        return;
+      }
+      userRef = userQuery.docs[0].ref;
     }
 
-    const userDoc = userQuery.docs[0];
-    const uid = userDoc.id;
+    const uid = userRef.id;
 
-    await userDoc.ref.update({
+    await userRef.update({
       subscriptionTier: isValid ? "paid" : "free",
       subscriptionId: subscriptionId,
       subscriptionExpiry: admin.firestore.Timestamp.fromMillis(expiryTimeMillis),
@@ -724,6 +825,21 @@ async function updateSubscriptionStatus(subscriptionId, purchaseToken) {
     });
 
     console.log(`Updated subscription for user ${uid} to ${isValid ? "paid" : "free"}`);
+
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: uid, // Correlate with the actual user
+      event: "subscription_status_updated",
+      properties: {
+        status: isValid ? "paid" : "free",
+        subscription_id: subscriptionId,
+        expiry_time: expiryTimeMillis,
+        is_revoked: isRevoked,
+        cancel_reason: purchase.cancelReason,
+        payment_state: purchase.paymentState,
+        source: "google_play_rtdn",
+      },
+    });
   } catch (error) {
     console.error("Error calling Google Play API:", error);
     throw error;
@@ -743,14 +859,15 @@ exports.verifyPurchase = onCall({
     throw new HttpsError("unauthenticated", "Unauthorized");
   }
 
-  // Store the active token so webhooks can find the user
+  // Store the active token so webhooks can find the user later
   const firestore = admin.firestore();
   await firestore.collection("users").doc(uid).update({
     activePurchaseToken: purchaseToken,
   });
 
   try {
-    await updateSubscriptionStatus(subscriptionId, purchaseToken);
+    // Pass uid directly to avoid race condition with the update above
+    await updateSubscriptionStatus(subscriptionId, purchaseToken, uid);
     return { success: true };
   } catch (error) {
     console.error("Error in verifyPurchase:", error);

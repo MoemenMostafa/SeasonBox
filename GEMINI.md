@@ -567,6 +567,7 @@ The AI will apply common architectural patterns to ensure a well-structured appl
 
 * **Centralized Error Handling**: Implement mechanisms to gracefully handle errors across the application (e.g., using try-catch blocks, Either types for functional error handling, or global error handlers).
 * **Logging**: Incorporate logging for debugging and monitoring application behavior.
+  * **Preferred Method**: Use `PostHogService.log` for all application logging to ensure logs are captured in PostHog and printed to the console with proper formatting. Avoid using `debugPrint` or `print` directly.
 
 ### **Logging with `dart:developer`**
 

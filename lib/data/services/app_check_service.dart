@@ -1,5 +1,6 @@
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/foundation.dart';
+import 'posthog_service.dart';
 
 class AppCheckService {
   final FirebaseAppCheck _appCheck;
@@ -10,7 +11,8 @@ class AppCheckService {
   Future<void> initialize() async {
     // Skip App Check on Web platform
     if (kIsWeb) {
-      debugPrint('Skipping Firebase App Check on Web platform');
+      PostHogService.log('Skipping Firebase App Check on Web platform',
+          level: LogLevel.info);
       return;
     }
 
@@ -30,15 +32,17 @@ class AppCheckService {
         appleProvider: AppleProvider.deviceCheck,
       );
 
-      debugPrint('Firebase App Check initialized');
+      PostHogService.log('Firebase App Check initialized',
+          level: LogLevel.info);
 
       // If in debug mode, print the debug token
       if (kDebugMode) {
         final token = await _appCheck.getToken();
-        debugPrint('App Check debug token: $token');
+        PostHogService.log('App Check debug token: $token',
+            level: LogLevel.debug);
       }
     } catch (e) {
-      debugPrint('Error initializing Firebase App Check: $e');
+      PostHogService().logError('app_check_init_error', e);
     }
   }
 
@@ -46,7 +50,7 @@ class AppCheckService {
     try {
       return await _appCheck.getToken();
     } catch (e) {
-      debugPrint('Error getting App Check token: $e');
+      PostHogService().logError('app_check_token_error', e);
       return null;
     }
   }

@@ -2516,10 +2516,28 @@ abstract class AppLocalizations {
   /// **'Free'**
   String get subscription_tier_freePrice;
 
+  /// Button text to restore purchases
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Purchases'**
+  String get subscription_restore_btn;
+
+  /// Message shown when purchases are restored
+  ///
+  /// In en, this message translates to:
+  /// **'Purchases restored successfully.'**
+  String get subscription_restore_success;
+
+  /// Message shown when purchase restoration fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to restore purchases: {error}'**
+  String subscription_restore_failed(String error);
+
   /// No description provided for @subscription_tier_premiumPrice.
   ///
   /// In en, this message translates to:
-  /// **'€{price}{period}'**
+  /// **'{price}{period}'**
   String subscription_tier_premiumPrice(String price, String period);
 
   /// No description provided for @subscription_tier_freeDesc.

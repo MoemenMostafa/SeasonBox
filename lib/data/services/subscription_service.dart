@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import '../models/app_user.dart';
@@ -57,8 +58,9 @@ class SubscriptionService extends ChangeNotifier {
       return;
     }
     try {
-      debugPrint('SubscriptionService: [PLATFORM] $defaultTargetPlatform');
-      debugPrint('SubscriptionService: [DEBUG_MODE] $kDebugMode');
+      PostHogService.log(
+          'SubscriptionService: [PLATFORM] $defaultTargetPlatform');
+      PostHogService.log('SubscriptionService: [DEBUG_MODE] $kDebugMode');
       _lastError = null;
 
       // Retry logic for initial connection
@@ -66,15 +68,16 @@ class SubscriptionService extends ChangeNotifier {
       const int maxRetries = 2;
 
       while (retryCount <= maxRetries) {
-        debugPrint(
+        PostHogService.log(
             'SubscriptionService: Checking availability (attempt ${retryCount + 1})...');
         _available = await _iap.isAvailable();
 
         if (_available) break;
 
         if (retryCount < maxRetries) {
-          debugPrint(
-              'SubscriptionService: Not available, retrying in 2 seconds...');
+          PostHogService.log(
+              'SubscriptionService: Not available, retrying in 2 seconds...',
+              level: LogLevel.warning);
           await Future.delayed(const Duration(seconds: 2));
         }
         retryCount++;
@@ -119,7 +122,7 @@ class SubscriptionService extends ChangeNotifier {
   Future<void> loadProducts() async {
     final productIds = _remoteConfigService.getSubscriptionProductIds();
     final Set<String> kIds = productIds.values.toSet();
-    debugPrint('SubscriptionService: Querying products for IDs: $kIds');
+    PostHogService.log('SubscriptionService: Querying products for IDs: $kIds');
 
     await PostHogService().trackLatency('load_subscription_products', () async {
       final ProductDetailsResponse response =
@@ -142,7 +145,7 @@ class SubscriptionService extends ChangeNotifier {
       }
 
       _products = response.productDetails;
-      debugPrint(
+      PostHogService.log(
           'SubscriptionService: response.productDetails.length = ${_products.length}');
 
       PostHogService()
@@ -165,8 +168,8 @@ class SubscriptionService extends ChangeNotifier {
     late PurchaseParam purchaseParam;
 
     if (product is GooglePlayProductDetails && basePlanId != null) {
-      final dynamic googleProduct = product;
-      final offers = googleProduct.subscriptionOfferDetails;
+      final GooglePlayProductDetails googleProduct = product;
+      final offers = googleProduct.productDetails.subscriptionOfferDetails;
       if (offers != null && offers.isNotEmpty) {
         purchaseParam = GooglePlayPurchaseParam(
           productDetails: product,
@@ -191,8 +194,8 @@ class SubscriptionService extends ChangeNotifier {
         );
 
     if (product is GooglePlayProductDetails) {
-      final dynamic googleProduct = product;
-      final offers = googleProduct.subscriptionOfferDetails;
+      final GooglePlayProductDetails googleProduct = product;
+      final offers = googleProduct.productDetails.subscriptionOfferDetails;
       if (offers != null && offers.isNotEmpty) {
         final offer = offers.firstWhere(
           (o) => o.basePlanId == basePlanId,
@@ -220,7 +223,8 @@ class SubscriptionService extends ChangeNotifier {
         // Show pending UI if needed
       } else {
         if (purchaseDetails.status == PurchaseStatus.error) {
-          debugPrint('Purchase error: ${purchaseDetails.error}');
+          PostHogService.log('Purchase error: ${purchaseDetails.error}',
+              level: LogLevel.error);
         } else if (purchaseDetails.status == PurchaseStatus.purchased ||
             purchaseDetails.status == PurchaseStatus.restored) {
           final bool valid = await _verifyPurchase(purchaseDetails);
@@ -235,19 +239,50 @@ class SubscriptionService extends ChangeNotifier {
     }
   }
 
+  /// Restoration error or status message.
+  String? get verificationError => _verificationError;
+  String? _verificationError;
+
+  Future<void> restorePurchases() async {
+    PostHogService.log('SubscriptionService: Restoring purchases...',
+        level: LogLevel.info);
+    _verificationError = null;
+    notifyListeners();
+    try {
+      await _iap.restorePurchases();
+    } catch (e) {
+      _verificationError = 'Restoration failed: $e';
+      PostHogService().logError('subscription_restore_failed', e);
+      notifyListeners();
+    }
+  }
+
   Future<bool> _verifyPurchase(PurchaseDetails purchaseDetails) async {
     return await PostHogService().trackLatency('verify_subscription_purchase',
         () async {
+      _verificationError = null;
+      notifyListeners();
       try {
         final callable =
             FirebaseFunctions.instance.httpsCallable('verifyPurchase');
+
+        final user = await FirebaseAuth.instance.currentUser;
+        if (user == null) throw Exception('User not logged in');
+
         final result = await callable.call({
+          'uid': user.uid,
           'subscriptionId': purchaseDetails.productID,
           'purchaseToken':
               purchaseDetails.verificationData.serverVerificationData,
         });
 
         final success = result.data['success'] == true;
+
+        if (!success) {
+          _verificationError = result.data['message'] ?? 'Verification failed';
+          notifyListeners();
+        }
+
         PostHogService()
             .captureEvent('subscription_verification_result', properties: {
           'success': success,
@@ -256,6 +291,8 @@ class SubscriptionService extends ChangeNotifier {
 
         return success;
       } catch (e) {
+        _verificationError = 'Verification error: ${e.toString()}';
+        notifyListeners(); // Notify UI of the error
         PostHogService()
             .logError('subscription_verification_failed', e, context: {
           'product_id': purchaseDetails.productID,

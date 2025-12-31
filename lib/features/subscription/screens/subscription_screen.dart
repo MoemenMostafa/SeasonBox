@@ -24,10 +24,38 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   bool _isYearly = true; // Default to yearly for best value
 
   @override
+  void dispose() {
+    final subscriptionService = context.read<SubscriptionService>();
+    subscriptionService.removeListener(_handleSubscriptionUpdate);
+    super.dispose();
+  }
+
+  @override
   void initState() {
     super.initState();
     _fetchPricing();
     _trackScreenView();
+    // Listen for verification errors from the service
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context
+          .read<SubscriptionService>()
+          .addListener(_handleSubscriptionUpdate);
+    });
+  }
+
+  void _handleSubscriptionUpdate() {
+    if (!mounted) return;
+    final service = context.read<SubscriptionService>();
+    if (service.verificationError != null) {
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              l10n.subscription_restore_failed(service.verificationError!)),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   void _trackScreenView() {
@@ -266,6 +294,32 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                     l10n.subscription_cancelAnytime,
                     textAlign: TextAlign.center,
                     style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: () async {
+                      await context
+                          .read<SubscriptionService>()
+                          .restorePurchases();
+                      if (!context.mounted) return;
+                      final error =
+                          context.read<SubscriptionService>().verificationError;
+                      if (error != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content:
+                                  Text(l10n.subscription_restore_failed(error)),
+                              backgroundColor: Colors.red),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text(l10n.subscription_restore_success),
+                              backgroundColor: Colors.green),
+                        );
+                      }
+                    },
+                    child: Text(l10n.subscription_restore_btn),
                   ),
                 ],
               ),

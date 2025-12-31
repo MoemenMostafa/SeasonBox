@@ -449,7 +449,10 @@
   "subscription_tier_freeTitle": "Kostenlose Stufe",
   "subscription_tier_premiumTitle": "Premium-Stufe",
   "subscription_tier_freePrice": "Kostenlos",
-  "subscription_tier_premiumPrice": "€{price}{period}",
+  "subscription_restore_btn": "Einkäufe wiederherstellen",
+  "subscription_restore_success": "Einkäufe erfolgreich wiederhergestellt.",
+  "subscription_restore_failed": "Wiederherstellung fehlgeschlagen: {error}",
+  "subscription_tier_premiumPrice": "{price}{period}",
   "@subscription_tier_premiumPrice": {
     "placeholders": {
       "price": {"type": "String"},

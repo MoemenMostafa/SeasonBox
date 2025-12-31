@@ -450,7 +450,10 @@
   "subscription_tier_freeTitle": "Livello Gratuito",
   "subscription_tier_premiumTitle": "Livello Premium",
   "subscription_tier_freePrice": "Gratis",
-  "subscription_tier_premiumPrice": "€{price}{period}",
+  "subscription_restore_btn": "Ripristina acquisti",
+  "subscription_restore_success": "Acquisti ripristinati con successo.",
+  "subscription_restore_failed": "Ripristino fallito: {error}",
+  "subscription_tier_premiumPrice": "{price}{period}",
   "@subscription_tier_premiumPrice": {
     "placeholders": {
       "price": {"type": "String"},

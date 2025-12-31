@@ -674,7 +674,24 @@
   "subscription_tier_freeTitle": "Free Tier",
   "subscription_tier_premiumTitle": "Premium Tier",
   "subscription_tier_freePrice": "Free",
-  "subscription_tier_premiumPrice": "€{price}{period}",
+  "subscription_restore_btn": "Restore Purchases",
+  "@subscription_restore_btn": {
+    "description": "Button text to restore purchases"
+  },
+  "subscription_restore_success": "Purchases restored successfully.",
+  "@subscription_restore_success": {
+    "description": "Message shown when purchases are restored"
+  },
+  "subscription_restore_failed": "Failed to restore purchases: {error}",
+  "@subscription_restore_failed": {
+    "description": "Message shown when purchase restoration fails",
+    "placeholders": {
+        "error": {
+            "type": "String"
+        }
+    }
+  },
+  "subscription_tier_premiumPrice": "{price}{period}",
   "@subscription_tier_premiumPrice": {
     "placeholders": {
       "price": {"type": "String"},
