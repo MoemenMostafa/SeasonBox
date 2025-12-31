@@ -38,11 +38,19 @@
           }
         },
         {
-          "client_id": "839774020308-m7hbqbk6mcnh67gvh2fl3oboohisluon.apps.googleusercontent.com",
+          "client_id": "839774020308-lk0go3o9oohdqe4k2hlppsv6slfrlq43.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "io.mos.seasonbox",
-            "certificate_hash": "e84d69dbae71a0097cb87d96f8943f85bde028ed"
+            "certificate_hash": "0bdfed74bc83b5e595164adb0a1be0d90d9bcee9"
+          }
+        },
+        {
+          "client_id": "839774020308-pfgk3t2sh4es1hii1u2l50hjrp76cvjr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "io.mos.seasonbox",
+            "certificate_hash": "4a157409b555c12192a6967d1eccea0f0ad6f208"
           }
         },
         {

@@ -19,8 +19,12 @@ class RemoteConfigService {
         'yearly': '19.99',
       }),
       'subscription_product_ids': jsonEncode({
-        'monthly': 'premium_monthly',
-        'yearly': 'premium_yearly',
+        'monthly': 'premium',
+        'yearly': 'premium',
+      }),
+      'subscription_base_plan_ids': jsonEncode({
+        'monthly': 'monthly',
+        'yearly': 'yearly',
       }),
       'enable_demo_mode': true,
     });
@@ -49,13 +53,29 @@ class RemoteConfigService {
     try {
       final Map<String, dynamic> data = jsonDecode(jsonString);
       return {
-        'monthly': data['monthly']?.toString() ?? 'premium_monthly',
-        'yearly': data['yearly']?.toString() ?? 'premium_yearly',
+        'monthly': data['monthly']?.toString() ?? 'premium',
+        'yearly': data['yearly']?.toString() ?? 'premium',
       };
     } catch (e) {
       return {
-        'monthly': 'premium_monthly',
-        'yearly': 'premium_yearly',
+        'monthly': 'premium',
+        'yearly': 'premium',
+      };
+    }
+  }
+
+  Map<String, String> getSubscriptionBasePlanIds() {
+    final jsonString = _remoteConfig.getString('subscription_base_plan_ids');
+    try {
+      final Map<String, dynamic> data = jsonDecode(jsonString);
+      return {
+        'monthly': data['monthly']?.toString() ?? 'monthly',
+        'yearly': data['yearly']?.toString() ?? 'yearly',
+      };
+    } catch (e) {
+      return {
+        'monthly': 'monthly',
+        'yearly': 'yearly',
       };
     }
   }

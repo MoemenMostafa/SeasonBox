@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.7.1+39
+- **Subscriptions & Billing**:
+    - **Google Play Refactor**: Migrated to a single Product ID (`premium`) with multiple Base Plans (`monthly`, `yearly`) for simplified subscription management.
+    - **Live Pricing**: Implemented direct pricing retrieval from Google Play base plans, ensuring users always see accurate local prices.
+    - **Base Plan Selection**: Enhanced the purchase flow to support specific base plan selection for a more streamlined user experience.
+    - **Documentation**: Added comprehensive subscription pricing and configuration documentation.
+
 ## 1.7.0+38
 - **Premium Subscriptions**:
     - **Google Play Integration**: Comprehensive support for in-app subscriptions on Android.

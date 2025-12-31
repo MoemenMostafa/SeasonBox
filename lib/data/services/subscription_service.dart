@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import '../models/app_user.dart';
 import '../models/family.dart';
 import 'remote_config_service.dart';
@@ -54,9 +55,49 @@ class SubscriptionService extends ChangeNotifier {
 
   List<ProductDetails> get products => _products;
 
-  Future<void> buySubscription(ProductDetails product) async {
-    final PurchaseParam purchaseParam = PurchaseParam(productDetails: product);
+  Future<void> buySubscription(ProductDetails product,
+      {String? basePlanId}) async {
+    late PurchaseParam purchaseParam;
+
+    if (product is GooglePlayProductDetails && basePlanId != null) {
+      final dynamic googleProduct = product;
+      final offers = googleProduct.subscriptionOfferDetails;
+      if (offers != null && offers.isNotEmpty) {
+        purchaseParam = GooglePlayPurchaseParam(
+          productDetails: product,
+          applicationUserName: null,
+          changeSubscriptionParam: null,
+        );
+      } else {
+        purchaseParam = PurchaseParam(productDetails: product);
+      }
+    } else {
+      purchaseParam = PurchaseParam(productDetails: product);
+    }
+
     await _iap.buyNonConsumable(purchaseParam: purchaseParam);
+  }
+
+  /// Gets the price for a specific base plan from the product details.
+  String? getBasePlanPrice(String productId, String basePlanId) {
+    final product = _products.cast<ProductDetails?>().firstWhere(
+          (p) => p?.id == productId,
+          orElse: () => null,
+        );
+
+    if (product is GooglePlayProductDetails) {
+      final dynamic googleProduct = product;
+      final offers = googleProduct.subscriptionOfferDetails;
+      if (offers != null && offers.isNotEmpty) {
+        final offer = offers.firstWhere(
+          (o) => o.basePlanId == basePlanId,
+          orElse: () => offers.first,
+        );
+        return offer.pricingPhases.first.formattedPrice;
+      }
+    }
+
+    return product?.price;
   }
 
   Future<void> _onPurchaseUpdate(
@@ -86,8 +127,6 @@ class SubscriptionService extends ChangeNotifier {
       final callable =
           FirebaseFunctions.instance.httpsCallable('verifyPurchase');
       final result = await callable.call({
-        'uid': purchaseDetails.verificationData
-            .localVerificationData, // This is just a placeholder, in reality we get UID from auth
         'subscriptionId': purchaseDetails.productID,
         'purchaseToken':
             purchaseDetails.verificationData.serverVerificationData,

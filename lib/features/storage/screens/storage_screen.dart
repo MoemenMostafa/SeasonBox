@@ -839,6 +839,7 @@ class _StorageScreenState extends State<StorageScreen> {
                   Icons.print,
                   Colors.teal,
                   theme,
+                  onTap: () => context.push('/print-labels'),
                 ),
               ),
             ],

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:provider/provider.dart';
 import 'package:seasonbox/app/providers/user_profile_provider.dart';
 import 'package:seasonbox/data/services/subscription_service.dart';
@@ -75,17 +74,21 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     final subscriptionService = context.watch<SubscriptionService>();
     final productIds =
         context.read<RemoteConfigService>().getSubscriptionProductIds();
+    final basePlanIds =
+        context.read<RemoteConfigService>().getSubscriptionBasePlanIds();
 
-    final monthlyProduct = subscriptionService.products
-        .cast<ProductDetails?>()
-        .firstWhere((p) => p?.id == productIds['monthly'], orElse: () => null);
-    final yearlyProduct = subscriptionService.products
-        .cast<ProductDetails?>()
-        .firstWhere((p) => p?.id == productIds['yearly'], orElse: () => null);
-
-    final monthlyPrice =
-        monthlyProduct?.price ?? _pricing?['monthly'] ?? '4.99';
-    final yearlyPrice = yearlyProduct?.price ?? _pricing?['yearly'] ?? '49.99';
+    final monthlyPrice = subscriptionService.getBasePlanPrice(
+          productIds['monthly']!,
+          basePlanIds['monthly']!,
+        ) ??
+        _pricing?['monthly'] ??
+        '4.99';
+    final yearlyPrice = subscriptionService.getBasePlanPrice(
+          productIds['yearly']!,
+          basePlanIds['yearly']!,
+        ) ??
+        _pricing?['yearly'] ??
+        '49.99';
     final currentPrice = _isYearly ? yearlyPrice : monthlyPrice;
     final periodSuffix = _isYearly ? '/yr' : '/mo';
 
@@ -169,20 +172,29 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
                       final subscriptionService =
                           context.read<SubscriptionService>();
-                      final productIds = context
-                          .read<RemoteConfigService>()
-                          .getSubscriptionProductIds();
-                      final targetId = _isYearly
+                      final remoteConfig = context.read<RemoteConfigService>();
+                      final productIds =
+                          remoteConfig.getSubscriptionProductIds();
+                      final basePlanIds =
+                          remoteConfig.getSubscriptionBasePlanIds();
+
+                      final targetProductId = _isYearly
                           ? productIds['yearly']
                           : productIds['monthly'];
+                      final targetBasePlanId = _isYearly
+                          ? basePlanIds['yearly']
+                          : basePlanIds['monthly'];
 
                       final product = subscriptionService.products.firstWhere(
-                        (p) => p.id == targetId,
+                        (p) => p.id == targetProductId,
                         orElse: () => throw Exception('Product not found'),
                       );
 
                       try {
-                        await subscriptionService.buySubscription(product);
+                        await subscriptionService.buySubscription(
+                          product,
+                          basePlanId: targetBasePlanId,
+                        );
                       } catch (e) {
                         if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
