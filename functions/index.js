@@ -684,7 +684,10 @@ async function performStorageCleanup(dryRun = true) {
  * Scheduled function to clean up orphaned images daily.
  */
 const { onSchedule } = require("firebase-functions/v2/scheduler");
-exports.cleanupStorage = onSchedule("0 3 * * *", async (event) => {
+exports.cleanupStorage = onSchedule({
+  schedule: "0 3 * * *",
+  timeZone: "UTC",
+}, async (event) => {
   console.log("Starting daily storage cleanup...");
   const result = await performStorageCleanup(false);
   console.log(`Cleanup finished. Deleted ${result.orphanedCount} orphaned images.`);
