@@ -104,20 +104,14 @@ jobs:
         working-directory: functions
         run: npm ci
 
-      - name: Deploy Firebase
-        env:
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
 
+      - name: Deploy Firebase
         run: |
-          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
-            echo "❌ FIREBASE_SERVICE_ACCOUNT_KEY secret not set"
-            exit 1
-          fi
-          
-          # Decode service account key
-          echo "$FIREBASE_SERVICE_ACCOUNT" | base64 --decode > ${{ github.workspace }}/service-account.json
-          export GOOGLE_APPLICATION_CREDENTIALS=${{ github.workspace }}/service-account.json
-          
           # Verify Subscription Setup
           echo "🔍 Verifying subscription setup..."
           cd scripts && npm install && node verify_subscription_setup.js && cd ..
@@ -125,6 +119,3 @@ jobs:
           # Deploy firestore and functions
           # Note: secrets must be set in the environment for functions that require them
           firebase deploy --only firestore,functions --project seasonbox-f4b24
-          
-          # Clean up
-          rm ${{ github.workspace }}/service-account.json

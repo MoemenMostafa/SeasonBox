@@ -79,11 +79,11 @@ jobs:
         run: flutter analyze
         continue-on-error: true
 
-      - name: Decode Firebase service account key
-        env:
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
-        run: |
-          echo "$FIREBASE_SERVICE_ACCOUNT" | base64 --decode > ${{ github.workspace }}/firebase-service-account.json
+      - name: Authenticate to Firebase
+        id: firebase_auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
 
       - name: Decode Android keystore
         env:
@@ -121,7 +121,7 @@ jobs:
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
           appId: ${{ secrets.FIREBASE_APP_ID }}
-          serviceCredentialsFile: ${{ github.workspace }}/firebase-service-account.json
+          serviceCredentialsFile: ${{ steps.firebase_auth.outputs.credentials_file_path }}
           groups: testers
           file: build/app/outputs/flutter-apk/app-release.apk
           releaseNotes: |
@@ -132,16 +132,16 @@ jobs:
             Commit: ${{ github.sha }}
             Branch: ${{ github.ref_name }}
 
-      - name: Decode Google Play service account key
-        env:
-          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
-        run: |
-          echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" | base64 --decode > ${{ github.workspace }}/google-play-service-account.json
+      - name: Authenticate to Google Play
+        id: play_auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
 
       - name: Upload AAB to Google Play Store
         uses: r0adkll/upload-google-play@v1
         with:
-          serviceAccountJson: ${{ github.workspace }}/google-play-service-account.json
+          serviceAccountJson: ${{ steps.play_auth.outputs.credentials_file_path }}
           packageName: io.mos.seasonbox
           releaseFiles: build/app/outputs/bundle/release/app-release.aab
           track: internal
@@ -164,7 +164,5 @@ jobs:
       - name: Clean up sensitive files
         if: always()
         run: |
-          rm -f ${{ github.workspace }}/firebase-service-account.json
-          rm -f ${{ github.workspace }}/google-play-service-account.json
           rm -f ${{ github.workspace }}/android/app/release-keystore.jks
           rm -f ${{ github.workspace }}/android/key.properties
