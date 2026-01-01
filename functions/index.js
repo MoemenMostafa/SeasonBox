@@ -383,7 +383,10 @@ exports.countMembers = onDocumentWritten(
         });
         await logger.info(`Updated memberCount for family ${familyId} by ${change}`);
       } catch (error) {
-        await logger.error(`Error updating memberCount for family ${familyId}: ${error.message}`, { context: { error } });
+        await logger.error(
+          `Error updating memberCount for family ${familyId}: ${error.message}`,
+          { context: { error } },
+        );
       }
     }
 
@@ -758,7 +761,7 @@ exports.googlePlayBillingWebhook = onMessagePublished({
     });
 
     await logger.info("Processing Google Play Notification", {
-      context: { subscriptionId, purchaseToken: purchaseToken.substring(0, 10) }
+      context: { subscriptionId, purchaseToken: purchaseToken.substring(0, 10) },
     });
 
     await updateSubscriptionStatus(subscriptionId, purchaseToken);
@@ -848,7 +851,10 @@ async function updateSubscriptionStatus(subscriptionId, purchaseToken, targetUid
       lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    await logger.info(`Updated subscription for user ${uid} to ${isValid ? "paid" : "free"}`, { uid, sessionId: finalSessionId });
+    await logger.info(
+      `Updated subscription for user ${uid} to ${isValid ? "paid" : "free"}`,
+      { uid, sessionId: finalSessionId },
+    );
 
     const posthog = getPostHogClient();
     posthog.capture({
