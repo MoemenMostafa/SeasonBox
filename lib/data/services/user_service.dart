@@ -39,11 +39,13 @@ class UserService {
     try {
       final result = await PostHogService()
           .trackLatency('createUserAndJoinFamily_function', () async {
+        final sessionId = await PostHogService().getSessionId();
         return await functions.httpsCallable('createUserAndJoinFamily').call({
           'uid': firebaseUser.uid,
           'email': firebaseUser.email,
           'displayName': firebaseUser.displayName,
           'familyCode': inviteCode,
+          'sessionId': sessionId,
         });
       });
 
@@ -73,10 +75,12 @@ class UserService {
     final functions = FirebaseFunctions.instance;
     try {
       await PostHogService().trackLatency('joinFamily_function', () async {
+        final sessionId = await PostHogService().getSessionId();
         return await functions.httpsCallable('joinFamily').call({
           'uid': uid,
           'email': email,
           'familyCode': familyCode,
+          'sessionId': sessionId,
         });
       });
       PostHogService.log('Joined family successfully via function');
@@ -96,9 +100,11 @@ class UserService {
     final functions = FirebaseFunctions.instance;
     try {
       await PostHogService().trackLatency('leaveFamily_function', () async {
+        final sessionId = await PostHogService().getSessionId();
         return await functions.httpsCallable('leaveFamily').call({
           'uid': uid,
           'currentFamilyId': currentFamilyId,
+          'sessionId': sessionId,
         });
       });
       PostHogService.log('Left family successfully via function');
@@ -126,6 +132,7 @@ class UserService {
     try {
       await PostHogService().trackLatency('updateUserProfile_function',
           () async {
+        final sessionId = await PostHogService().getSessionId();
         return await functions.httpsCallable('updateUserProfile').call({
           'uid': uid,
           if (displayName != null) 'displayName': displayName,
@@ -133,6 +140,7 @@ class UserService {
           if (familyName != null) 'familyName': familyName,
           if (role != null) 'role': role,
           if (preferences != null) 'preferences': preferences,
+          'sessionId': sessionId,
         });
       });
       PostHogService.log('User profile updated successfully via function');

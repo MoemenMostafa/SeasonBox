@@ -2737,6 +2737,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Subscription product not found: {id}'**
   String subscription_error_product_not_found(String id);
+
+  /// No description provided for @premium_congrats_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Congratulations!'**
+  String get premium_congrats_title;
+
+  /// No description provided for @premium_congrats_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You are now a SeasonBox Premium member.'**
+  String get premium_congrats_subtitle;
+
+  /// No description provided for @premium_congrats_message.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you for supporting us! You\'ve unlocked unlimited items, family sharing, and much more.'**
+  String get premium_congrats_message;
+
+  /// No description provided for @premium_congrats_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Awesome!'**
+  String get premium_congrats_button;
 }
 
 class _AppLocalizationsDelegate

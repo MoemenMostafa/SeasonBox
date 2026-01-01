@@ -266,14 +266,17 @@ class SubscriptionService extends ChangeNotifier {
         final callable =
             FirebaseFunctions.instance.httpsCallable('verifyPurchase');
 
-        final user = await FirebaseAuth.instance.currentUser;
+        final user = FirebaseAuth.instance.currentUser;
         if (user == null) throw Exception('User not logged in');
+
+        final sessionId = await PostHogService().getSessionId();
 
         final result = await callable.call({
           'uid': user.uid,
           'subscriptionId': purchaseDetails.productID,
           'purchaseToken':
               purchaseDetails.verificationData.serverVerificationData,
+          'sessionId': sessionId,
         });
 
         final success = result.data['success'] == true;

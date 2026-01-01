@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.7.5+43
+- **Premium Experience**:
+    - **Celebration Screen**: Added a new premium celebration screen with confetti and animations for newly upgraded users.
+    - **Seamless Flow**: Implemented automatic navigation to the celebration screen upon successful subscription verification.
+    - **Easter Egg**: Added a preview of the celebration screen in the Easter Egg section for discovery.
+- **Backend & Infrastructure**:
+    - **Enhanced Logging**: Introduced a centralized backend logger that mirrors logs to PostHog for better observability.
+    - **Traceability**: Improved session ID correlation between the mobile app and Cloud Functions.
+
+## 1.7.4+42
+- **Subscriptions & Billing**:
+    - **Restore Purchases**: Implemented "Restore Purchases" functionality on the subscription screen.
+    - **Verification Logic**: Fixed critical issues in server-side purchase verification.
+    - **Safety Checks**: Improved error handling during the purchase restoration process.
+- **Platform & Security**:
+    - **App Check**: Enhanced Firebase App Check integration for improved security.
+    - **Legal & Compliance**: Updated terms of service and website documentation.
+
 ## 1.7.3+41
 - **Subscription Store Improvements**:
     - **PostHog Integration**: Implemented comprehensive tracking for the subscription lifecycle (initialization, product loading, purchase updates, and verification).

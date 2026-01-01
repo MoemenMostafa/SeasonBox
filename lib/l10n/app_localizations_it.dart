@@ -1488,4 +1488,18 @@ class AppLocalizationsIt extends AppLocalizations {
   String subscription_error_product_not_found(String id) {
     return 'Prodotto di abbonamento non trovato: $id';
   }
+
+  @override
+  String get premium_congrats_title => 'Congratulazioni!';
+
+  @override
+  String get premium_congrats_subtitle =>
+      'Ora sei un membro Premium di SeasonBox.';
+
+  @override
+  String get premium_congrats_message =>
+      'Grazie per averci supportato! Hai sbloccato articoli illimitati, condivisione familiare e molto altro.';
+
+  @override
+  String get premium_congrats_button => 'Fantastico!';
 }

@@ -514,5 +514,9 @@
         "type": "String"
       }
     }
-  }
+  },
+  "premium_congrats_title": "Herzlichen Glückwunsch!",
+  "premium_congrats_subtitle": "Sie sind jetzt ein SeasonBox Premium-Mitglied.",
+  "premium_congrats_message": "Vielen Dank für Ihre Unterstützung! Sie haben unbegrenzte Artikel, Familienfreigabe und vieles mehr freigeschaltet.",
+  "premium_congrats_button": "Super!"
 }

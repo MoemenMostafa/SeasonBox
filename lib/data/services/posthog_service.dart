@@ -211,6 +211,31 @@ class PostHogService {
     });
   }
 
+  /// Get the current distinct ID
+  Future<String?> getDistinctId() async {
+    if (!_initialized) return null;
+    try {
+      return await Posthog().getDistinctId();
+    } catch (e) {
+      logError('posthog_getDistinctId_failed', e);
+      return null;
+    }
+  }
+
+  /// Get the current session ID
+  /// Note: This is useful for connecting backend logs to the mobile session.
+  Future<String?> getSessionId() async {
+    if (!_initialized) return null;
+    try {
+      // In posthog_flutter, the session ID isn't always directly exposed.
+      // We'll rely on distinctId for correlation, or you can pass a custom session identifier if needed.
+      // For now, let's just return the distinctId as the main anchor.
+      return await Posthog().getDistinctId();
+    } catch (e) {
+      return null;
+    }
+  }
+
   /// Track the latency of an operation
   Future<T> trackLatency<T>(
     String operationName,

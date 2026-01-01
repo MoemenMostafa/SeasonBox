@@ -5,6 +5,7 @@ const { defineJsonSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
 const nodemailer = require("nodemailer");
 const { getPostHogClient, flushPostHog } = require("./utils/posthogClient");
+const { logger } = require("./utils/logger");
 
 admin.initializeApp();
 
@@ -86,7 +87,7 @@ async function sendInvitationEmail(email, familyId, inviterName) {
 
   try {
     await mailTransport.sendMail(mailOptions);
-    console.log("Invitation email sent to:", email);
+    await logger.info(`Invitation email sent to: ${email}`);
     // Optional: write back to Firestore that email was sent?
     // return admin.firestore().collection(...).doc(...).update({ inviteStatus: 'sent' });
     // keeping it 'pending' until they actually accept is fine.
@@ -102,7 +103,7 @@ async function sendInvitationEmail(email, familyId, inviterName) {
     });
     await flushPostHog();
   } catch (error) {
-    console.error("There was an error while sending the email:", error);
+    await logger.error(`There was an error while sending the email: ${error.message}`, { context: { error } });
 
     return null;
   }
@@ -134,7 +135,7 @@ exports.onMemberRemoved = onDocumentWritten(
       return null;
     }
 
-    console.log(`Member ${memberId} removed from family ${familyId}. Reverting to personal family.`);
+    await logger.info(`Member ${memberId} removed from family ${familyId}. Reverting to personal family.`);
 
     const firestore = admin.firestore();
     const userRef = firestore.collection("users").doc(memberId);
@@ -169,7 +170,7 @@ exports.onMemberRemoved = onDocumentWritten(
         // Probably cleaner to just create a new fresh admin record.
       }, { merge: true });
 
-      console.log(`User ${memberId} reverted to personal family ${memberId}`);
+      await logger.info(`User ${memberId} reverted to personal family ${memberId}`, { uid: memberId });
     }
 
     return null;
@@ -182,7 +183,7 @@ exports.onMemberRemoved = onDocumentWritten(
  */
 
 exports.createUserAndJoinFamily = onCall(async (request) => {
-  const { uid, email, displayName, familyCode } = request.data;
+  const { uid, email, displayName, familyCode, sessionId } = request.data;
 
   // Verify the caller is authenticated and matches the UID
   if (!request.auth || request.auth.uid !== uid) {
@@ -211,6 +212,7 @@ exports.createUserAndJoinFamily = onCall(async (request) => {
       displayName,
       familyId: targetFamilyId,
       role: "member",
+      activeSessionId: sessionId,
     }, { merge: true });
 
     if (targetFamilyId === uid) {
@@ -285,6 +287,7 @@ exports.createUserAndJoinFamily = onCall(async (request) => {
         distinctId: uid,
         event: "family_joined",
         properties: {
+          $session_id: sessionId,
           family_id: targetFamilyId,
           role: "member",
           method: "create_user_flow",
@@ -295,12 +298,13 @@ exports.createUserAndJoinFamily = onCall(async (request) => {
       return { success: true, familyId: targetFamilyId, role: "member" };
     }
   } catch (error) {
-    console.error("Error in createUserAndJoinFamily:", error);
+    await logger.error(`Error in createUserAndJoinFamily: ${error.message}`, { context: { error } });
     const posthog = getPostHogClient();
     posthog.capture({
       distinctId: uid || "unknown_uid",
       event: "user_creation_failed",
       properties: {
+        $session_id: sessionId,
         error: error.message,
         email: email,
       },
@@ -340,9 +344,9 @@ exports.countItems = onDocumentWritten(
         await familyRef.update({
           itemCount: admin.firestore.FieldValue.increment(change),
         });
-        console.log(`Updated itemCount for family ${familyId} by ${change}`);
+        await logger.info(`Updated itemCount for family ${familyId} by ${change}`);
       } catch (error) {
-        console.error(`Error updating itemCount for family ${familyId}:`, error);
+        await logger.error(`Error updating itemCount for family ${familyId}: ${error.message}`, { context: { error } });
         // If family doc doesn't exist, we might need to create it or ignore
       }
     }
@@ -377,9 +381,9 @@ exports.countMembers = onDocumentWritten(
         await familyRef.update({
           memberCount: admin.firestore.FieldValue.increment(change),
         });
-        console.log(`Updated memberCount for family ${familyId} by ${change}`);
+        await logger.info(`Updated memberCount for family ${familyId} by ${change}`);
       } catch (error) {
-        console.error(`Error updating memberCount for family ${familyId}:`, error);
+        await logger.error(`Error updating memberCount for family ${familyId}: ${error.message}`, { context: { error } });
       }
     }
 
@@ -391,7 +395,7 @@ exports.countMembers = onDocumentWritten(
  * Callable function to update user profile securely.
  */
 exports.updateUserProfile = onCall(async (request) => {
-  const { uid, displayName, photoURL, familyName, role, preferences } = request.data;
+  const { uid, displayName, photoURL, familyName, role, preferences, sessionId } = request.data;
 
   // Verify the caller is authenticated and matches the UID
   if (!request.auth || request.auth.uid !== uid) {
@@ -417,21 +421,26 @@ exports.updateUserProfile = onCall(async (request) => {
 
   try {
     await userRef.update(updateData);
-    console.log(`User profile updated for UID: ${uid}`);
+    await logger.info(`User profile updated for UID: ${uid}`, { uid });
 
     const posthog = getPostHogClient();
     posthog.capture({
       distinctId: uid,
       event: "user_profile_updated",
       properties: {
+        $session_id: sessionId,
         updated_fields: Object.keys(updateData),
       },
     });
+
+    if (sessionId) {
+      await userRef.update({ activeSessionId: sessionId });
+    }
     await flushPostHog();
 
     return { success: true };
   } catch (error) {
-    console.error("Error in updateUserProfile:", error);
+    await logger.error(`Error in updateUserProfile: ${error.message}`, { uid, context: { error } });
     throw new HttpsError("internal", error.message);
   }
 });
@@ -440,7 +449,7 @@ exports.updateUserProfile = onCall(async (request) => {
  * Callable function to join a family securely.
  */
 exports.joinFamily = onCall(async (request) => {
-  const { uid, email, familyCode } = request.data;
+  const { uid, email, familyCode, sessionId } = request.data;
 
   if (!request.auth || request.auth.uid !== uid) {
     throw new HttpsError("unauthenticated", "Unauthorized access");
@@ -488,7 +497,10 @@ exports.joinFamily = onCall(async (request) => {
     });
 
     // 3. Update User's familyId
-    batch.update(userRef, { familyId: familyCode });
+    batch.update(userRef, {
+      familyId: familyCode,
+      activeSessionId: sessionId || admin.firestore.FieldValue.delete(), // update if provided
+    });
 
     await batch.commit();
 
@@ -497,6 +509,7 @@ exports.joinFamily = onCall(async (request) => {
       distinctId: uid,
       event: "family_joined",
       properties: {
+        $session_id: sessionId,
         family_id: familyCode,
         role: "member",
         method: "join_family_flow",
@@ -506,7 +519,7 @@ exports.joinFamily = onCall(async (request) => {
 
     return { success: true };
   } catch (error) {
-    console.error("Error in joinFamily:", error);
+    await logger.error(`Error in joinFamily: ${error.message}`, { context: { error } });
     if (error.code) throw error;
     throw new HttpsError("internal", error.message);
   }
@@ -516,7 +529,7 @@ exports.joinFamily = onCall(async (request) => {
  * Callable function to leave current family and revert to personal family.
  */
 exports.leaveFamily = onCall(async (request) => {
-  const { uid, currentFamilyId } = request.data;
+  const { uid, currentFamilyId, sessionId } = request.data;
 
   if (!request.auth || request.auth.uid !== uid) {
     throw new HttpsError("unauthenticated", "Unauthorized access");
@@ -562,6 +575,7 @@ exports.leaveFamily = onCall(async (request) => {
       distinctId: uid,
       event: "family_left",
       properties: {
+        $session_id: sessionId,
         left_family_id: currentFamilyId,
         new_family_id: uid, // Reverted to personal
       },
@@ -570,7 +584,7 @@ exports.leaveFamily = onCall(async (request) => {
 
     return { success: true };
   } catch (error) {
-    console.error("Error in leaveFamily:", error);
+    await logger.error(`Error in leaveFamily: ${error.message}`, { context: { error } });
     throw new HttpsError("internal", error.message);
   }
 });
@@ -584,41 +598,41 @@ async function getValidStoragePaths() {
 
   // 1. Collect from users (photoURL)
   const usersSnap = await firestore.collection("users").get();
-  usersSnap.forEach((doc) => {
+  for (const doc of usersSnap.docs) {
     const data = doc.data();
     if (data.photoURL) {
-      const path = extractPathFromUrl(data.photoURL);
+      const path = await extractPathFromUrl(data.photoURL);
       if (path) validPaths.add(path);
     }
-  });
+  }
 
   // 2. Collect from family members (photoUrl)
   const membersSnap = await firestore.collectionGroup("members").get();
-  membersSnap.forEach((doc) => {
+  for (const doc of membersSnap.docs) {
     const data = doc.data();
     if (data.photoUrl) {
-      const path = extractPathFromUrl(data.photoUrl);
+      const path = await extractPathFromUrl(data.photoUrl);
       if (path) validPaths.add(path);
     }
-  });
+  }
 
   // 3. Collect from items (photos: list of {full, thumb})
   const itemsSnap = await firestore.collectionGroup("items").get();
-  itemsSnap.forEach((doc) => {
+  for (const doc of itemsSnap.docs) {
     const data = doc.data();
     if (Array.isArray(data.photos)) {
-      data.photos.forEach((photo) => {
+      for (const photo of data.photos) {
         if (photo.full) {
-          const path = extractPathFromUrl(photo.full);
+          const path = await extractPathFromUrl(photo.full);
           if (path) validPaths.add(path);
         }
         if (photo.thumb) {
-          const path = extractPathFromUrl(photo.thumb);
+          const path = await extractPathFromUrl(photo.thumb);
           if (path) validPaths.add(path);
         }
-      });
+      }
     }
-  });
+  }
 
   return validPaths;
 }
@@ -628,13 +642,13 @@ async function getValidStoragePaths() {
  * @param {string} url The download URL.
  * @return {string|null} The storage path or null if invalid.
  */
-function extractPathFromUrl(url) {
+async function extractPathFromUrl(url) {
   try {
     if (!url || !url.includes("/o/")) return null;
     const parts = url.split("/o/")[1].split("?")[0];
     return decodeURIComponent(parts);
   } catch (e) {
-    console.error("Error extracting path from URL:", url, e);
+    await logger.error(`Error extracting path from URL: ${url}`, { context: { error: e } });
     return null;
   }
 }
@@ -665,9 +679,9 @@ async function performStorageCleanup(dryRun = true) {
       if (!dryRun) {
         try {
           await file.delete();
-          console.log(`Deleted orphaned storage image: ${file.name}`);
+          await logger.info(`Deleted orphaned storage image: ${file.name}`);
         } catch (e) {
-          console.error(`Failed to delete orphaned image: ${file.name}`, e);
+          await logger.error(`Failed to delete orphaned image: ${file.name}`, { context: { error: e } });
         }
       }
     }
@@ -688,18 +702,16 @@ exports.cleanupStorage = onSchedule({
   schedule: "0 3 * * *",
   timeZone: "UTC",
 }, async (event) => {
-  console.log("Starting daily storage cleanup...");
+  await logger.info("Starting daily storage cleanup...");
   const result = await performStorageCleanup(false);
-  console.log(`Cleanup finished. Deleted ${result.orphanedCount} orphaned images.`);
+  await logger.info(`Cleanup finished. Deleted ${result.orphanedCount} orphaned images.`);
   return result;
 });
 
-/**
- * Callable function for dry-run testing (manual or CI).
- */
 exports.cleanupStorageDryRun = onCall(async (request) => {
+  const { sessionId } = request.data;
   // Optional: check for admin role if needed
-  console.log("Starting storage cleanup dry-run...");
+  await logger.info("Starting storage cleanup dry-run...", { sessionId });
   const result = await performStorageCleanup(true);
   return result;
 });
@@ -716,16 +728,16 @@ exports.googlePlayBillingWebhook = onMessagePublished({
   const data = message.data ? Buffer.from(message.data, "base64").toString() : null;
 
   if (!data) {
-    console.error("No data in RTDN message");
+    await logger.error("No data in RTDN message");
     return;
   }
 
   const notification = JSON.parse(data);
-  console.log("Received Google Play Notification:", notification);
+  await logger.info("Received Google Play Notification", { context: { notification } });
 
   const subNotification = notification.subscriptionNotification;
   if (!subNotification) {
-    console.log("Not a subscription notification, skipping.");
+    await logger.info("Not a subscription notification, skipping.");
     return;
   }
 
@@ -745,9 +757,13 @@ exports.googlePlayBillingWebhook = onMessagePublished({
       },
     });
 
+    await logger.info("Processing Google Play Notification", {
+      context: { subscriptionId, purchaseToken: purchaseToken.substring(0, 10) }
+    });
+
     await updateSubscriptionStatus(subscriptionId, purchaseToken);
   } catch (error) {
-    console.error("Error updating subscription from RTDN:", error);
+    await logger.error(`Error updating subscription from RTDN: ${error.message}`, { context: { error } });
     const posthog = getPostHogClient();
     posthog.capture({
       distinctId: "server_webhook_handler",
@@ -768,13 +784,14 @@ exports.googlePlayBillingWebhook = onMessagePublished({
  * @param {string} subscriptionId The ID of the subscription.
  * @param {string} purchaseToken The token of the purchase.
  * @param {string} [targetUid] Optional UID to update directly, bypassing token lookup.
+ * @param {string} [sessionId] Optional PostHog session ID to correlate events.
  */
-async function updateSubscriptionStatus(subscriptionId, purchaseToken, targetUid) {
+async function updateSubscriptionStatus(subscriptionId, purchaseToken, targetUid, sessionId) {
   const { google } = require("googleapis");
 
   try {
     // 1. Authenticate with Google Play API
-    // We use the JSON secret which contains the service account key
+    await logger.info(`Authenticating for subscription ${subscriptionId}...`, { uid: targetUid, sessionId });
     const auth = new google.auth.GoogleAuth({
       credentials: playConfig.value(),
       scopes: ["https://www.googleapis.com/auth/androidpublisher"],
@@ -782,6 +799,7 @@ async function updateSubscriptionStatus(subscriptionId, purchaseToken, targetUid
     const androidpublisher = google.androidpublisher({ version: "v3", auth });
 
     // 2. Get Subscription status from Google Play
+    await logger.info(`Fetching status for token ${purchaseToken.substring(0, 10)}...`, { uid: targetUid, sessionId });
     const res = await androidpublisher.purchases.subscriptions.get({
       packageName: "io.mos.seasonbox",
       subscriptionId: subscriptionId,
@@ -789,7 +807,7 @@ async function updateSubscriptionStatus(subscriptionId, purchaseToken, targetUid
     });
 
     const purchase = res.data;
-    console.log("Play Store Purchase Data:", purchase);
+    await logger.debug("Play Store Purchase Data", { uid: targetUid, sessionId, context: { purchase } });
 
     // expiryTimeMillis is the source of truth for expiration
     const expiryTimeMillis = parseInt(purchase.expiryTimeMillis);
@@ -812,13 +830,16 @@ async function updateSubscriptionStatus(subscriptionId, purchaseToken, targetUid
         .get();
 
       if (userQuery.empty) {
-        console.warn("No user found with purchase token:", purchaseToken);
+        await logger.warn(`No user found with purchase token: ${purchaseToken.substring(0, 10)}...`);
         return;
       }
       userRef = userQuery.docs[0].ref;
     }
 
+    const userDoc = await userRef.get();
+    const userData = userDoc.data();
     const uid = userRef.id;
+    const finalSessionId = sessionId || (userData ? userData.activeSessionId : null);
 
     await userRef.update({
       subscriptionTier: isValid ? "paid" : "free",
@@ -827,13 +848,14 @@ async function updateSubscriptionStatus(subscriptionId, purchaseToken, targetUid
       lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    console.log(`Updated subscription for user ${uid} to ${isValid ? "paid" : "free"}`);
+    await logger.info(`Updated subscription for user ${uid} to ${isValid ? "paid" : "free"}`, { uid, sessionId: finalSessionId });
 
     const posthog = getPostHogClient();
     posthog.capture({
       distinctId: uid, // Correlate with the actual user
       event: "subscription_status_updated",
       properties: {
+        $session_id: finalSessionId,
         status: isValid ? "paid" : "free",
         subscription_id: subscriptionId,
         expiry_time: expiryTimeMillis,
@@ -844,7 +866,15 @@ async function updateSubscriptionStatus(subscriptionId, purchaseToken, targetUid
       },
     });
   } catch (error) {
-    console.error("Error calling Google Play API:", error);
+    await logger.error(`Error calling Google Play API Details: ${error.message}`, {
+      uid: targetUid,
+      sessionId,
+      context: {
+        code: error.code,
+        errors: error.errors,
+        subscriptionId: subscriptionId,
+      },
+    });
     throw error;
   }
 }
@@ -856,24 +886,25 @@ async function updateSubscriptionStatus(subscriptionId, purchaseToken, targetUid
 exports.verifyPurchase = onCall({
   secrets: [playConfig],
 }, async (request) => {
-  const { uid, subscriptionId, purchaseToken } = request.data;
+  const { uid, subscriptionId, purchaseToken, sessionId } = request.data;
 
   if (!request.auth || request.auth.uid !== uid) {
     throw new HttpsError("unauthenticated", "Unauthorized");
   }
 
-  // Store the active token so webhooks can find the user later
+  // Store the active token and session ID so webhooks can find the user/session later
   const firestore = admin.firestore();
   await firestore.collection("users").doc(uid).update({
     activePurchaseToken: purchaseToken,
+    activeSessionId: sessionId,
   });
 
   try {
     // Pass uid directly to avoid race condition with the update above
-    await updateSubscriptionStatus(subscriptionId, purchaseToken, uid);
+    await updateSubscriptionStatus(subscriptionId, purchaseToken, uid, sessionId);
     return { success: true };
   } catch (error) {
-    console.error("Error in verifyPurchase:", error);
+    await logger.error(`Error in verifyPurchase: ${error.message}`, { uid, sessionId });
     throw new HttpsError("internal", error.message);
   }
 });

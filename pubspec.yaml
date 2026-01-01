@@ -2,7 +2,7 @@
 name: seasonbox
 description: "A new Flutter project."
 publish_to: 'none'
-version: 1.7.4+42
+version: 1.7.5+43
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -52,6 +52,7 @@ dependencies:
   printing: ^5.14.2
   pdf: ^3.11.3
   in_app_purchase_android: ^0.4.0+8
+  confetti: ^0.8.0
 
 dev_dependencies:
   flutter_test:

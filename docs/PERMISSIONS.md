@@ -4,14 +4,22 @@ This document outlines the security model and role-based access control (RBAC) e
 
 ## User Roles
 
-There are two primary roles within a family:
+| Role | Description | Scope |
+| :--- | :--- | :--- |
+| **Admin** | Family creator or designated administrator. | Full control over family members, items, and settings. |
+| **Member** | Regular user joined via invitation. | Can manage own items and view family data. |
 
-1.  **Admin** (`role: 'admin'`)
-    *   **Description**: The creator of the family or a designated administrator.
-    *   **Scope**: Full control over family members, items, and settings.
-2.  **Member** (`role: 'member'`)
-    *   **Description**: A regular user who has joined the family.
-    *   **Scope**: Can manage their own items and view family data.
+## Subscription Tiers & Limits
+
+Resource limits are enforced based on the family's subscription status.
+
+| Resource | Free Tier | Premium Tier |
+| :--- | :--- | :--- |
+| **Family Sharing** | Personal use only | Share with up to 5 members |
+| **Item Count** | Max 50 items per family | **Unlimited** items |
+| **Photos per Item** | 1 photo per item | **3 high-quality** photos |
+| **Growth Tracking** | Basic view | **Advanced** trends & charts |
+| **Reminders** | None | **Custom** seasonal reminders |
 
 ## Permission Matrix
 
@@ -59,4 +67,21 @@ allow create: if isFamilyAdmin(familyId) ||
 
 // Item Creation Restriction
 allow create: if isFamilyMember(familyId) && request.resource.data.ownerId == request.auth.uid;
-```
+
+## Google Play Service Account
+
+The service account used for CI/CD and Backend Subscription Verification requires specific permissions in the **Google Play Console**.
+
+### Required Permissions
+
+| Category | Permission | Usage |
+| :--- | :--- | :--- |
+| **Publishing** | Release to testing tracks | Push builds to the Internal track. |
+| | Manage testing tracks and edit tester lists | Manage testers and release status. |
+| | Manage store presence | Update app metadata and handle uploads. |
+| **Financial** | View financial data, orders, and cancellation survey responses | Verify subscription status via the API. |
+| | Manage orders and subscriptions | Perform refunds or cancellations if needed. |
+
+### Configuration
+1. **Google Cloud**: Enable the `Google Play Developer API`.
+2. **Google Play Console**: Invite the service account email under **Users and Permissions** and assign the above rights to either the whole account or the `io.mos.seasonbox` app specifically.

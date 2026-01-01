@@ -46,6 +46,14 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   void _handleSubscriptionUpdate() {
     if (!mounted) return;
     final service = context.read<SubscriptionService>();
+    final userProvider = context.read<UserProfileProvider>();
+
+    // If user just became premium, show celebration!
+    if (userProvider.isPremium) {
+      context.go('/premium-congratulations');
+      return;
+    }
+
     if (service.verificationError != null) {
       final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(

@@ -22,6 +22,7 @@ import 'package:seasonbox/features/members/screens/growth_chart_screen.dart';
 import 'package:seasonbox/features/profile/presentation/screens/profile_screen.dart';
 import 'package:seasonbox/features/easter_egg/presentation/screens/easter_egg_screen.dart';
 import 'package:seasonbox/features/subscription/screens/subscription_screen.dart';
+import 'package:seasonbox/features/subscription/screens/premium_congratulations_screen.dart';
 
 class AppRouter {
   final AuthService authService;
@@ -139,6 +140,9 @@ class AppRouter {
       GoRoute(
           path: '/subscription',
           builder: (context, state) => const SubscriptionScreen()),
+      GoRoute(
+          path: '/premium-congratulations',
+          builder: (context, state) => const PremiumCongratulationsScreen()),
       GoRoute(
           path: '/print-labels',
           builder: (context, state) => const PrintLabelsScreen()),
