@@ -22,11 +22,17 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   Map<String, String>? _pricing;
   bool _isLoading = true;
   bool _isYearly = true; // Default to yearly for best value
+  SubscriptionService? _subscriptionService;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _subscriptionService ??= context.read<SubscriptionService>();
+  }
 
   @override
   void dispose() {
-    final subscriptionService = context.read<SubscriptionService>();
-    subscriptionService.removeListener(_handleSubscriptionUpdate);
+    _subscriptionService?.removeListener(_handleSubscriptionUpdate);
     super.dispose();
   }
 
@@ -37,9 +43,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     _trackScreenView();
     // Listen for verification errors from the service
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context
-          .read<SubscriptionService>()
-          .addListener(_handleSubscriptionUpdate);
+      if (mounted) {
+        context
+            .read<SubscriptionService>()
+            .addListener(_handleSubscriptionUpdate);
+      }
     });
   }
 
@@ -290,10 +298,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                           basePlanId: targetBasePlanId,
                         );
                       } catch (e) {
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Payment failed: $e')),
-                        );
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Payment failed: $e')),
+                          );
+                        }
                       }
                     },
                   ),
@@ -312,6 +321,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                       if (!context.mounted) return;
                       final error =
                           context.read<SubscriptionService>().verificationError;
+                      if (!context.mounted) return;
                       if (error != null) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
