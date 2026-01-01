@@ -1,11 +1,10 @@
 # Changelog
-2: 
-3: ## 1.7.6+44
-4: - **Stability & Bug Fixes**:
-5:     - **Unsafe Context Lookup**: Fixed a critical `FlutterError` in `SubscriptionScreen` during screen disposal.
-6:     - **Mounted Checks**: Enhanced application robustness by adding `context.mounted` guards after asynchronous operations.
-7:     - **Lint Compliance**: Resolved all `use_build_context_synchronously` warnings in the subscription feature.
 
+## 1.7.6+44
+- **Stability & Bug Fixes**:
+    - **Unsafe Context Lookup**: Fixed a critical `FlutterError` in `SubscriptionScreen` during screen disposal.
+    - **Mounted Checks**: Enhanced application robustness by adding `context.mounted` guards after asynchronous operations.
+    - **Lint Compliance**: Resolved all `use_build_context_synchronously` warnings in the subscription feature.
 
 ## 1.7.5+43
 - **Premium Experience**:
