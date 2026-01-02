@@ -87,7 +87,7 @@ class _PremiumCongratulationsScreenState
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 15),
                     Text(
                       l10n.premium_congrats_subtitle,
                       style: theme.textTheme.titleLarge?.copyWith(
@@ -141,27 +141,9 @@ class _PremiumCongratulationsScreenState
               blastDirection: pi / 2,
               maxBlastForce: 5,
               minBlastForce: 2,
-              emissionFrequency: 0.05,
-              numberOfParticles: 50,
+              emissionFrequency: 0.5,
+              numberOfParticles: 1,
               gravity: 0.1,
-              shouldLoop: false,
-              colors: const [
-                Colors.green,
-                Colors.blue,
-                Colors.pink,
-                Colors.orange,
-                Colors.purple,
-                Colors.yellow,
-              ],
-            ),
-          ),
-
-          // Confetti - Center
-          Align(
-            alignment: Alignment.center,
-            child: ConfettiWidget(
-              confettiController: _controllerCenter,
-              blastDirectionality: BlastDirectionality.explosive,
               shouldLoop: false,
               colors: const [
                 Colors.green,
