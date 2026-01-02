@@ -1509,4 +1509,49 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get premium_congrats_button => 'Génial !';
+
+  @override
+  String get welcome_title => 'Bienvenue sur SeasonBox !';
+
+  @override
+  String get welcome_subtitle =>
+      'Nous sommes ravis de vous avoir parmi nous. Voici comment commencer :';
+
+  @override
+  String get welcome_step1_title => 'Configurez votre stockage';
+
+  @override
+  String get welcome_step1_desc =>
+      'Créez des emplacements comme \'Grenier\', \'Placard\' ou des boîtes spécifiques pour rester organisé.';
+
+  @override
+  String get welcome_step2_title => 'Ajoutez des membres';
+
+  @override
+  String get welcome_step2_desc =>
+      'Ajoutez vos enfants pour suivre leurs tailles et leurs vêtements au fil de leur croissance.';
+
+  @override
+  String get welcome_step3_title => 'Commencez l\'inventaire';
+
+  @override
+  String get welcome_step3_desc =>
+      'Prenez des photos de vos vêtements saisonniers et taguez-les pour ne jamais les perdre de vue.';
+
+  @override
+  String get welcome_step4_title => 'Partagez en famille';
+
+  @override
+  String get welcome_step4_desc =>
+      'Invitez votre partenaire ou des membres de votre famille pour tout gérer ensemble.';
+
+  @override
+  String get welcome_button_dashboard => 'Aller au tableau de bord';
+
+  @override
+  String get profile_support_welcomeGuide => 'Guide de Bienvenue';
+
+  @override
+  String get profile_support_welcomeGuideSubtitle =>
+      'Revoir le parcours de bienvenue';
 }

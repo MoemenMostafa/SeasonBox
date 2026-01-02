@@ -74,7 +74,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 backgroundColor: Colors.green,
               ),
             );
-            context.go('/home');
+            context.go('/welcome');
           }
         }
       } catch (e) {

@@ -23,6 +23,7 @@ import 'package:seasonbox/features/profile/presentation/screens/profile_screen.d
 import 'package:seasonbox/features/easter_egg/presentation/screens/easter_egg_screen.dart';
 import 'package:seasonbox/features/subscription/screens/subscription_screen.dart';
 import 'package:seasonbox/features/subscription/screens/premium_congratulations_screen.dart';
+import 'package:seasonbox/features/auth/presentation/screens/welcome_screen.dart';
 
 class AppRouter {
   final AuthService authService;
@@ -146,6 +147,8 @@ class AppRouter {
       GoRoute(
           path: '/print-labels',
           builder: (context, state) => const PrintLabelsScreen()),
+      GoRoute(
+          path: '/welcome', builder: (context, state) => const WelcomeScreen()),
     ],
   );
 }

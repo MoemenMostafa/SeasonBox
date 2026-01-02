@@ -1,4 +1,12 @@
 # Changelog
+ 
+## 1.8.0+47
+- **User Onboarding**:
+    - **Welcome Screen**: Introduced a new celebratory welcome screen for first-time users after successful registration.
+    - **Quick-Start Guide**: Added an interactive guide highlighting key features (Storage, Family, Inventory, and Sharing) to help users get started.
+    - **Celebratory UI**: Integrated confetti animations and a sleek modern design for a premium first-impression.
+- **Localization**:
+    - **Multi-language Support**: Fully localized the onboarding experience across English, Spanish, French, German, and Italian.
 
 ## 1.7.6+44
 - **Stability & Bug Fixes**:

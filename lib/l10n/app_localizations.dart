@@ -2761,6 +2761,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Awesome!'**
   String get premium_congrats_button;
+
+  /// No description provided for @welcome_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to SeasonBox!'**
+  String get welcome_title;
+
+  /// No description provided for @welcome_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'re glad to have you with us. Here\'s how to get started:'**
+  String get welcome_subtitle;
+
+  /// No description provided for @welcome_step1_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up your storage'**
+  String get welcome_step1_title;
+
+  /// No description provided for @welcome_step1_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Create locations like \'Attic\', \'Closet\' or specific boxes to keep things organized.'**
+  String get welcome_step1_desc;
+
+  /// No description provided for @welcome_step2_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Add family members'**
+  String get welcome_step2_title;
+
+  /// No description provided for @welcome_step2_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your children to track their sizes and clothes as they grow.'**
+  String get welcome_step2_desc;
+
+  /// No description provided for @welcome_step3_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Start inventory'**
+  String get welcome_step3_title;
+
+  /// No description provided for @welcome_step3_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Snap photos of your seasonal clothes and tag them so you never lose track.'**
+  String get welcome_step3_desc;
+
+  /// No description provided for @welcome_step4_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Share with family'**
+  String get welcome_step4_title;
+
+  /// No description provided for @welcome_step4_desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite your partner or family members to manage everything together.'**
+  String get welcome_step4_desc;
+
+  /// No description provided for @welcome_button_dashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Dashboard'**
+  String get welcome_button_dashboard;
+
+  /// No description provided for @profile_support_welcomeGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome Guide'**
+  String get profile_support_welcomeGuide;
+
+  /// No description provided for @profile_support_welcomeGuideSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Revisit the onboarding tour'**
+  String get profile_support_welcomeGuideSubtitle;
 }
 
 class _AppLocalizationsDelegate

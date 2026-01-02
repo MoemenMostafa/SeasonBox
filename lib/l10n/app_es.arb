@@ -518,5 +518,18 @@
   "premium_congrats_title": "¡Felicidades!",
   "premium_congrats_subtitle": "Ahora eres miembro Premium de SeasonBox.",
   "premium_congrats_message": "¡Gracias por apoyarnos! Has desbloqueado artículos ilimitados, uso compartido familiar y mucho más.",
-  "premium_congrats_button": "¡Genial!"
+  "premium_congrats_button": "¡Genial!",
+  "welcome_title": "¡Bienvenido a SeasonBox!",
+  "welcome_subtitle": "Nos alegra tenerte con nosotros. Aquí tienes cómo empezar:",
+  "welcome_step1_title": "Configura tu almacenamiento",
+  "welcome_step1_desc": "Crea ubicaciones como 'Ático', 'Armario' o cajas específicas para mantener todo organizado.",
+  "welcome_step2_title": "Añade miembros de la familia",
+  "welcome_step2_desc": "Añade a tus hijos para seguir sus tallas y ropa a medida que crecen.",
+  "welcome_step3_title": "Empieza el inventario",
+  "welcome_step3_desc": "Haz fotos de tu ropa de temporada y etiquétala para no perder el rastro.",
+  "welcome_step4_title": "Comparte con la familia",
+  "welcome_step4_desc": "Invita a tu pareja o familiares para gestionar todo juntos.",
+  "welcome_button_dashboard": "Ir al Panel",
+  "profile_support_welcomeGuide": "Guía de Bienvenida",
+  "profile_support_welcomeGuideSubtitle": "Vuelve a ver el recorrido de bienvenida"
 }

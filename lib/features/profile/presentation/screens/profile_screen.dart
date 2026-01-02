@@ -1074,6 +1074,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SizedBox(height: 12),
         _buildListTile(
           context,
+          icon: Icons.auto_awesome,
+          iconColor: Colors.blue,
+          iconBgColor: Colors.blue.shade50,
+          title: AppLocalizations.of(context)!.profile_support_welcomeGuide,
+          subtitle: AppLocalizations.of(context)!
+              .profile_support_welcomeGuideSubtitle,
+          onTap: () {
+            context.push('/welcome');
+          },
+        ),
+        const SizedBox(height: 12),
+        _buildListTile(
+          context,
           icon: Icons.star,
           iconColor: Colors.green,
           iconBgColor: Colors.green.shade50,
