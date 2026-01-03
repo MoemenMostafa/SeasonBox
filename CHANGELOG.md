@@ -1,5 +1,10 @@
-# Changelog
- 
+## 1.8.1+48
+- **Subscription Expiration**: Implemented real-time expiration date display on the subscription screen and added a client-side expiry validation fallback for improved accuracy.
+- **Localization Consistency**: Synchronized missing translation keys across all supported languages and resolved duplicate entries in the English resource bundle.
+- **UI & Stability**: 
+    - Replaced deprecated color methods (`withValues`) to ensure compatibility with the latest Flutter rendering engine.
+    - Adjusted font sizes and layout on the premium congratulations screen for better visual hierarchy.
+
 ## 1.8.0+47
 - **User Onboarding**:
     - **Welcome Screen**: Introduced a new celebratory welcome screen for first-time users after successful registration.
