@@ -172,21 +172,13 @@ select#languageSelect {
 
 /* Hero Section */
 .hero {
-    /* text-align: center; REMOVED to allow left align in flex text-col */
-    padding: 80px 0 40px;
-    /* Adjusted padding */
+    position: relative;
+    /* Ensure containment context */
+    padding: 100px 0 80px;
+    /* More padding top/bottom */
     background: transparent;
-    /* REMOVED GRADIENT for organic look */
     color: var(--text-color);
-    /* Changed text color to dark */
     margin-bottom: 0;
-    overflow: visible;
-    /* Allow blobs to overflow slightly */
-}
-
-/* Flex Hero Layout */
-.flex-hero {
-    display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 40px;
