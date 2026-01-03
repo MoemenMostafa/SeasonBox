@@ -38,7 +38,7 @@
 
     <main>
         <section class="hero">
-            <div class="container">
+            <div class="container flex-hero">
                 <div class="hero-content">
                     <h1 data-i18n="appTitle">SeasonBox</h1>
                     <p class="tagline" data-i18n="login_tagline">Organize seasonal items for your family with ease</p>
@@ -47,31 +47,91 @@
                             <img id="googlePlayBadge" src="assets/images/google/badge_en.png"
                                 alt="Get it on Google Play">
                         </a>
-                        <!-- Add App Store badge if available later -->
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <div class="blob-bg hero-blob"></div>
+                    <div class="device-mockup hero-device">
+                        <div class="notch"></div>
+                        <img src="assets/screenshots/home.png" alt="SeasonBox Home Screen">
                     </div>
                 </div>
             </div>
         </section>
 
-        <section class="features">
+        <section class="showcase">
             <div class="container">
-                <div class="feature-card">
-                    <div class="icon">📸</div>
-                    <h3 data-i18n="login_featureCard_photoInventoryTitle">Photo Inventory</h3>
-                    <p data-i18n="login_featureCard_photoInventorySubtitle">Capture and organize with photos</p>
-                </div>
-                <div class="feature-card">
-                    <div class="icon">👨‍👩‍👧‍👦</div>
-                    <h3 data-i18n="login_featureCard_familySharingTitle">Family Sharing</h3>
-                    <p data-i18n="login_featureCard_familySharingSubtitle">Sync across all family members</p>
-                </div>
-                <div class="feature-card">
-                    <div class="icon">🔔</div>
-                    <h3 data-i18n="login_featureCard_smartRemindersTitle">Smart Reminders</h3>
-                    <p data-i18n="login_featureCard_smartRemindersSubtitle">Never miss seasonal changes</p>
+                <h2 data-i18n="showcase_title">Experience SeasonBox</h2>
+                <p class="section-subtitle" data-i18n="showcase_subtitle">A beautiful and intuitive interface designed
+                    for modern families</p>
+
+                <div class="showcase-rows">
+                    <!-- Row 1: Family Management -->
+                    <div class="showcase-row">
+                        <div class="text-col">
+                            <h3 data-i18n="showcase_family_title">Family Management</h3>
+                            <p data-i18n="showcase_family_desc">Easily manage family members and keep everyone in sync.
+                            </p>
+                        </div>
+                        <div class="image-col">
+                            <div class="blob-bg blob-1"></div>
+                            <div class="device-mockup">
+                                <div class="notch"></div>
+                                <img src="assets/screenshots/family.png" alt="Family Management">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Smart Inventory (Reversed) -->
+                    <div class="showcase-row reverse">
+                        <div class="text-col">
+                            <h3 data-i18n="showcase_items_title">Smart Inventory</h3>
+                            <p data-i18n="showcase_items_desc">Organize everything with photos, tags, and locations.</p>
+                        </div>
+                        <div class="image-col">
+                            <div class="blob-bg blob-2"></div>
+                            <div class="device-mockup">
+                                <div class="notch"></div>
+                                <img src="assets/screenshots/items.png" alt="Smart Inventory">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Growth Chart -->
+                    <div class="showcase-row">
+                        <div class="text-col">
+                            <h3 data-i18n="showcase_growth_title">Growth Chart</h3>
+                            <p data-i18n="showcase_growth_desc">Predict future sizes and get advice based on WHO
+                                standards.</p>
+                        </div>
+                        <div class="image-col">
+                            <div class="blob-bg blob-3"></div>
+                            <div class="device-mockup">
+                                <div class="notch"></div>
+                                <img src="assets/screenshots/growth.png" alt="Growth Chart">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 4: Storage Locations (Reversed) -->
+                    <div class="showcase-row reverse">
+                        <div class="text-col">
+                            <h3 data-i18n="showcase_storage_title">Storage Locations</h3>
+                            <p data-i18n="showcase_storage_desc">Track where everything is stored across different
+                                locations.</p>
+                        </div>
+                        <div class="image-col">
+                            <div class="blob-bg blob-4"></div>
+                            <div class="device-mockup">
+                                <div class="notch"></div>
+                                <img src="assets/screenshots/storage.png" alt="Storage Locations">
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
+
 
         <section class="pricing">
             <div class="container">
