@@ -131,6 +131,7 @@ class _StorageScreenState extends State<StorageScreen> {
         title: AppLocalizations.of(context)!.storage_title,
         subtitle: AppLocalizations.of(context)!
             .storage_subtitle(_locations.length, _items.length),
+        showProfileIcon: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.print_outlined),

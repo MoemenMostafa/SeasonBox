@@ -1,3 +1,8 @@
+## 1.8.2+49
+- **UI & Navigation Fix**: Resolved an issue where a back button appeared instead of the profile picture on main tab pages after changing the app language.
+- **Code Cleanup**: Removed unused photo URL tracking in `HomeScreen` and streamlined `SeasonBoxAppBar` leading widget logic.
+- **Subscription Fix**: Resolved an issue where selecting a yearly plan would trigger the monthly purchase flow by correctly passing the `offerIdToken` to Google Play.
+
 ## 1.8.1+48
 - **Subscription Expiration**: Implemented real-time expiration date display on the subscription screen and added a client-side expiry validation fallback for improved accuracy.
 - **Localization Consistency**: Synchronized missing translation keys across all supported languages and resolved duplicate entries in the English resource bundle.

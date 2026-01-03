@@ -9,13 +9,17 @@ class SeasonBoxAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? subtitle;
   final List<Widget>? actions;
   final Widget? leading;
+  final PreferredSizeWidget? bottom;
+  final bool showProfileIcon;
 
   const SeasonBoxAppBar({
     super.key,
     required this.title,
     this.subtitle,
     this.actions,
+    this.bottom,
     this.leading,
+    this.showProfileIcon = false,
   });
 
   @override
@@ -35,12 +39,14 @@ class SeasonBoxAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       leading: leading ??
-          (context.canPop()
-              ? IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () => context.pop(),
-                )
-              : _buildProfileIcon(context)),
+          (showProfileIcon
+              ? _buildProfileIcon(context)
+              : (context.canPop()
+                  ? IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: () => context.pop(),
+                    )
+                  : _buildProfileIcon(context))),
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

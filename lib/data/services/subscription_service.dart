@@ -170,15 +170,22 @@ class SubscriptionService extends ChangeNotifier {
     if (product is GooglePlayProductDetails && basePlanId != null) {
       final GooglePlayProductDetails googleProduct = product;
       final offers = googleProduct.productDetails.subscriptionOfferDetails;
+      String? offerToken;
+
       if (offers != null && offers.isNotEmpty) {
-        purchaseParam = GooglePlayPurchaseParam(
-          productDetails: product,
-          applicationUserName: null,
-          changeSubscriptionParam: null,
+        final offer = offers.firstWhere(
+          (o) => o.basePlanId == basePlanId,
+          orElse: () => offers.first,
         );
-      } else {
-        purchaseParam = PurchaseParam(productDetails: product);
+        offerToken = offer.offerIdToken;
       }
+
+      purchaseParam = GooglePlayPurchaseParam(
+        productDetails: product,
+        applicationUserName: null,
+        changeSubscriptionParam: null,
+        offerToken: offerToken,
+      );
     } else {
       purchaseParam = PurchaseParam(productDetails: product);
     }

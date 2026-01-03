@@ -423,6 +423,7 @@ class _FamilyMembersScreenState extends State<FamilyMembersScreen> {
       appBar: SeasonBoxAppBar(
         title: AppLocalizations.of(context)!.members_title,
         subtitle: AppLocalizations.of(context)!.members_subtitle,
+        showProfileIcon: true,
         actions: const [],
       ),
       body: _isLoading

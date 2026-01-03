@@ -31,7 +31,6 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = true;
 
   String? _familyName;
-  String? _userPhotoURL;
 
   @override
   void initState() {
@@ -89,7 +88,6 @@ class _HomeScreenState extends State<HomeScreen> {
           _items = items;
           _locations = locations;
           _familyName = userData?['familyName'] ?? 'Your'; // Fallback
-          _userPhotoURL = userData?['photoURL'];
           _isLoading = false;
         });
       }
@@ -112,27 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
         title: AppLocalizations.of(context)!.appTitle,
         subtitle: AppLocalizations.of(context)!
             .home_appBar_subtitle(_familyName ?? ''),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications),
-            onPressed: () => context.push('/notifications'),
-          ),
-        ],
-        leading: _userPhotoURL != null
-            ? Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: GestureDetector(
-                  onTap: () {
-                    context.push('/profile');
-                  },
-                  child: CircleAvatar(
-                    backgroundImage: _userPhotoURL!.startsWith('assets/')
-                        ? AssetImage(_userPhotoURL!) as ImageProvider
-                        : NetworkImage(_userPhotoURL!),
-                  ),
-                ),
-              )
-            : null,
+        showProfileIcon: true,
       ),
       body: SafeArea(
         child: _isLoading

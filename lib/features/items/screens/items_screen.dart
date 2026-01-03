@@ -539,6 +539,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
       appBar: SeasonBoxAppBar(
         title: AppLocalizations.of(context)!.items_title,
         subtitle: subtitle,
+        showProfileIcon: true,
       ),
       body: _isLoading
           ? const Center(
