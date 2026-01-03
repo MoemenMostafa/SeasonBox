@@ -128,7 +128,7 @@ select#languageSelect {
     opacity: 0.8;
     margin-bottom: 30px;
     font-weight: 400;
-    color: #475569;
+    color: #91a0b4;
 }
 
 .hero-image {
@@ -303,7 +303,7 @@ select#languageSelect {
     z-index: 1;
     text-align: center;
     font-size: 1.1rem;
-    color: #64748B;
+    color: #91a0b4;
     margin-bottom: 60px;
     max-width: 600px;
     margin-left: auto;
