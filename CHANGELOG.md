@@ -1,3 +1,6 @@
+## 1.8.3+50
+- **Subscription Fix**: Resolved an issue where the premium congratulations screen would not appear immediately after a successful purchase by ensuring the subscription service actively notifies the UI and the screen accurately tracks the premium status transition.
+
 ## 1.8.2+49
 - **UI & Navigation Fix**: Resolved an issue where a back button appeared instead of the profile picture on main tab pages after changing the app language.
 - **Code Cleanup**: Removed unused photo URL tracking in `HomeScreen` and streamlined `SeasonBoxAppBar` leading widget logic.

@@ -237,6 +237,7 @@ class SubscriptionService extends ChangeNotifier {
           final bool valid = await _verifyPurchase(purchaseDetails);
           if (valid) {
             // Success!
+            notifyListeners();
           }
         }
         if (purchaseDetails.pendingCompletePurchase) {

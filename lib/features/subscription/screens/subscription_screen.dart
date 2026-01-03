@@ -58,6 +58,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     final userProvider = context.read<UserProfileProvider>();
 
     // If user just became premium, show celebration!
+    // Note: The listener on UserProfileProvider (in didChangeDependencies or similar)
+    // is more reliable for catching the state change from Firestore.
     if (userProvider.isPremium) {
       context.go('/premium-congratulations');
       return;
