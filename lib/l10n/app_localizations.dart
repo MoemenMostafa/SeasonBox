@@ -2618,6 +2618,12 @@ abstract class AppLocalizations {
   /// **'Current Plan'**
   String get subscription_currentPlan;
 
+  /// No description provided for @subscription_expiresOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires on {date}'**
+  String subscription_expiresOn(String date);
+
   /// No description provided for @subscription_selectPlan.
   ///
   /// In en, this message translates to:

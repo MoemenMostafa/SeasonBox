@@ -46,6 +46,8 @@ The AI is empowered to modify the Flutter codebase and manage its dependencies a
   * Appropriate state management solutions (e.g., Provider).
   * Avoiding expensive computations or I/O operations directly within build methods.
   * Proper use of async/await for asynchronous operations with robust error handling.
+  * **Critical:** Use `color.withValues(alpha: 0.05)` (or similar) instead of the deprecated `color.withOpacity(0.05)`.
+* **Release Management:** Creating a release means to increment the version (in `pubspec.yaml`), update the change log (`CHANGELOG.md`), and then commit the changes to git.
 
 ## **Automated Error Detection & Remediation**
 

@@ -461,6 +461,7 @@
   },
   "subscription_tier_freeDesc": "Ideal für den Einstieg",
   "subscription_tier_premiumDesc": "Unbegrenzter Zugang für vielbeschäftigte Familien",
+  "subscription_feature_items_free": "Bis zu 50 Artikel",
   "subscription_feature_photos_free": "1 Foto pro Artikel",
   "subscription_feature_photos_premium": "3 Fotos pro Artikel",
   "subscription_feature_storage_free": "Standard-Lagerverfolgung",
@@ -471,6 +472,14 @@
   "subscription_feature_growth_premium": "Wachstumsprognosen & Beratung",
   "subscription_feature_reminders_premium": "Saisonale Erinnerungen",
   "subscription_currentPlan": "Aktueller Plan",
+  "subscription_expiresOn": "Läuft ab am {date}",
+  "@subscription_expiresOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "subscription_selectPlan": "Plan auswählen",
   "subscription_savingsLabel": "Sparen Sie {percent}%",
   "@subscription_savingsLabel": {

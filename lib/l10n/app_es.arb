@@ -461,6 +461,7 @@
   },
   "subscription_tier_freeDesc": "Ideal para empezar",
   "subscription_tier_premiumDesc": "Acceso ilimitado para familias ocupadas",
+  "subscription_feature_items_free": "Hasta 50 artículos",
   "subscription_feature_photos_free": "1 foto por artículo",
   "subscription_feature_photos_premium": "3 fotos por artículo",
   "subscription_feature_storage_free": "Seguimiento de almacenamiento estándar",
@@ -471,6 +472,14 @@
   "subscription_feature_growth_premium": "Predicciones de crecimiento y consejos",
   "subscription_feature_reminders_premium": "Recordatorios de temporada",
   "subscription_currentPlan": "Plan Actual",
+  "subscription_expiresOn": "Expira el {date}",
+  "@subscription_expiresOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "subscription_selectPlan": "Seleccionar Plan",
   "subscription_savingsLabel": "Ahorra {percent}%",
   "@subscription_savingsLabel": {

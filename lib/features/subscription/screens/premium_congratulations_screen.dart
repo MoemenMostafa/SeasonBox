@@ -81,7 +81,7 @@ class _PremiumCongratulationsScreenState
                     const SizedBox(height: 24),
                     Text(
                       l10n.premium_congrats_title,
-                      style: theme.textTheme.displayMedium?.copyWith(
+                      style: theme.textTheme.displaySmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: colorScheme.primary,
                       ),

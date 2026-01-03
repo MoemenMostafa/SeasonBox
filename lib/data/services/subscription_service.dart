@@ -324,7 +324,15 @@ class SubscriptionService extends ChangeNotifier {
 
   /// Checks if a user is Premium.
   bool isPremium(AppUser user) {
-    return user.subscriptionTier == 'paid';
+    if (user.subscriptionTier != 'paid') return false;
+
+    // Local fallback: Check if expiry date has passed.
+    // This handles scenarios where the webhook might be delayed.
+    if (user.subscriptionExpiry != null) {
+      return user.subscriptionExpiry!.isAfter(DateTime.now());
+    }
+
+    return true;
   }
 
   /// Gets the dynamic price for the paid tier from Remote Config.

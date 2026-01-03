@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:provider/provider.dart';
@@ -212,6 +213,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                       l10n.subscription_feature_reminders_premium,
                     ],
                     isCurrent: isPaid,
+                    expiryDate: isPaid
+                        ? userProvider.appUser?.subscriptionExpiry
+                        : null,
                     color: Colors.purple,
                     isBestValue: _isYearly,
                     savingsLabel:
@@ -388,6 +392,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     bool isBestValue = false,
     String? savingsLabel,
     VoidCallback? onUpgrade,
+    DateTime? expiryDate,
   }) {
     return AppCard(
       backgroundColor: isCurrent ? color.withValues(alpha: 0.05) : null,
@@ -470,17 +475,34 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               )),
           const SizedBox(height: 24),
           if (isCurrent)
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                border: Border.all(color: color),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                AppLocalizations.of(context)!.subscription_currentPlan,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
+            Column(
+              children: [
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: color),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    AppLocalizations.of(context)!.subscription_currentPlan,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+                if (expiryDate != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    AppLocalizations.of(context)!.subscription_expiresOn(
+                      DateFormat.yMMMd().format(expiryDate),
+                    ),
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ],
             )
           else
             ElevatedButton(

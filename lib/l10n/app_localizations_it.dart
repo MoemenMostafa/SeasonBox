@@ -1416,6 +1416,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get subscription_currentPlan => 'Piano Attuale';
 
   @override
+  String subscription_expiresOn(String date) {
+    return 'Scade il $date';
+  }
+
+  @override
   String get subscription_selectPlan => 'Seleziona Piano';
 
   @override

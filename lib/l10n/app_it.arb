@@ -473,6 +473,14 @@
   "subscription_feature_growth_premium": "Previsioni di crescita e consigli",
   "subscription_feature_reminders_premium": "Promemoria stagionali",
   "subscription_currentPlan": "Piano Attuale",
+  "subscription_expiresOn": "Scade il {date}",
+  "@subscription_expiresOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "subscription_selectPlan": "Seleziona Piano",
   "subscription_savingsLabel": "Risparmia il {percent}%",
   "@subscription_savingsLabel": {

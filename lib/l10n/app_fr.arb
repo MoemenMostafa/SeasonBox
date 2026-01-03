@@ -472,6 +472,14 @@
   "subscription_feature_growth_premium": "Prédictions de croissance et conseils",
   "subscription_feature_reminders_premium": "Rappels saisonniers",
   "subscription_currentPlan": "Plan Actuel",
+  "subscription_expiresOn": "Expire le {date}",
+  "@subscription_expiresOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "subscription_selectPlan": "Choisir ce Plan",
   "subscription_savingsLabel": "Économisez {percent}%",
   "@subscription_savingsLabel": {

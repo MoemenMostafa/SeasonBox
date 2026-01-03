@@ -1395,6 +1395,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get subscription_currentPlan => 'Current Plan';
 
   @override
+  String subscription_expiresOn(String date) {
+    return 'Expires on $date';
+  }
+
+  @override
   String get subscription_selectPlan => 'Select Plan';
 
   @override

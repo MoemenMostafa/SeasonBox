@@ -1423,6 +1423,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get subscription_currentPlan => 'Plan Actuel';
 
   @override
+  String subscription_expiresOn(String date) {
+    return 'Expire le $date';
+  }
+
+  @override
   String get subscription_selectPlan => 'Choisir ce Plan';
 
   @override

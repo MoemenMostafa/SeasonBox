@@ -711,6 +711,14 @@
   "subscription_feature_growth_premium": "Growth predictions & advice",
   "subscription_feature_reminders_premium": "Seasonal reminders",
   "subscription_currentPlan": "Current Plan",
+  "subscription_expiresOn": "Expires on {date}",
+  "@subscription_expiresOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "subscription_selectPlan": "Select Plan",
   "subscription_savingsLabel": "Save {percent}%",
   "@subscription_savingsLabel": {
@@ -734,7 +742,6 @@
       "limit": {"type": "int"}
     }
   },
-  "subscription_cancelAnytime": "Cancel anytime. Grandfathered items stay visible even after cancellation.",
 
   "members_tooltip_editPermission": "Only admins can edit other members",
   "members_button_filter": "Filter",

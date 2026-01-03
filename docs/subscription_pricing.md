@@ -49,7 +49,24 @@ Purchases are verified server-side via a Cloud Function (`verifyPurchase`). This
 3. Updates the user's `subscriptionTier` to `paid` and sets `subscriptionExpiry` in Firestore.
 
 ## Webhooks (RTDN)
-Real-Time Developer Notifications are configured via Google Cloud Pub/Sub (`play-billing-events`). This ensures that cancellations, renewals, and refunds are processed automatically by the `googlePlayBillingWebhook` Cloud Function.
+
+Real-Time Developer Notifications (RTDN) allow Google Play to proactively notify our backend about state changes.
+
+### Connection Architecture
+1. **Pub/Sub Topic:** `play-billing-events`. This topic receives Base64 encoded notifications from Google Play.
+2. **Cloud Function:** `googlePlayBillingWebhook` (v2) listens to this topic.
+3. **Google Play Console Link:**
+    - Navigate to **Monetization setup > Real-time developer notifications**.
+    - Topic name: `projects/seasonbox-747d6/topics/play-billing-events`.
+    - Click **Send Test Message** to verify the link.
+4. **Permissions:** The Google Play service account (`google-play-billing-any@system.gserviceaccount.com`) must have the **Pub/Sub Publisher** role on the topic.
+
+### Handling Logic
+When a notification arrives:
+1. The webhook decodes the data.
+2. It uses a service account (stored in `playConfig` secret) to fetch the full transaction details from the Play Developer API.
+3. It identifies the user via `activePurchaseToken` stored in Firestore.
+4. It updates the user's `subscriptionTier` and `subscriptionExpiry`.
 
 ## Robustness & Retry Logic
 

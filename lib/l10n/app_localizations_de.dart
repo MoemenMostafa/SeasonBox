@@ -1384,7 +1384,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Unbegrenzter Zugang für vielbeschäftigte Familien';
 
   @override
-  String get subscription_feature_items_free => 'Up to 50 items';
+  String get subscription_feature_items_free => 'Bis zu 50 Artikel';
 
   @override
   String get subscription_feature_photos_free => '1 Foto pro Artikel';
@@ -1418,6 +1418,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get subscription_currentPlan => 'Aktueller Plan';
+
+  @override
+  String subscription_expiresOn(String date) {
+    return 'Läuft ab am $date';
+  }
 
   @override
   String get subscription_selectPlan => 'Plan auswählen';
