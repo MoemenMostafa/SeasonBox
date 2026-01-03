@@ -1,0 +1,657 @@
+:root {
+    --primary-color: #5800E4;
+    --secondary-color: #00CDBB;
+    --tertiary-color: #8E2DE2;
+    --bg-color: #F8FAFC;
+    --text-color: #1E293B;
+    --card-bg: #FFFFFF;
+    --font-family: 'Outfit', sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --primary-color: #6366F1;
+        --secondary-color: #03DAC6;
+        --bg-color: #0F172A;
+        --text-color: #E2E8F0;
+        --card-bg: #1E293B;
+    }
+}
+
+/* Enhanced Mobile Responsiveness */
+/* Enhanced Mobile Responsiveness */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    /* Remove tap highlight on mobile */
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    overflow-x: hidden;
+    /* Prevent horizontal scroll */
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header */
+header {
+    padding: 15px 0;
+    position: sticky;
+    top: 0;
+    background-color: var(--bg-color);
+    z-index: 100;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.logo img {
+    height: 32px;
+    width: auto;
+    border-radius: 5px;
+}
+
+/* Language Selector */
+select#languageSelect {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    font-family: var(--font-family);
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+/* Hero Section */
+.hero {
+    position: relative;
+    /* Ensure containment context */
+    padding: 100px 0 80px;
+    /* More padding top/bottom */
+    background: transparent;
+    color: var(--text-color);
+    margin-bottom: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 40px;
+    text-align: left;
+    /* Default left align for desktop */
+}
+
+.hero-content {
+    flex: 1;
+    max-width: 600px;
+    /* Limit text width */
+    z-index: 2;
+    /* Text above decorations */
+    position: relative;
+}
+
+.hero h1 {
+    font-size: 4rem;
+    /* Larger for impact */
+    margin-bottom: 20px;
+    line-height: 1.1;
+    font-weight: 800;
+    color: var(--primary-color);
+    /* Colorful title */
+}
+
+.hero .tagline {
+    font-size: 1.25rem;
+    opacity: 0.8;
+    margin-bottom: 30px;
+    font-weight: 400;
+    max-width: 90%;
+    color: #475569;
+}
+
+.hero-image {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.hero-device {
+    transition: transform 0.3s ease;
+    z-index: 2;
+    transform: rotate(-5deg);
+}
+
+/* BLOB STYLES */
+.blob-bg {
+    position: absolute;
+    width: 140%;
+    height: 140%;
+    left: -20%;
+    top: -20%;
+    z-index: 0;
+    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+    /* Organic shape */
+    opacity: 0.15;
+    animation: blob-float 8s ease-in-out infinite alternate;
+}
+
+@keyframes blob-float {
+    0% {
+        transform: translate(0, 0) scale(1);
+        border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+    }
+
+    100% {
+        transform: translate(10px, -20px) scale(1.05);
+        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    }
+}
+
+.hero-blob {
+    background-color: var(--primary-color);
+    width: 500px;
+    height: 500px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.1;
+    /* Very subtle behind hero */
+}
+
+.blob-1 {
+    background-color: var(--tertiary-color);
+    animation-delay: 1s;
+}
+
+.blob-2 {
+    background-color: var(--secondary-color);
+    animation-delay: 2s;
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+}
+
+.blob-3 {
+    background-color: #FFB703;
+    /* Accent Yellow */
+    animation-delay: 0.5s;
+}
+
+.blob-4 {
+    background-color: var(--primary-color);
+    animation-delay: 3s;
+    border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+}
+
+/* Flex Hero Layout */
+.flex-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 40px;
+    text-align: left;
+    /* Default left align for desktop */
+}
+
+.hero-content {
+    flex: 1;
+    max-width: 600px;
+    /* Limit text width */
+}
+
+.hero h1 {
+    font-size: 3.5rem;
+    margin-bottom: 20px;
+    line-height: 1.1;
+    font-weight: 800;
+}
+
+.hero .tagline {
+    font-size: 1.25rem;
+    opacity: 0.95;
+    margin-bottom: 30px;
+    font-weight: 300;
+    max-width: 90%;
+}
+
+.hero-image {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+
+.cta-buttons img {
+    height: 60px;
+    /* Slightly smaller for better proportion */
+    transition: transform 0.2s;
+}
+
+.cta-buttons img:hover {
+    transform: scale(1.05);
+}
+
+/* Showcase Section */
+.showcase {
+    position: relative;
+    padding: 100px 0;
+    background-color: transparent;
+    /* Was var(--bg-color), now transparent to see card? Or keep it? */
+    /* Remove default bg color to let body or card show */
+}
+
+/* Background Card for Showcase */
+.showcase-bg-card {
+    position: absolute;
+    top: 2%;
+    /* Slightly offset */
+    left: -2%;
+    width: 104%;
+    /* Wider to cover tilt */
+    height: 96%;
+    background-color: #FFF9F0;
+    /* Warm/Creamy tint for contrast with Hero's blueish */
+    border-radius: 80px;
+    transform: rotate(1deg);
+    /* Opposite tilt to Hero */
+    z-index: 0;
+}
+
+/* Dark mode adjustment for showcase card */
+@media (prefers-color-scheme: dark) {
+    .showcase-bg-card {
+        background-color: #2D2A26;
+        /* Darker warm gray */
+        opacity: 0.5;
+    }
+}
+
+.showcase h2 {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
+
+.showcase .section-subtitle {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    font-size: 1.1rem;
+    color: #64748B;
+    margin-bottom: 60px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.showcase-rows {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 100px;
+}
+
+.showcase-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 60px;
+}
+
+.showcase-row.reverse {
+    flex-direction: row-reverse;
+}
+
+.text-col {
+    flex: 1;
+}
+
+.text-col h3 {
+    font-size: 2rem;
+    color: var(--text-color);
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+.text-col p {
+    font-size: 1.1rem;
+    color: #475569;
+    line-height: 1.7;
+}
+
+/* Image Col needs positioning logic */
+.image-col {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    position: relative;
+    /* For blob positioning */
+    z-index: 1;
+}
+
+/* Update Device Mockup to stand out */
+.device-mockup {
+    position: relative;
+    width: 280px;
+    /* Slightly wider */
+    height: auto;
+    background-color: #1a1a1a;
+    /* Darker frame */
+    border-radius: 40px;
+    padding: 12px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+    border: 4px solid #333;
+    /* Distinct border */
+    z-index: 2;
+    transition: transform 0.5s ease;
+    overflow: hidden;
+}
+
+.device-mockup:hover {
+    transform: translateY(-10px);
+}
+
+.device-mockup img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 28px;
+    object-fit: cover;
+    aspect-ratio: 9 / 19.5;
+}
+
+/* Dynamic Notch simulation */
+.notch {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 24px;
+    background-color: #1a1a1a;
+    border-radius: 0 0 16px 16px;
+    z-index: 3;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    /* Stronger shadow on hover */
+}
+
+.feature-card .icon {
+    font-size: 3rem;
+    margin-bottom: 20px;
+}
+
+.feature-card h3 {
+    color: var(--primary-color);
+    margin-bottom: 10px;
+    font-size: 1.4rem;
+}
+
+/* Pricing Section */
+.pricing {
+    padding: 60px 0;
+    text-align: center;
+}
+
+.pricing h2 {
+    font-size: 2.5rem;
+    margin-bottom: 40px;
+    color: var(--text-color);
+}
+
+.pricing-toggle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 40px;
+    font-weight: 500;
+}
+
+/* Switch styling */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked+.slider {
+    background-color: var(--primary-color);
+}
+
+input:focus+.slider {
+    box-shadow: 0 0 1px var(--primary-color);
+}
+
+input:checked+.slider:before {
+    transform: translateX(26px);
+}
+
+.pricing-cards {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.pricing-card {
+    background-color: var(--card-bg);
+    padding: 40px;
+    border-radius: 20px;
+    width: 300px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    position: relative;
+    border: 1px solid transparent;
+}
+
+.pricing-card.premium {
+    border-color: var(--primary-color);
+    transform: scale(1.05);
+}
+
+.pricing-card .price {
+    display: block;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin: 20px 0;
+}
+
+.pricing-card .price #priceSuffix {
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin-left: 2px;
+}
+
+.pricing-card.free .price {
+    color: var(--secondary-color);
+}
+
+.features-list {
+    list-style: none;
+    text-align: left;
+    margin-top: 20px;
+}
+
+.features-list li {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.features-list li::before {
+    content: "✓";
+    color: var(--secondary-color);
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+/* Footer */
+footer {
+    padding: 40px 0;
+    text-align: center;
+    margin-top: 60px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.footer-links {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.footer-links a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.footer-links a:hover {
+    text-decoration: underline;
+}/* Enhanced Mobile Responsiveness */
+@media (max-width: 900px) {
+    .flex-hero {
+        flex-direction: column;
+        text-align: center;
+        gap: 60px;
+        /* More space between text and image */
+    }
+
+    .hero-content {
+        max-width: 100%;
+        margin-bottom: 0;
+    }
+
+    .hero h1 {
+        font-size: 2.5rem;
+        /* Smaller title on mobile */
+    }
+
+    .hero-device {
+        transform: none;
+        /* No rotation on mobile */
+        margin-top: 0;
+        width: 240px;
+        /* Specific width for hero mobile */
+    }
+
+    .blob-bg {
+        width: 120%;
+        /* Smaller blobs */
+        height: 120%;
+        left: -10%;
+        top: -10%;
+        animation: none;
+        /* Disable complex animation for performance if needed, or keep it subtle */
+        opacity: 0.1;
+    }
+
+    .showcase-row,
+    .showcase-row.reverse {
+        flex-direction: column;
+        /* Stack vertically */
+        text-align: center;
+        gap: 60px;
+        margin-bottom: 40px;
+    }
+
+    .image-col {
+        order: -1;
+        /* Image ON TOP of text for mobile flow usually looks better, or keep bottom. Let's try top? No, usually image then text or text then image. Default logic is Text then Image. Let's keep Text on top. */
+        order: 2;
+    }
+
+    .text-col {
+        order: 1;
+    }
+
+    .text-col h3 {
+        font-size: 1.75rem;
+    }
+
+    .device-mockup {
+        width: 240px;
+        /* Smaller frame on mobile */
+        border-width: 2px;
+        /* Thinner border */
+        padding: 8px;
+        /* Smaller bezel */
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        /* Lighter shadow */
+    }
+
+    .device-mockup:hover {
+        transform: none;
+        /* No hover effect on mobile */
+    }
+
+    .notch {
+        height: 20px;
+        width: 80px;
+        top: 8px;
+    }
+}
