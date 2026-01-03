@@ -20,6 +20,88 @@
 
 /* Enhanced Mobile Responsiveness */
 /* Enhanced Mobile Responsiveness */
+@media (max-width: 900px) {
+    .flex-hero {
+        flex-direction: column;
+        text-align: center;
+        gap: 60px;
+        /* More space between text and image */
+    }
+
+    .hero-content {
+        max-width: 100%;
+        margin-bottom: 0;
+    }
+
+    .hero h1 {
+        font-size: 2.5rem;
+        /* Smaller title on mobile */
+    }
+
+    .hero-device {
+        transform: none;
+        /* No rotation on mobile */
+        margin-top: 0;
+        width: 240px;
+        /* Specific width for hero mobile */
+    }
+
+    .blob-bg {
+        width: 120%;
+        /* Smaller blobs */
+        height: 120%;
+        left: -10%;
+        top: -10%;
+        animation: none;
+        /* Disable complex animation for performance if needed, or keep it subtle */
+        opacity: 0.1;
+    }
+
+    .showcase-row,
+    .showcase-row.reverse {
+        flex-direction: column;
+        /* Stack vertically */
+        text-align: center;
+        gap: 60px;
+        margin-bottom: 40px;
+    }
+
+    .image-col {
+        order: -1;
+        /* Image ON TOP of text for mobile flow usually looks better, or keep bottom. Let's try top? No, usually image then text or text then image. Default logic is Text then Image. Let's keep Text on top. */
+        order: 2;
+    }
+
+    .text-col {
+        order: 1;
+    }
+
+    .text-col h3 {
+        font-size: 1.75rem;
+    }
+
+    .device-mockup {
+        width: 240px;
+        /* Smaller frame on mobile */
+        border-width: 2px;
+        /* Thinner border */
+        padding: 8px;
+        /* Smaller bezel */
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        /* Lighter shadow */
+    }
+
+    .device-mockup:hover {
+        transform: none;
+        /* No hover effect on mobile */
+    }
+
+    .notch {
+        height: 20px;
+        width: 80px;
+        top: 8px;
+    }
+}
 
 * {
     margin: 0;
@@ -258,42 +340,11 @@ select#languageSelect {
 
 /* Showcase Section */
 .showcase {
-    position: relative;
-    padding: 100px 0;
-    background-color: transparent;
-    /* Was var(--bg-color), now transparent to see card? Or keep it? */
-    /* Remove default bg color to let body or card show */
-}
-
-/* Background Card for Showcase */
-.showcase-bg-card {
-    position: absolute;
-    top: 2%;
-    /* Slightly offset */
-    left: -2%;
-    width: 104%;
-    /* Wider to cover tilt */
-    height: 96%;
-    background-color: #FFF9F0;
-    /* Warm/Creamy tint for contrast with Hero's blueish */
-    border-radius: 80px;
-    transform: rotate(1deg);
-    /* Opposite tilt to Hero */
-    z-index: 0;
-}
-
-/* Dark mode adjustment for showcase card */
-@media (prefers-color-scheme: dark) {
-    .showcase-bg-card {
-        background-color: #2D2A26;
-        /* Darker warm gray */
-        opacity: 0.5;
-    }
+    padding: 80px 0;
+    background-color: var(--bg-color);
 }
 
 .showcase h2 {
-    position: relative;
-    z-index: 1;
     text-align: center;
     font-size: 2.5rem;
     color: var(--primary-color);
@@ -301,8 +352,6 @@ select#languageSelect {
 }
 
 .showcase .section-subtitle {
-    position: relative;
-    z-index: 1;
     text-align: center;
     font-size: 1.1rem;
     color: #64748B;
@@ -313,8 +362,6 @@ select#languageSelect {
 }
 
 .showcase-rows {
-    position: relative;
-    z-index: 1;
     display: flex;
     flex-direction: column;
     gap: 100px;
@@ -344,7 +391,7 @@ select#languageSelect {
 
 .text-col p {
     font-size: 1.1rem;
-    color: #475569;
+    color: #91a0b4;
     line-height: 1.7;
 }
 
@@ -572,86 +619,4 @@ footer {
 
 .footer-links a:hover {
     text-decoration: underline;
-}/* Enhanced Mobile Responsiveness */
-@media (max-width: 900px) {
-    .flex-hero {
-        flex-direction: column;
-        text-align: center;
-        gap: 60px;
-        /* More space between text and image */
-    }
-
-    .hero-content {
-        max-width: 100%;
-        margin-bottom: 0;
-    }
-
-    .hero h1 {
-        font-size: 2.5rem;
-        /* Smaller title on mobile */
-    }
-
-    .hero-device {
-        transform: none;
-        /* No rotation on mobile */
-        margin-top: 0;
-        width: 240px;
-        /* Specific width for hero mobile */
-    }
-
-    .blob-bg {
-        width: 120%;
-        /* Smaller blobs */
-        height: 120%;
-        left: -10%;
-        top: -10%;
-        animation: none;
-        /* Disable complex animation for performance if needed, or keep it subtle */
-        opacity: 0.1;
-    }
-
-    .showcase-row,
-    .showcase-row.reverse {
-        flex-direction: column;
-        /* Stack vertically */
-        text-align: center;
-        gap: 60px;
-        margin-bottom: 40px;
-    }
-
-    .image-col {
-        order: -1;
-        /* Image ON TOP of text for mobile flow usually looks better, or keep bottom. Let's try top? No, usually image then text or text then image. Default logic is Text then Image. Let's keep Text on top. */
-        order: 2;
-    }
-
-    .text-col {
-        order: 1;
-    }
-
-    .text-col h3 {
-        font-size: 1.75rem;
-    }
-
-    .device-mockup {
-        width: 240px;
-        /* Smaller frame on mobile */
-        border-width: 2px;
-        /* Thinner border */
-        padding: 8px;
-        /* Smaller bezel */
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        /* Lighter shadow */
-    }
-
-    .device-mockup:hover {
-        transform: none;
-        /* No hover effect on mobile */
-    }
-
-    .notch {
-        height: 20px;
-        width: 80px;
-        top: 8px;
-    }
 }
