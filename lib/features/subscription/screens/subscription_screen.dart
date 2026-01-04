@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +25,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   bool _isLoading = true;
   bool _isYearly = true; // Default to yearly for best value
   SubscriptionService? _subscriptionService;
+  bool _isProcessing = false;
+  Timer? _purchaseTimer;
 
   @override
   void didChangeDependencies() {
@@ -34,6 +37,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   @override
   void dispose() {
     _subscriptionService?.removeListener(_handleSubscriptionUpdate);
+    _purchaseTimer?.cancel();
     super.dispose();
   }
 
@@ -61,11 +65,13 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     // Note: The listener on UserProfileProvider (in didChangeDependencies or similar)
     // is more reliable for catching the state change from Firestore.
     if (userProvider.isPremium) {
+      _stopProcessing();
       context.go('/premium-congratulations');
       return;
     }
 
     if (service.verificationError != null) {
+      _stopProcessing();
       final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -75,6 +81,36 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         ),
       );
     }
+  }
+
+  void _startProcessing() {
+    setState(() {
+      _isProcessing = true;
+    });
+    _purchaseTimer?.cancel();
+    _purchaseTimer = Timer(const Duration(seconds: 30), () {
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Operation timed out. Please try again or contact support.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    });
+  }
+
+  void _stopProcessing() {
+    if (_isProcessing) {
+      setState(() {
+        _isProcessing = false;
+      });
+    }
+    _purchaseTimer?.cancel();
   }
 
   void _trackScreenView() {
@@ -146,208 +182,227 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         title: l10n.subscription_title,
         subtitle: l10n.subscription_subtitle,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  if (!subscriptionService.isAvailable)
-                    _buildStoreErrorBanner(subscriptionService, l10n, context),
+      body: Stack(
+        children: [
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      if (!subscriptionService.isAvailable)
+                        _buildStoreErrorBanner(
+                            subscriptionService, l10n, context),
 
-                  // Billing Cycle Toggle
-                  Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 4, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade200,
-                        borderRadius: BorderRadius.circular(12),
+                      // Billing Cycle Toggle
+                      Center(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 4, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _buildToggleButton(
+                                label: l10n.subscription_billing_monthly,
+                                isSelected: !_isYearly,
+                                onTap: () => setState(() => _isYearly = false),
+                              ),
+                              _buildToggleButton(
+                                label: l10n.subscription_billing_yearly,
+                                isSelected: _isYearly,
+                                onTap: () => setState(() => _isYearly = true),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildToggleButton(
-                            label: l10n.subscription_billing_monthly,
-                            isSelected: !_isYearly,
-                            onTap: () => setState(() => _isYearly = false),
-                          ),
-                          _buildToggleButton(
-                            label: l10n.subscription_billing_yearly,
-                            isSelected: _isYearly,
-                            onTap: () => setState(() => _isYearly = true),
-                          ),
+                      const SizedBox(height: 24),
+                      _buildTierCard(
+                        title: l10n.subscription_tier_freeTitle,
+                        price: l10n.subscription_tier_freePrice,
+                        description: l10n.subscription_tier_freeDesc,
+                        features: [
+                          l10n.subscription_feature_items_free,
+                          l10n.subscription_feature_photos_free,
+                          l10n.subscription_feature_members_free,
+                          l10n.subscription_feature_storage_free,
                         ],
+                        isCurrent: !isPaid,
+                        color: Colors.grey.shade400,
+                        onUpgrade: () {
+                          _trackPlanSelected(
+                              'free', l10n.subscription_tier_freePrice);
+                          // Already on free tier or switching back?
+                        },
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  _buildTierCard(
-                    title: l10n.subscription_tier_freeTitle,
-                    price: l10n.subscription_tier_freePrice,
-                    description: l10n.subscription_tier_freeDesc,
-                    features: [
-                      l10n.subscription_feature_items_free,
-                      l10n.subscription_feature_photos_free,
-                      l10n.subscription_feature_members_free,
-                      l10n.subscription_feature_storage_free,
+                      const SizedBox(height: 16),
+                      _buildTierCard(
+                        title: l10n.subscription_tier_premiumTitle,
+                        price: l10n.subscription_tier_premiumPrice(
+                            currentPrice, periodSuffix),
+                        description: l10n.subscription_tier_premiumDesc,
+                        features: [
+                          l10n.subscription_feature_items_premium,
+                          l10n.subscription_feature_photos_premium,
+                          l10n.subscription_feature_members_premium,
+                          l10n.subscription_feature_sharing_premium,
+                          l10n.subscription_feature_growth_premium,
+                          l10n.subscription_feature_reminders_premium,
+                        ],
+                        isCurrent: isPaid,
+                        expiryDate: isPaid
+                            ? userProvider.appUser?.subscriptionExpiry
+                            : null,
+                        color: Colors.purple,
+                        isBestValue: _isYearly,
+                        savingsLabel: _isYearly
+                            ? l10n.subscription_savingsLabel('16')
+                            : null,
+                        onUpgrade: () async {
+                          _startProcessing();
+                          _trackPlanSelected('premium', currentPrice);
+
+                          final subscriptionService =
+                              context.read<SubscriptionService>();
+                          final remoteConfig =
+                              context.read<RemoteConfigService>();
+                          final productIds =
+                              remoteConfig.getSubscriptionProductIds();
+                          final basePlanIds =
+                              remoteConfig.getSubscriptionBasePlanIds();
+
+                          final targetProductId = _isYearly
+                              ? productIds['yearly']
+                              : productIds['monthly'];
+                          final targetBasePlanId = _isYearly
+                              ? basePlanIds['yearly']
+                              : basePlanIds['monthly'];
+
+                          if (kIsWeb) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text(
+                                      'In-app purchases are not yet supported on the web version. Please use our mobile app.')),
+                            );
+                            return;
+                          }
+
+                          ProductDetails? product;
+                          try {
+                            product = subscriptionService.products.firstWhere(
+                              (p) => p.id == targetProductId,
+                            );
+                          } catch (e) {
+                            // Product not found in store
+                          }
+
+                          if (product == null) {
+                            if (!context.mounted) return;
+                            final isAvailable = subscriptionService.isAvailable;
+                            final productsCount =
+                                subscriptionService.products.length;
+                            final loadedIds = subscriptionService.products
+                                .map((p) => p.id)
+                                .toList();
+
+                            PostHogService().captureEvent(
+                                'subscription_screen_unavailable',
+                                properties: {
+                                  'store_available': isAvailable,
+                                  'products_count': productsCount,
+                                  'target_id': targetProductId ?? 'unknown',
+                                  'loaded_ids': loadedIds,
+                                  'debug_mode': kDebugMode,
+                                  'last_error':
+                                      subscriptionService.lastError ?? 'none',
+                                });
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(isAvailable
+                                    ? l10n.subscription_error_product_not_found(
+                                        targetProductId ?? 'unknown')
+                                    : '${l10n.subscription_error_store_unavailable}\nDiagnostics: Store: Error, Products: $productsCount, Target: $targetProductId, Loaded: $loadedIds, Debug: $kDebugMode, Last Error: ${subscriptionService.lastError ?? "none"}'),
+                                backgroundColor: Colors.red.shade800,
+                                duration: const Duration(seconds: 10),
+                                action: SnackBarAction(
+                                  label:
+                                      l10n.subscription_button_retry_connection,
+                                  textColor: Colors.white,
+                                  onPressed: () =>
+                                      subscriptionService.reInitialize(),
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+
+                          try {
+                            await subscriptionService.buySubscription(
+                              product,
+                              basePlanId: targetBasePlanId,
+                            );
+                          } catch (e) {
+                            _stopProcessing();
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Payment failed: $e')),
+                              );
+                            }
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        l10n.subscription_cancelAnytime,
+                        textAlign: TextAlign.center,
+                        style:
+                            const TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                      const SizedBox(height: 16),
+                      TextButton(
+                        onPressed: () async {
+                          _startProcessing();
+                          await context
+                              .read<SubscriptionService>()
+                              .restorePurchases();
+                          if (!context.mounted) return;
+                          final error = context
+                              .read<SubscriptionService>()
+                              .verificationError;
+                          if (!context.mounted) return;
+                          if (error != null) {
+                            _stopProcessing();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text(
+                                      l10n.subscription_restore_failed(error)),
+                                  backgroundColor: Colors.red),
+                            );
+                          } else {
+                            // Success is handled by _handleSubscriptionUpdate
+                            // or just by the user becoming premium.
+                            // We don't show the success snackbar anymore.
+                          }
+                        },
+                        child: Text(l10n.subscription_restore_btn),
+                      ),
                     ],
-                    isCurrent: !isPaid,
-                    color: Colors.grey.shade400,
-                    onUpgrade: () {
-                      _trackPlanSelected(
-                          'free', l10n.subscription_tier_freePrice);
-                      // Already on free tier or switching back?
-                    },
                   ),
-                  const SizedBox(height: 16),
-                  _buildTierCard(
-                    title: l10n.subscription_tier_premiumTitle,
-                    price: l10n.subscription_tier_premiumPrice(
-                        currentPrice, periodSuffix),
-                    description: l10n.subscription_tier_premiumDesc,
-                    features: [
-                      l10n.subscription_feature_items_premium,
-                      l10n.subscription_feature_photos_premium,
-                      l10n.subscription_feature_members_premium,
-                      l10n.subscription_feature_sharing_premium,
-                      l10n.subscription_feature_growth_premium,
-                      l10n.subscription_feature_reminders_premium,
-                    ],
-                    isCurrent: isPaid,
-                    expiryDate: isPaid
-                        ? userProvider.appUser?.subscriptionExpiry
-                        : null,
-                    color: Colors.purple,
-                    isBestValue: _isYearly,
-                    savingsLabel:
-                        _isYearly ? l10n.subscription_savingsLabel('16') : null,
-                    onUpgrade: () async {
-                      _trackPlanSelected('premium', currentPrice);
-
-                      final subscriptionService =
-                          context.read<SubscriptionService>();
-                      final remoteConfig = context.read<RemoteConfigService>();
-                      final productIds =
-                          remoteConfig.getSubscriptionProductIds();
-                      final basePlanIds =
-                          remoteConfig.getSubscriptionBasePlanIds();
-
-                      final targetProductId = _isYearly
-                          ? productIds['yearly']
-                          : productIds['monthly'];
-                      final targetBasePlanId = _isYearly
-                          ? basePlanIds['yearly']
-                          : basePlanIds['monthly'];
-
-                      if (kIsWeb) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text(
-                                  'In-app purchases are not yet supported on the web version. Please use our mobile app.')),
-                        );
-                        return;
-                      }
-
-                      ProductDetails? product;
-                      try {
-                        product = subscriptionService.products.firstWhere(
-                          (p) => p.id == targetProductId,
-                        );
-                      } catch (e) {
-                        // Product not found in store
-                      }
-
-                      if (product == null) {
-                        if (!context.mounted) return;
-                        final isAvailable = subscriptionService.isAvailable;
-                        final productsCount =
-                            subscriptionService.products.length;
-                        final loadedIds = subscriptionService.products
-                            .map((p) => p.id)
-                            .toList();
-
-                        PostHogService().captureEvent(
-                            'subscription_screen_unavailable',
-                            properties: {
-                              'store_available': isAvailable,
-                              'products_count': productsCount,
-                              'target_id': targetProductId ?? 'unknown',
-                              'loaded_ids': loadedIds,
-                              'debug_mode': kDebugMode,
-                              'last_error':
-                                  subscriptionService.lastError ?? 'none',
-                            });
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(isAvailable
-                                ? l10n.subscription_error_product_not_found(
-                                    targetProductId ?? 'unknown')
-                                : '${l10n.subscription_error_store_unavailable}\nDiagnostics: Store: Error, Products: $productsCount, Target: $targetProductId, Loaded: $loadedIds, Debug: $kDebugMode, Last Error: ${subscriptionService.lastError ?? "none"}'),
-                            backgroundColor: Colors.red.shade800,
-                            duration: const Duration(seconds: 10),
-                            action: SnackBarAction(
-                              label: l10n.subscription_button_retry_connection,
-                              textColor: Colors.white,
-                              onPressed: () =>
-                                  subscriptionService.reInitialize(),
-                            ),
-                          ),
-                        );
-                        return;
-                      }
-
-                      try {
-                        await subscriptionService.buySubscription(
-                          product,
-                          basePlanId: targetBasePlanId,
-                        );
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Payment failed: $e')),
-                          );
-                        }
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    l10n.subscription_cancelAnytime,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () async {
-                      await context
-                          .read<SubscriptionService>()
-                          .restorePurchases();
-                      if (!context.mounted) return;
-                      final error =
-                          context.read<SubscriptionService>().verificationError;
-                      if (!context.mounted) return;
-                      if (error != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content:
-                                  Text(l10n.subscription_restore_failed(error)),
-                              backgroundColor: Colors.red),
-                        );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text(l10n.subscription_restore_success),
-                              backgroundColor: Colors.green),
-                        );
-                      }
-                    },
-                    child: Text(l10n.subscription_restore_btn),
-                  ),
-                ],
+                ),
+          if (_isProcessing)
+            Container(
+              color: Colors.black.withValues(alpha: 0.3),
+              child: const Center(
+                child: CircularProgressIndicator(),
               ),
             ),
+        ],
+      ),
     );
   }
 

@@ -1,3 +1,7 @@
+## 1.8.4+51
+- **Purchase Experience**: Added a loading overlay during subscription processing with a 30-second timeout to improve UI feedback.
+- **UI Cleanup**: Removed redundant "Purchase restored successfully" notification.
+
 ## 1.8.3+50
 - **Subscription Fix**: Resolved an issue where the premium congratulations screen would not appear immediately after a successful purchase by ensuring the subscription service actively notifies the UI and the screen accurately tracks the premium status transition.
 
