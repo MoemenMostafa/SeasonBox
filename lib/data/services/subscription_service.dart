@@ -215,9 +215,18 @@ class SubscriptionService extends ChangeNotifier {
     return product?.price;
   }
 
+  /// Restoration error or status message.
+  String? get verificationError => _verificationError;
+  String? _verificationError;
+
+  /// The status of the last purchase update.
+  PurchaseStatus? get lastPurchaseStatus => _lastPurchaseStatus;
+  PurchaseStatus? _lastPurchaseStatus;
+
   Future<void> _onPurchaseUpdate(
       List<PurchaseDetails> purchaseDetailsList) async {
     for (var purchaseDetails in purchaseDetailsList) {
+      _lastPurchaseStatus = purchaseDetails.status;
       PostHogService()
           .captureEvent('subscription_purchase_update', properties: {
         'status': purchaseDetails.status.name,
@@ -248,10 +257,6 @@ class SubscriptionService extends ChangeNotifier {
       }
     }
   }
-
-  /// Restoration error or status message.
-  String? get verificationError => _verificationError;
-  String? _verificationError;
 
   Future<void> restorePurchases() async {
     PostHogService.log('SubscriptionService: Restoring purchases...',

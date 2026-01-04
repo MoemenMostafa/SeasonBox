@@ -1,3 +1,6 @@
+## 1.8.6+53
+- **Purchase UX Improvement**: Refined the loading overlay to persist until the application confirms the updated premium status from Firestore, ensuring a smooth transition to the celebration screen without UI flickering.
+
 ## 1.8.5+52
 - **Purchase Fix**: Fixed an issue where the loading overlay would persist after canceling the Google Play payment dialog. The loader now correctly dismisses on cancellation or store errors.
 

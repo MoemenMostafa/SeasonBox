@@ -61,14 +61,18 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     final service = context.read<SubscriptionService>();
     final userProvider = context.read<UserProfileProvider>();
 
-    // We received an update from the service (purchased, canceled, error, verified)
-    // so we should stop the local processing loader.
-    _stopProcessing();
+    // Stop if error or canceled
+    if (service.lastPurchaseStatus == PurchaseStatus.error ||
+        service.lastPurchaseStatus == PurchaseStatus.canceled) {
+      _stopProcessing();
+    }
 
-    // If user just became premium, show celebration!
-    // Note: The listener on UserProfileProvider (in didChangeDependencies or similar)
-    // is more reliable for catching the state change from Firestore.
-    if (userProvider.isPremium) {
+    // Note: We don't stop processing here if status is 'purchased' or 'restored'
+    // because we want to wait for UserProfileProvider to reflect the change from Firestore.
+
+    // If user is already premium (e.g. from a previous sync occurring during verification),
+    // we can proceed to celebration.
+    if (userProvider.isPremium && _isProcessing) {
       _stopProcessing();
       context.go('/premium-congratulations');
       return;
@@ -158,6 +162,16 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   Widget build(BuildContext context) {
     final userProvider = context.watch<UserProfileProvider>();
     final isPaid = userProvider.isPremium;
+
+    // Detect if we were waiting for Firestore to sync the premium status
+    if (isPaid && _isProcessing) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _isProcessing) {
+          _stopProcessing();
+          context.go('/premium-congratulations');
+        }
+      });
+    }
 
     final l10n = AppLocalizations.of(context)!;
     final subscriptionService = context.watch<SubscriptionService>();
