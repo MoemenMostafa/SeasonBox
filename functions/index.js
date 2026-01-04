@@ -106,7 +106,8 @@ async function sendInvitationEmail(email, familyId, inviterName) {
     // return admin.firestore().collection(...).doc(...).update({ inviteStatus: 'sent' });
     // keeping it 'pending' until they actually accept is fine.
   } catch (error) {
-    await logger.error(`There was an error while sending the invitation email event "send_invitation_email" to posthog: ${error.message}`, { context: { error } });
+    await logger.error(`There was an error while sending the invitation email event "send_invitation_email" 
+      to posthog: ${error.message}`, { context: { error } });
 
     return null;
   }
