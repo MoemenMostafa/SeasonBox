@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:seasonbox/data/services/posthog_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeProvider with ChangeNotifier {
@@ -36,6 +37,7 @@ class ThemeProvider with ChangeNotifier {
     final String? localeCode = prefs.getString(_localeKey);
     if (localeCode != null) {
       _locale = Locale(localeCode);
+      PostHogService().setPreferredLanguage(localeCode);
       notifyListeners();
     }
   }
@@ -49,6 +51,7 @@ class ThemeProvider with ChangeNotifier {
 
   Future<void> setLocale(Locale cx) async {
     _locale = cx;
+    PostHogService().setPreferredLanguage(cx.languageCode);
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_localeKey, cx.languageCode);

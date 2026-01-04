@@ -3,7 +3,7 @@ const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onMessagePublished } = require("firebase-functions/v2/pubsub");
 const { defineJsonSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
-const nodemailer = require("nodemailer");
+// const nodemailer = require("nodemailer");
 const { getPostHogClient, flushPostHog } = require("./utils/posthogClient");
 const { logger } = require("./utils/logger");
 
@@ -12,7 +12,7 @@ admin.initializeApp();
 const gmailConfig = defineJsonSecret("FUNCTIONS_CONFIG_EXPORT");
 const playConfig = defineJsonSecret("GOOGLE_PLAY_CREDENTIALS");
 
-const APP_NAME = "SeasonBox";
+// const APP_NAME = "SeasonBox";
 
 /**
  * Triggered by a write to a family member document.
@@ -60,50 +60,53 @@ exports.sendFamilyInvitation = onDocumentWritten(
  * @param {string} inviterName The name of the inviter.
  */
 async function sendInvitationEmail(email, familyId, inviterName) {
-  const gmailEmail = gmailConfig.value().gmail.email;
-  const gmailPassword = gmailConfig.value().gmail.password;
+  // const gmailEmail = gmailConfig.value().gmail.email;
+  // const gmailPassword = gmailConfig.value().gmail.password;
 
-  const mailTransport = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: gmailEmail,
-      pass: gmailPassword,
-    },
-  });
+  // const mailTransport = nodemailer.createTransport({
+  //   service: "gmail",
+  //   auth: {
+  //     user: gmailEmail,
+  //     pass: gmailPassword,
+  //   },
+  // });
 
-  const mailOptions = {
-    from: `${APP_NAME} <noreply@firebase.com>`,
-    to: email,
-    subject: `You have been invited to join ${APP_NAME}!`,
-    html: `
-      <h2>Welcome to ${APP_NAME}!</h2>
-      <p><strong>${inviterName}</strong> has invited you to join their family on ${APP_NAME}.</p>
-      <p>To join, please use the following Family ID when signing up or linking your account:</p>
-      <h3>${familyId}</h3>
-      <br>
-      <p>Best regards,<br>The ${APP_NAME} Team</p>
-    `,
-  };
+  // const mailOptions = {
+  //   from: `${APP_NAME} <noreply@firebase.com>`,
+  //   to: email,
+  //   subject: `You have been invited to join ${APP_NAME}!`,
+  //   html: `
+  //     <h2>Welcome to ${APP_NAME}!</h2>
+  //     <p><strong>${inviterName}</strong> has invited you to join their family on ${APP_NAME}.</p>
+  //     <p>To join, please use the following Family ID when signing up or linking your account:</p>
+  //     <h3>${familyId}</h3>
+  //     <br>
+  //     <p>Best regards,<br>The ${APP_NAME} Team</p>
+  //   `,
+  // };
 
   try {
-    await mailTransport.sendMail(mailOptions);
-    await logger.info(`Invitation email sent to: ${email}`);
-    // Optional: write back to Firestore that email was sent?
-    // return admin.firestore().collection(...).doc(...).update({ inviteStatus: 'sent' });
-    // keeping it 'pending' until they actually accept is fine.
+    // await mailTransport.sendMail(mailOptions);
+    await logger.info(`Sending invitation email event "send_invitation_email" to posthog: ${email}`);
 
     const posthog = getPostHogClient();
     posthog.capture({
-      distinctId: inviterName, // Using name as ID is not ideal, but we lack UID here. Maybe use familyId temporarily.
-      event: "invitation_email_sent",
+      distinctId: familyId, // Using name as ID is not ideal, but we lack UID here. Maybe use familyId temporarily.
+      event: "send_invitation_email",
       properties: {
         recipient_email: email,
         family_id: familyId,
+        inviter_name: inviterName,
       },
     });
     await flushPostHog();
+
+    await logger.info(`Invitation email event "send_invitation_email" sent to posthog: ${email}`);
+    // Optional: write back to Firestore that email was sent?
+    // return admin.firestore().collection(...).doc(...).update({ inviteStatus: 'sent' });
+    // keeping it 'pending' until they actually accept is fine.
   } catch (error) {
-    await logger.error(`There was an error while sending the email: ${error.message}`, { context: { error } });
+    await logger.error(`There was an error while sending the invitation email event "send_invitation_email" to posthog: ${error.message}`, { context: { error } });
 
     return null;
   }

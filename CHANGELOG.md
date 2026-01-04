@@ -1,3 +1,7 @@
+## 1.8.7+54
+- **Analytics Improvement**: PostHog identification now respects user-selected language settings with a locale fallback.
+- **Backend Optimization**: Refactored invitation flow to prioritize PostHog event tracking for invitations.
+
 ## 1.8.6+53
 - **Purchase UX Improvement**: Refined the loading overlay to persist until the application confirms the updated premium status from Firestore, ensuring a smooth transition to the celebration screen without UI flickering.
 

@@ -103,18 +103,32 @@ jobs:
           storeFile=release-keystore.jks
           EOF
 
+      - name: Cache Android SDK CMake
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/lib/android/sdk/cmake
+          key: ${{ runner.os }}-android-cmake-3.22.1
+          restore-keys: |
+            ${{ runner.os }}-android-cmake-
+
       - name: Build Android Release
         run: |
-          # Enable Gradle daemon and parallel builds for faster compilation
+          # Enable Gradle daemon and optimization flags
           mkdir -p ~/.gradle
-          echo "org.gradle.daemon=true" >> ~/.gradle/gradle.properties
-          echo "org.gradle.parallel=true" >> ~/.gradle/gradle.properties
-          echo "org.gradle.caching=true" >> ~/.gradle/gradle.properties
-          echo "org.gradle.configureondemand=true" >> ~/.gradle/gradle.properties
+          cat > ~/.gradle/gradle.properties << EOF
+          org.gradle.daemon=true
+          org.gradle.parallel=true
+          org.gradle.caching=true
+          org.gradle.configureondemand=true
+          org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m
+          EOF
           
-          # Build APK for Firebase and App Bundle for Google Play
-          flutter build apk --release --no-tree-shake-icons
+          # Build App Bundle first (primary for Google Play)
           flutter build appbundle --release --no-tree-shake-icons
+          
+          # Build APK (for Firebase Distribution)
+          # Note: This will benefit from the Gradle cache populated by the previous step
+          flutter build apk --release --no-tree-shake-icons
 
       - name: Upload APK to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1

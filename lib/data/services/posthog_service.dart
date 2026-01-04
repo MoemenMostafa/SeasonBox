@@ -21,6 +21,7 @@ class PostHogService {
   static const String _host = 'https://eu.i.posthog.com';
 
   bool _initialized = false;
+  String? _preferredLanguage;
 
   /// Initialize PostHog with configuration
   Future<void> initialize() async {
@@ -46,6 +47,15 @@ class PostHogService {
       // Use print here since PostHog failed
       // ignore: avoid_print
       print('❌ Error initializing PostHog: $e');
+    }
+  }
+
+  /// Sets the user's preferred language for analytics.
+  void setPreferredLanguage(String? languageCode) {
+    _preferredLanguage = languageCode;
+    // ignore: avoid_print
+    if (kDebugMode) {
+      print('🔍 [PostHog] Preferred language set to: $languageCode');
     }
   }
 
@@ -159,7 +169,16 @@ class PostHogService {
       {required String userId, Map<String, Object>? userProperties}) async {
     if (!_initialized) return;
     try {
-      await Posthog().identify(userId: userId, userProperties: userProperties);
+      // Prioritize preferred language, fallback to system language
+      final String currentLanguage =
+          _preferredLanguage ?? PlatformDispatcher.instance.locale.languageCode;
+
+      final Map<String, Object> properties = {
+        'language': currentLanguage,
+        if (userProperties != null) ...userProperties,
+      };
+
+      await Posthog().identify(userId: userId, userProperties: properties);
     } catch (e) {
       logError('posthog_identify_failed', e);
     }
