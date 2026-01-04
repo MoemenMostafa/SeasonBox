@@ -232,13 +232,15 @@ class SubscriptionService extends ChangeNotifier {
         if (purchaseDetails.status == PurchaseStatus.error) {
           PostHogService.log('Purchase error: ${purchaseDetails.error}',
               level: LogLevel.error);
+          notifyListeners();
+        } else if (purchaseDetails.status == PurchaseStatus.canceled) {
+          PostHogService.log('Purchase canceled', level: LogLevel.info);
+          notifyListeners();
         } else if (purchaseDetails.status == PurchaseStatus.purchased ||
             purchaseDetails.status == PurchaseStatus.restored) {
-          final bool valid = await _verifyPurchase(purchaseDetails);
-          if (valid) {
-            // Success!
-            notifyListeners();
-          }
+          await _verifyPurchase(purchaseDetails);
+          // Always notify so UI can stop loading/processing spinners
+          notifyListeners();
         }
         if (purchaseDetails.pendingCompletePurchase) {
           await _iap.completePurchase(purchaseDetails);

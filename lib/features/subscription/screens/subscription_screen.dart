@@ -61,6 +61,10 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     final service = context.read<SubscriptionService>();
     final userProvider = context.read<UserProfileProvider>();
 
+    // We received an update from the service (purchased, canceled, error, verified)
+    // so we should stop the local processing loader.
+    _stopProcessing();
+
     // If user just became premium, show celebration!
     // Note: The listener on UserProfileProvider (in didChangeDependencies or similar)
     // is more reliable for catching the state change from Firestore.

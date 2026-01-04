@@ -1,3 +1,6 @@
+## 1.8.5+52
+- **Purchase Fix**: Fixed an issue where the loading overlay would persist after canceling the Google Play payment dialog. The loader now correctly dismisses on cancellation or store errors.
+
 ## 1.8.4+51
 - **Purchase Experience**: Added a loading overlay during subscription processing with a 30-second timeout to improve UI feedback.
 - **UI Cleanup**: Removed redundant "Purchase restored successfully" notification.
