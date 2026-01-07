@@ -1,3 +1,6 @@
+## 1.8.8+55
+- **Navigation Refinement**: Updated `SeasonBoxAppBar` navigation logic to prioritize the back button in modals and detail screens, while restricting the profile picture to root tab pages.
+
 ## 1.8.7+54
 - **Analytics Improvement**: PostHog identification now respects user-selected language settings with a locale fallback.
 - **Backend Optimization**: Refactored invitation flow to prioritize PostHog event tracking for invitations.
