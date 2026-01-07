@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:posthog_flutter/posthog_flutter.dart';
+import 'package:seasonbox/data/services/posthog_service.dart';
 
 import 'package:seasonbox/features/auth/data/auth_service.dart';
 import 'package:seasonbox/features/auth/presentation/screens/login_screen.dart';
@@ -105,23 +106,47 @@ class AppRouter {
           path: '/members',
           builder: (context, state) => const FamilyMembersScreen()),
       GoRoute(
-          path: '/storage', builder: (context, state) => const StorageScreen()),
+          path: '/storage',
+          builder: (context, state) {
+            final locationId = state.uri.queryParameters['id'];
+            if (locationId != null) {
+              PostHogService().captureEvent('deeplink_opened', properties: {
+                'route': '/storage',
+                'locationId': locationId,
+              });
+            }
+            return StorageScreen(initialLocationId: locationId);
+          }),
       GoRoute(
           path: '/items',
           builder: (context, state) {
+            final memberId = state.uri.queryParameters['memberId'];
+            final locationId = state.uri.queryParameters['locationId'];
             final extra = state.extra;
+
+            if (memberId != null || locationId != null) {
+              PostHogService().captureEvent('deeplink_opened', properties: {
+                'route': '/items',
+                if (memberId != null) 'memberId': memberId,
+                if (locationId != null) 'locationId': locationId,
+              });
+            }
+
             if (extra is Map) {
-              // Handle Map (works with both Map<String, dynamic> and IdentityMap)
               return ItemsScreen(
-                initialMemberId: extra['initialMemberId'] as String?,
+                initialMemberId:
+                    extra['initialMemberId'] as String? ?? memberId,
                 initialStorageLocationId:
-                    extra['initialStorageLocationId'] as String?,
+                    extra['initialStorageLocationId'] as String? ?? locationId,
               );
             } else if (extra is String) {
-              // For backward compatibility with member ID only
               return ItemsScreen(initialMemberId: extra);
             }
-            return const ItemsScreen();
+
+            return ItemsScreen(
+              initialMemberId: memberId,
+              initialStorageLocationId: locationId,
+            );
           }),
       GoRoute(
           path: '/qr-scanner',

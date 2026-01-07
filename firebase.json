@@ -47,6 +47,10 @@
         "cleanUrls": true,
         "rewrites": [
             {
+                "source": "/.well-known/**",
+                "destination": "/.well-known/"
+            },
+            {
                 "source": "/*/privacy",
                 "destination": "/privacy.html"
             },

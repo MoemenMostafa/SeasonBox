@@ -17,7 +17,8 @@ import 'package:seasonbox/l10n/app_localizations.dart';
 import '../../../core/services/permission_service.dart';
 
 class StorageScreen extends StatefulWidget {
-  const StorageScreen({super.key});
+  final String? initialLocationId;
+  const StorageScreen({super.key, this.initialLocationId});
 
   @override
   State<StorageScreen> createState() => _StorageScreenState();
@@ -427,7 +428,10 @@ class _StorageScreenState extends State<StorageScreen> {
                 l.type.toLowerCase().contains(_selectedFilter.toLowerCase());
       }
 
-      if (matchesSearch && matchesFilter) {
+      final isDirectMatch =
+          widget.initialLocationId != null && l.id == widget.initialLocationId;
+
+      if (isDirectMatch || (matchesSearch && matchesFilter)) {
         matchingIds.add(l.id);
       }
     }
