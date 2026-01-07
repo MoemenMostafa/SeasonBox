@@ -8,7 +8,8 @@
             "package_name": "io.mos.seasonbox",
             "sha256_cert_fingerprints": [
                 "2B:78:66:7C:86:8B:E6:D7:32:EA:C3:E9:D1:D8:66:9B:EA:83:F3:67:FD:0D:73:5A:79:22:60:0B:EF:E2:EF:C7",
-                "6E:24:47:33:8F:F9:18:1E:34:57:EC:CC:ED:E5:F8:DB:44:BD:E3:24:31:A8:53:F8:0F:CC:39:90:61:B7:BA:25"
+                "6E:24:47:33:8F:F9:18:1E:34:57:EC:CC:ED:E5:F8:DB:44:BD:E3:24:31:A8:53:F8:0F:CC:39:90:61:B7:BA:25",
+                "A3:0D:15:E6:1A:39:7A:7C:6D:89:7D:CC:2C:24:50:EB:79:B6:41:8A:CD:78:DE:4A:D2:CF:EA:3C:DC:40:1B:E1"
             ]
         }
     }
