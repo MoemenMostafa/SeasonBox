@@ -46,8 +46,8 @@ class AppRouter {
       if (deepLinkProvider.shouldTrack(fullUrl)) {
         final params = uri.queryParameters;
         final campaignId = params['campaign_id'];
-        final locationId = params['locationId'] ?? params['id'];
-        final memberId = params['memberId'];
+        final locationId = params['location_id'] ?? params['id'];
+        final memberId = params['member_id'];
 
         PostHogService().captureEvent('deeplink_opened', properties: {
           'path': uri.path,
