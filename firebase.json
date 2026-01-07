@@ -41,15 +41,11 @@
         "public": "website",
         "ignore": [
             "firebase.json",
-            "**/.*",
-            "**/node_modules/**"
+            "**/node_modules/**",
+            ".DS_Store"
         ],
         "cleanUrls": true,
         "rewrites": [
-            {
-                "source": "/.well-known/**",
-                "destination": "/.well-known/"
-            },
             {
                 "source": "/*/privacy",
                 "destination": "/privacy.html"
