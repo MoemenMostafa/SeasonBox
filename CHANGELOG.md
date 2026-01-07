@@ -1,4 +1,6 @@
 ## 1.8.8+55
+- **Deep Linking**: Implemented support for both custom URL schemes (`seasonbox://`) and platform-native links (`https://seasonbox.app`), allowing direct navigation to Dashboard, Storage, Items, and Subscription pages.
+- **Enhanced Analytics**: Integrated PostHog tracking for deep link openings (`deeplink_opened`) with parameter contextualization.
 - **Navigation Refinement**: Updated `SeasonBoxAppBar` navigation logic to prioritize the back button in modals and detail screens, while restricting the profile picture to root tab pages.
 
 ## 1.8.7+54

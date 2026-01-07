@@ -67,6 +67,7 @@ Provider<PostHogService>.value(value: postHogService)
 #### 1. Core Analytics
 - User identification (`PostHogService().identify`)
 - Event tracking (`PostHogService.log`)
+- Deep Link Tracking (Captured in `GoRouter` via `deeplink_opened` event)
 #### Automatic Screen Tracking (GoRouter)
 
 Automatic screen tracking is enabled by adding the `PosthogObserver` to the router configuration in [`lib/app/routes/router.dart`](file:///Users/m.mostafa/Workspace/code/SeasonBox/lib/app/routes/router.dart):
@@ -286,6 +287,21 @@ await postHog.screen(
   },
 );
 ```
+
+#### Deep Link Tracking
+
+When the app is opened via a deep link (App Link or Universal Link), an event is automatically captured in the router:
+
+**Location**: [`lib/app/routes/router.dart`](file:///Users/m.mostafa/Workspace/code/SeasonBox/lib/app/routes/router.dart)
+
+```dart
+PostHogService().captureEvent('deeplink_opened', properties: {
+  'route': '/items',
+  'memberId': memberId,
+  'locationId': locationId,
+});
+```
+
 
 #### Performance & Latency Tracking
 
