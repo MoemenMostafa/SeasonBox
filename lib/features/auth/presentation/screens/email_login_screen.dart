@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:seasonbox/app/theme/theme.dart';
 import 'package:seasonbox/features/auth/data/auth_service.dart';
+import 'package:seasonbox/app/providers/deep_link_provider.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
 import 'package:seasonbox/features/auth/presentation/widgets/animated_background_icon.dart';
 import 'package:seasonbox/core/utils/url_helper.dart';
@@ -37,13 +38,21 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
       });
 
       try {
-        final authService = Provider.of<AuthService>(context, listen: false);
-        await authService.signInWithEmailAndPassword(
+        await Provider.of<AuthService>(context, listen: false)
+            .signInWithEmailAndPassword(
           _emailController.text.trim(),
           _passwordController.text,
         );
         if (mounted) {
-          context.go('/home');
+          final deepLinkProvider =
+              Provider.of<DeepLinkProvider>(context, listen: false);
+          final redirect = deepLinkProvider.pendingRedirect;
+          if (redirect != null) {
+            deepLinkProvider.clearPendingRedirect();
+            context.go(redirect);
+          } else {
+            context.go('/home');
+          }
         }
       } catch (e) {
         if (mounted) {

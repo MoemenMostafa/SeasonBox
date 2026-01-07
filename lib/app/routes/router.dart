@@ -26,27 +26,54 @@ import 'package:seasonbox/features/subscription/screens/subscription_screen.dart
 import 'package:seasonbox/features/subscription/screens/premium_congratulations_screen.dart';
 import 'package:seasonbox/features/auth/presentation/screens/welcome_screen.dart';
 
+import 'package:seasonbox/app/providers/deep_link_provider.dart';
+
 class AppRouter {
   final AuthService authService;
+  final DeepLinkProvider deepLinkProvider;
 
-  AppRouter(this.authService);
+  AppRouter(this.authService, this.deepLinkProvider);
 
   late final GoRouter router = GoRouter(
     initialLocation: '/login', // Default, redirect will handle the rest
     refreshListenable: authService,
     observers: [PosthogObserver()],
     redirect: (context, state) {
+      final uri = state.uri;
+      final fullUrl = uri.toString();
+
+      // Centralized Deep Link Tracking
+      if (deepLinkProvider.shouldTrack(fullUrl)) {
+        final params = uri.queryParameters;
+        final campaignId = params['campaign_id'];
+        final locationId = params['locationId'] ?? params['id'];
+        final memberId = params['memberId'];
+
+        PostHogService().captureEvent('deeplink_opened', properties: {
+          'path': uri.path,
+          'full_url': fullUrl,
+          if (campaignId != null) 'campaign_id': campaignId,
+          if (locationId != null) 'location_id': locationId,
+          if (memberId != null) 'member_id': memberId,
+        });
+      }
+
       final isLoggedIn = authService.currentUser != null;
       final isDemo = authService.isDemoMode;
       final isAuthenticated = isLoggedIn || isDemo;
 
-      final isLoginRoute = state.uri.path == '/login' ||
-          state.uri.path == '/email-login' ||
-          state.uri.path == '/register';
+      final isLoginRoute = uri.path == '/login' ||
+          uri.path == '/email-login' ||
+          uri.path == '/register';
 
       if (!isAuthenticated) {
         // If not authenticated, always redirect to login (unless already there)
-        return isLoginRoute ? null : '/login';
+        if (isLoginRoute) return null;
+
+        // Preserve the intended destination in the provider
+        deepLinkProvider.setPendingRedirect(fullUrl);
+
+        return '/login';
       }
 
       if (isAuthenticated && isLoginRoute) {
@@ -109,12 +136,6 @@ class AppRouter {
           path: '/storage',
           builder: (context, state) {
             final locationId = state.uri.queryParameters['id'];
-            if (locationId != null) {
-              PostHogService().captureEvent('deeplink_opened', properties: {
-                'route': '/storage',
-                'locationId': locationId,
-              });
-            }
             return StorageScreen(initialLocationId: locationId);
           }),
       GoRoute(
@@ -123,14 +144,6 @@ class AppRouter {
             final memberId = state.uri.queryParameters['memberId'];
             final locationId = state.uri.queryParameters['locationId'];
             final extra = state.extra;
-
-            if (memberId != null || locationId != null) {
-              PostHogService().captureEvent('deeplink_opened', properties: {
-                'route': '/items',
-                if (memberId != null) 'memberId': memberId,
-                if (locationId != null) 'locationId': locationId,
-              });
-            }
 
             if (extra is Map) {
               return ItemsScreen(

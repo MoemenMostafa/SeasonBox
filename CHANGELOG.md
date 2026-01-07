@@ -1,3 +1,9 @@
+## 1.8.9+56
+- **Deferred Deep Linking**: Unified unauthenticated redirection flow using a centralized `DeepLinkProvider`, ensuring users land on their intended destination after login, registration, and onboarding.
+- **Safe Analytics**: Enhanced PostHog tracking in `AppRouter` with parameter whitelisting to prevent PII leaks and ensure data quality.
+- **Deep Link Documentation**: Added comprehensive integration guide in `docs/deeplink_integration.md`.
+- **Infrastructure**: Updated `firebase.json` for proper `.well-known` serving and verification.
+
 ## 1.8.8+55
 - **Deep Linking**: Implemented support for both custom URL schemes (`seasonbox://`) and platform-native links (`https://seasonbox.app`), allowing direct navigation to Dashboard, Storage, Items, and Subscription pages.
 - **Enhanced Analytics**: Integrated PostHog tracking for deep link openings (`deeplink_opened`) with parameter contextualization.

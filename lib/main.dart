@@ -16,6 +16,7 @@ import 'package:seasonbox/app/routes/router.dart';
 import 'package:seasonbox/app/theme/theme.dart';
 import 'package:seasonbox/app/providers/navigation_provider.dart';
 import 'package:seasonbox/app/providers/theme_provider.dart';
+import 'package:seasonbox/app/providers/deep_link_provider.dart';
 import 'package:seasonbox/data/services/firestore_service.dart';
 import 'package:seasonbox/data/repositories/family_repository.dart';
 import 'package:seasonbox/data/repositories/family_member_repository.dart';
@@ -186,9 +187,12 @@ class SeasonBox extends StatelessWidget {
         ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
         ChangeNotifierProvider<NavigationProvider>(
             create: (_) => NavigationProvider()),
+        ChangeNotifierProvider<DeepLinkProvider>(
+            create: (_) => DeepLinkProvider()),
         ChangeNotifierProvider<AuthService>(create: (_) => AuthService()),
-        ProxyProvider<AuthService, AppRouter>(
-          update: (_, authService, __) => AppRouter(authService),
+        ProxyProvider2<AuthService, DeepLinkProvider, AppRouter>(
+          update: (_, authService, deepLinkProvider, __) =>
+              AppRouter(authService, deepLinkProvider),
         ),
         Provider<FirestoreService>(create: (_) => FirestoreService()),
         Provider<BiometricService>(create: (_) => BiometricService()),

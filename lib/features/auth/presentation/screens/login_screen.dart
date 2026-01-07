@@ -10,6 +10,7 @@ import 'package:seasonbox/features/auth/presentation/widgets/animated_background
 import 'package:seasonbox/data/services/biometric_service.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
 
+import 'package:seasonbox/app/providers/deep_link_provider.dart';
 import 'package:seasonbox/core/utils/url_helper.dart';
 import 'package:seasonbox/data/services/remote_config_service.dart';
 import 'package:flutter/gestures.dart';
@@ -45,6 +46,8 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
+    final deepLinkProvider =
+        Provider.of<DeepLinkProvider>(context, listen: false);
 
     return Scaffold(
       body: Stack(
@@ -231,7 +234,14 @@ class _LoginScreenState extends State<LoginScreen>
                                           level: LogLevel.error);
                                     }
                                     if (context.mounted) {
-                                      context.go('/home');
+                                      final redirect =
+                                          deepLinkProvider.pendingRedirect;
+                                      if (redirect != null) {
+                                        deepLinkProvider.clearPendingRedirect();
+                                        context.go(redirect);
+                                      } else {
+                                        context.go('/home');
+                                      }
                                     }
                                   } else if (context.mounted) {
                                     // User cancelled or sign-in failed
@@ -356,7 +366,15 @@ class _LoginScreenState extends State<LoginScreen>
                                               creds['password']!,
                                             );
                                             if (context.mounted) {
-                                              context.go('/home');
+                                              final redirect = deepLinkProvider
+                                                  .pendingRedirect;
+                                              if (redirect != null) {
+                                                deepLinkProvider
+                                                    .clearPendingRedirect();
+                                                context.go(redirect);
+                                              } else {
+                                                context.go('/home');
+                                              }
                                             }
                                           }
                                         } catch (e) {

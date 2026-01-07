@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:confetti/confetti.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:seasonbox/app/providers/deep_link_provider.dart';
 import 'package:seasonbox/l10n/app_localizations.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -123,7 +125,18 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       width: double.infinity,
                       height: 56,
                       child: ElevatedButton(
-                        onPressed: () => context.go('/home'),
+                        onPressed: () {
+                          final deepLinkProvider =
+                              Provider.of<DeepLinkProvider>(context,
+                                  listen: false);
+                          final redirect = deepLinkProvider.pendingRedirect;
+                          if (redirect != null) {
+                            deepLinkProvider.clearPendingRedirect();
+                            context.go(redirect);
+                          } else {
+                            context.go('/home');
+                          }
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: colorScheme.primary,
                           foregroundColor: colorScheme.onPrimary,
