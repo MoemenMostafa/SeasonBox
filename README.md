@@ -4,6 +4,11 @@
 
 [**seasonbox.app**](https://seasonbox.app)
 
+<p align="center">
+  <img src="website/assets/screenshots/home.png" width="300" alt="SeasonBox Home Screen">
+</p>
+
+
 
 SeasonBox is a mobile application that helps families manage seasonal items (clothes, shoes, gear, boxes, etc.), track which child each item fits, store inventory with photos and storage locations, and receive reminders based on season changes and predicted child growth.
 
