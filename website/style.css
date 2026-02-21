@@ -245,7 +245,7 @@ select#languageSelect {
 
 
 .cta-buttons img {
-    height: 48px;
+    height: 68px;
     /* Slightly smaller for better proportion */
     transition: transform 0.2s;
 }
