@@ -1,6 +1,8 @@
 # SeasonBox
 
-[![Get it on Google Play](website/assets/images/google/badge_en.png)](https://play.google.com/store/apps/details?id=io.mos.seasonbox)
+<a href="https://play.google.com/store/apps/details?id=io.mos.seasonbox">
+  <img src="website/assets/images/google/badge_en.png" alt="Get it on Google Play" height="36">
+</a>
 
 [**seasonbox.app**](https://seasonbox.app)
 
